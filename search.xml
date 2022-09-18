@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title></title>
+    <url>/2022/09/19/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<p>下列描述正确的是：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Test</span> &#123;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">private</span> B ref;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setB</span><span class="params">(B b)</span> &#123;</span><br><span class="line">ref = b;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Class B &#123;</span><br><span class="line"><span class="keyword">private</span> A ref;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setA</span><span class="params">(A a)</span> &#123;</span><br><span class="line">ref = a;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String args[])</span> &#123;</span><br><span class="line">…</span><br><span class="line">start();</span><br><span class="line">….</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123; <span class="type">A</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">A</span>();</span><br><span class="line"><span class="type">B</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">B</span>();</span><br><span class="line">a.setB(b);</span><br><span class="line">b = <span class="literal">null</span>; <span class="comment">//</span></span><br><span class="line">a = <span class="literal">null</span>;</span><br><span class="line">…</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://fastly.jsdelivr.net/gh/GitHubqijianyeah/images/img/202209190159870.png" alt="image-20210625150956267-1624616062865"></p>
+<p>解答：<img src="https://fastly.jsdelivr.net/gh/GitHubqijianyeah/images/img/202209190200529.png" alt="可达性分析算法-1624616318114"></p>
+<p>程序执行完a.start() 方法时，分析上如图。<br>b &#x3D; null;  此时 GC Roots 直接到 b 对象的关联断开，但此时对象a和b到GC Roots都有引用链相连，此对象依然是可用的。对象a和b都不会被回收。<br>a &#x3D; null ; 此时GC Roots到对象a和GC Roots到对象b的关联都断开，也就是说两个对象到GC Roots没有引用链相连。此时对象a和对象b都是可回收的。</p>
+<p>所以A 是错误的 BC是真确的。</p>
+<p>对于E  不会发生内存溢出</p>
+<p>D与F:我们先看一下在程序的代码中没有System.gc();方法也就是说GC的触发是不可控制的。什么时候触发垃圾回收机制主要是看内存。</p>
+]]></content>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2022/09/18/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
