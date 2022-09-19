@@ -1,36 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title></title>
-    <url>/2022/09/19/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E7%9A%84%E5%89%AF%E6%9C%AC/</url>
-    <content><![CDATA[<h4 id="判断一个对象是否可回收"><a href="#判断一个对象是否可回收" class="headerlink" title="判断一个对象是否可回收"></a>判断一个对象是否可回收</h4><p>&#x3D;&#x3D;<strong>Java的内存管理子系统，是通过可达性分析算法来判定对象是否存活。</strong>&#x3D;&#x3D;</p>
-<p><strong>引用计数法</strong></p>
-<p>给对象添加一个引用计数器，每当有一个地方引用，计数器就加 1 。当引用失效，计数器就减 1 。任何时候计数器为 0 的对象就是不可能再被使用的。</p>
-<p>引用计数法实现简单，效率高，但是目前主流的虚拟机中<strong>没有选择这个算法来管理内存，最主要的原因是它很难解决对象之前相互循环引用的问题</strong>。</p>
-<p>相互引用：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将Main class设置为想要查看GC日志的类</span></span><br><span class="line"><span class="comment"> * VM options : -XX:+PrintGCDetails</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReferenceCountingGC</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">Object</span> <span class="variable">reference</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">_1MB</span> <span class="operator">=</span> <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 这个成员变量的唯一意义就是占点内存，以便能够在GC日志中看清楚是否有回收过</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">byte</span>[] bigSize = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">2</span> * _1MB];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objectA</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objectB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        objectA.reference = objectB;</span><br><span class="line">        objectB.reference = objectA;</span><br><span class="line">        objectA = <span class="literal">null</span>;</span><br><span class="line">        objectB = <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">//假设在这行发生GC，objectA和objectB是否能够被回收</span></span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * [PSYoungGen: 8030K-&gt;872K(75776K)] 8030K-&gt;880K(249344K)</span></span><br><span class="line"><span class="comment"> * 如果使用引用计数算法，那么这两个对象将会无法回收。</span></span><br><span class="line"><span class="comment"> * 而现在两个对象被回收了，说明Java使用的不是引用计数算法来进行标记的。</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202209192340915.png" alt="image-20210729160651718的副本"></p>
-<p>在Java领域，至少主流的Java虚拟机里面都没有选用引用计数算法来管理内存，主要原因是，必须要配合大量的额外处理才能保证正确的工作，比如单纯的引用计算很难解决对象之间相互循环引用问题。</p>
-<p><strong>可达性分析算法</strong></p>
-<p>通过一系列的称为 “GC Roots” 的对象作为起点集，从这些节点开始向下搜索，搜索过程所走过的路径称为<strong>引用链</strong>（Reference Chain），当一个对象到GC Roots没有任何引用链相连的话，则证明此对象时不可用的。</p>
-<p>利用可达性分析算法判定对象是否可回收</p>
-<p>对象object5，object6，object7虽然没有相互关联，但是他们到GC Roots是不可达的，因此他们判定为可回收对象</p>
-<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202209192340629.png" alt="image-20210729160736419"></p>
-<p>Java技术体系里面。固定可作为GC Roots的对象包括一下几种：</p>
-<ul>
-<li>虚拟机栈中局部变量表中引用的对象</li>
-<li>在方法区中类静态属性引用对象，比如类的引用型静态变量</li>
-<li>方法区中的常量引用的对象</li>
-<li>本地方法栈中 JNI 中引用的对象（Native方法）</li>
-<li>Java虚拟机内部的引用，如基本数据类型对应的Class对象，一些常驻对象（NullPointException，OutOfMemoryError)等，还有一些类加载器</li>
-<li>所有被同步锁（synchronized关键字）支持的对象</li>
-<li>反映Java虚拟机内部情况的JMXBean,JVMTI中注册回调，本地代码缓存等。</li>
-</ul>
-]]></content>
-  </entry>
-  <entry>
-    <title></title>
-    <url>/2022/09/19/%E8%87%AA%E5%8A%A8%E6%8B%86%E7%AE%B1%E4%B8%8E%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</url>
+    <title>Hello World</title>
+    <url>/2019/06/28/%E8%87%AA%E5%8A%A8%E6%8B%86%E7%AE%B1%E4%B8%8E%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<h6 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">boolean</span> <span class="variable">f</span> <span class="operator">=</span> a==b;</span><br></pre></td></tr></table></figure>
 
 <p>这里的输出是true，通过断点分析发现，在进行**&#x3D;&#x3D;**判断的时候Integer类型的a拆箱，然后再对像个int类型的数据进行比较</p>
@@ -56,6 +28,37 @@
 <li>Integer的值在-128到127时，Integer对象是在IntegerCache.cache产生，会复用已有对象，也就是说，这个区间的Integer可以直接用等号进行判断。</li>
 <li>Integer的值在-128到127之外时，Integer对象在堆上产生，不会复用已有对象，用等号会返回false</li>
 </ol>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2022/09/19/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E7%9A%84%E5%89%AF%E6%9C%AC/</url>
+    <content><![CDATA[<h4 id="判断一个对象是否可回收"><a href="#判断一个对象是否可回收" class="headerlink" title="判断一个对象是否可回收"></a>判断一个对象是否可回收</h4><p>&#x3D;&#x3D;<strong>Java的内存管理子系统，是通过可达性分析算法来判定对象是否存活。</strong>&#x3D;&#x3D;</p>
+<p><strong>引用计数法</strong></p>
+<p>给对象添加一个引用计数器，每当有一个地方引用，计数器就加 1 。当引用失效，计数器就减 1 。任何时候计数器为 0 的对象就是不可能再被使用的。</p>
+<p>引用计数法实现简单，效率高，但是目前主流的虚拟机中<strong>没有选择这个算法来管理内存，最主要的原因是它很难解决对象之前相互循环引用的问题</strong>。</p>
+<p>相互引用：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将Main class设置为想要查看GC日志的类</span></span><br><span class="line"><span class="comment"> * VM options : -XX:+PrintGCDetails</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReferenceCountingGC</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">Object</span> <span class="variable">reference</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">_1MB</span> <span class="operator">=</span> <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 这个成员变量的唯一意义就是占点内存，以便能够在GC日志中看清楚是否有回收过</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">byte</span>[] bigSize = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">2</span> * _1MB];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objectA</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objectB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        objectA.reference = objectB;</span><br><span class="line">        objectB.reference = objectA;</span><br><span class="line">        objectA = <span class="literal">null</span>;</span><br><span class="line">        objectB = <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">//假设在这行发生GC，objectA和objectB是否能够被回收</span></span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * [PSYoungGen: 8030K-&gt;872K(75776K)] 8030K-&gt;880K(249344K)</span></span><br><span class="line"><span class="comment"> * 如果使用引用计数算法，那么这两个对象将会无法回收。</span></span><br><span class="line"><span class="comment"> * 而现在两个对象被回收了，说明Java使用的不是引用计数算法来进行标记的。</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202209192340915.png" alt="image-20210729160651718的副本"></p>
+<p>在Java领域，至少主流的Java虚拟机里面都没有选用引用计数算法来管理内存，主要原因是，必须要配合大量的额外处理才能保证正确的工作，比如单纯的引用计算很难解决对象之间相互循环引用问题。</p>
+<p><strong>可达性分析算法</strong></p>
+<p>通过一系列的称为 “GC Roots” 的对象作为起点集，从这些节点开始向下搜索，搜索过程所走过的路径称为<strong>引用链</strong>（Reference Chain），当一个对象到GC Roots没有任何引用链相连的话，则证明此对象时不可用的。</p>
+<p>利用可达性分析算法判定对象是否可回收</p>
+<p>对象object5，object6，object7虽然没有相互关联，但是他们到GC Roots是不可达的，因此他们判定为可回收对象</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202209192340629.png" alt="image-20210729160736419"></p>
+<p>Java技术体系里面。固定可作为GC Roots的对象包括一下几种：</p>
+<ul>
+<li>虚拟机栈中局部变量表中引用的对象</li>
+<li>在方法区中类静态属性引用对象，比如类的引用型静态变量</li>
+<li>方法区中的常量引用的对象</li>
+<li>本地方法栈中 JNI 中引用的对象（Native方法）</li>
+<li>Java虚拟机内部的引用，如基本数据类型对应的Class对象，一些常驻对象（NullPointException，OutOfMemoryError)等，还有一些类加载器</li>
+<li>所有被同步锁（synchronized关键字）支持的对象</li>
+<li>反映Java虚拟机内部情况的JMXBean,JVMTI中注册回调，本地代码缓存等。</li>
+</ul>
 ]]></content>
   </entry>
   <entry>
