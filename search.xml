@@ -1,39 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Hello World</title>
-    <url>/2019/06/28/%E8%87%AA%E5%8A%A8%E6%8B%86%E7%AE%B1%E4%B8%8E%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<h6 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">boolean</span> <span class="variable">f</span> <span class="operator">=</span> a==b;</span><br></pre></td></tr></table></figure>
-
-<p>这里的输出是true，通过断点分析发现，在进行**&#x3D;&#x3D;**判断的时候Integer类型的a拆箱，然后再对像个int类型的数据进行比较</p>
-<h6 id="问题2"><a href="#问题2" class="headerlink" title="问题2"></a>问题2</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">boolean</span> <span class="variable">ff</span> <span class="operator">=</span> a.equals(b);</span><br></pre></td></tr></table></figure>
-
-<p>这里自己先分析一下，应该是先对b进行装箱，让后再进行equal比较。断点分析一下，确实如此</p>
-<p><strong>通过断点测试发现：一个Integer·数据和一个int数据进行+，-，*，&#x2F;,%运算都是先拆箱成int类型的数据在进行运算的</strong></p>
-<p>个人看法：开发jdk的类代码的人都是大牛中的大牛，考虑问题一定很完全，会找到之间复杂度与空间复杂度对小的实现来完成。所以自动拆箱与自动装箱的过程也就不难理解了</p>
-<h6 id="问题3"><a href="#问题3" class="headerlink" title="问题3"></a>问题3</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Integer i=<span class="literal">null</span>;</span><br><span class="line"><span class="type">int</span> j=i;</span><br></pre></td></tr></table></figure>
-
-<p>运行：</p>
-<p>报错，NullPointerException</p>
-<p>分析：i是Integer类型的值为null的对象，第二行，i进行拆箱调用intValue()方法代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">intValue</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>&#x3D;&#x3D;从代码中可以发现return返回value，但实际上他写完整是：this.value 。所以当Integer对象为null拆箱时，会报空指针异常。&#x3D;&#x3D;</p>
-<h6 id="问题4"><a href="#问题4" class="headerlink" title="问题4"></a>问题4</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Integer a=<span class="number">127</span>;</span><br><span class="line">Integer b=<span class="number">127</span>;</span><br><span class="line">Integer c=<span class="number">128</span>;</span><br><span class="line">Integer d=<span class="number">128</span>;</span><br><span class="line">System.out.println(a==b);</span><br><span class="line">System.out.println(c==d);</span><br></pre></td></tr></table></figure>
-
-<p>不妨先想想这个的输出结果，乍一看立马就会脱口而出两个true。</p>
-<p>但实际上是true，false。</p>
-<p>原因：</p>
-<ol>
-<li>Integer的值在-128到127时，Integer对象是在IntegerCache.cache产生，会复用已有对象，也就是说，这个区间的Integer可以直接用等号进行判断。</li>
-<li>Integer的值在-128到127之外时，Integer对象在堆上产生，不会复用已有对象，用等号会返回false</li>
-</ol>
-]]></content>
-      <categories>
-        <category>hexo</category>
-      </categories>
-  </entry>
-  <entry>
     <title></title>
     <url>/2022/09/19/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E7%9A%84%E5%89%AF%E6%9C%AC/</url>
     <content><![CDATA[<h4 id="判断一个对象是否可回收"><a href="#判断一个对象是否可回收" class="headerlink" title="判断一个对象是否可回收"></a>判断一个对象是否可回收</h4><p>&#x3D;&#x3D;<strong>Java的内存管理子系统，是通过可达性分析算法来判定对象是否存活。</strong>&#x3D;&#x3D;</p>
@@ -100,5 +67,38 @@
 <p>这篇文章几乎全来自于原文，这里学习了记录一下。感谢作者</p>
 <h4 id="说明serialVersionUID"><a href="#说明serialVersionUID" class="headerlink" title="说明serialVersionUID"></a>说明serialVersionUID</h4><p> serialVersionUID是Serializable类的通用版本标识符。反序列化使用这个数字来确保加载的类与序列化的对象完全对应。如果没有找到匹配，则抛出InvalidClassException。|।1。始终将它作为一个字段包含，例如:”private static final long serialVersionUID &#x3D; 7526472295622776147L: “即使在类的第一个版本中也要包含这个字段，以提醒它的重要性。不要在未来的版本中更改此字段的值，除非你有意地对类进行更改，使其与旧的序列化对象不兼容。如有需要，请遵循上述指导方针</p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2019/06/28/%E8%87%AA%E5%8A%A8%E6%8B%86%E7%AE%B1%E4%B8%8E%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h6 id="问题1"><a href="#问题1" class="headerlink" title="问题1"></a>问题1</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">boolean</span> <span class="variable">f</span> <span class="operator">=</span> a==b;</span><br></pre></td></tr></table></figure>
+
+<p>这里的输出是true，通过断点分析发现，在进行**&#x3D;&#x3D;**判断的时候Integer类型的a拆箱，然后再对像个int类型的数据进行比较</p>
+<h6 id="问题2"><a href="#问题2" class="headerlink" title="问题2"></a>问题2</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Integer</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> <span class="number">9</span>;</span><br><span class="line"><span class="type">boolean</span> <span class="variable">ff</span> <span class="operator">=</span> a.equals(b);</span><br></pre></td></tr></table></figure>
+
+<p>这里自己先分析一下，应该是先对b进行装箱，让后再进行equal比较。断点分析一下，确实如此</p>
+<p><strong>通过断点测试发现：一个Integer·数据和一个int数据进行+，-，*，&#x2F;,%运算都是先拆箱成int类型的数据在进行运算的</strong></p>
+<p>个人看法：开发jdk的类代码的人都是大牛中的大牛，考虑问题一定很完全，会找到之间复杂度与空间复杂度对小的实现来完成。所以自动拆箱与自动装箱的过程也就不难理解了</p>
+<h6 id="问题3"><a href="#问题3" class="headerlink" title="问题3"></a>问题3</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Integer i=<span class="literal">null</span>;</span><br><span class="line"><span class="type">int</span> j=i;</span><br></pre></td></tr></table></figure>
+
+<p>运行：</p>
+<p>报错，NullPointerException</p>
+<p>分析：i是Integer类型的值为null的对象，第二行，i进行拆箱调用intValue()方法代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">intValue</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&#x3D;&#x3D;从代码中可以发现return返回value，但实际上他写完整是：this.value 。所以当Integer对象为null拆箱时，会报空指针异常。&#x3D;&#x3D;</p>
+<h6 id="问题4"><a href="#问题4" class="headerlink" title="问题4"></a>问题4</h6><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Integer a=<span class="number">127</span>;</span><br><span class="line">Integer b=<span class="number">127</span>;</span><br><span class="line">Integer c=<span class="number">128</span>;</span><br><span class="line">Integer d=<span class="number">128</span>;</span><br><span class="line">System.out.println(a==b);</span><br><span class="line">System.out.println(c==d);</span><br></pre></td></tr></table></figure>
+
+<p>不妨先想想这个的输出结果，乍一看立马就会脱口而出两个true。</p>
+<p>但实际上是true，false。</p>
+<p>原因：</p>
+<ol>
+<li>Integer的值在-128到127时，Integer对象是在IntegerCache.cache产生，会复用已有对象，也就是说，这个区间的Integer可以直接用等号进行判断。</li>
+<li>Integer的值在-128到127之外时，Integer对象在堆上产生，不会复用已有对象，用等号会返回false</li>
+</ol>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
   </entry>
 </search>
