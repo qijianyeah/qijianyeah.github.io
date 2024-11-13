@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title></title>
+      <link href="/2024/11/13/index/"/>
+      <url>/2024/11/13/index/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>联合索引的基础</title>
+      <link href="/2024/11/13/%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80/"/>
+      <url>/2024/11/13/%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80/</url>
+      
+        <content type="html"><![CDATA[<p><strong>&#x3D;&#x3D;联合索引失效的场景？a,b,c 联合索引 b&#x3D;null, a&#x3D;xx and b&#x3D;xx or c&#x3D;xx 会生效吗？&#x3D;&#x3D;</strong></p><p>联合索引在 MySQL 中的使用可能会受到查询条件的影响，从而导致索引失效。了解联合索引失效的场景有助于优化数据库查询性能。</p><h3 id="联合索引的基础"><a href="#联合索引的基础" class="headerlink" title="联合索引的基础"></a>联合索引的基础</h3><p>假设有一个表 <code>my_table</code>，上面有一个联合索引 <code>idx_abc</code>，它包含列 <code>a, b, c</code>。该索引按照 <code>(a, b, c)</code> 的顺序存储。</p><h3 id="联合索引失效的常见场景"><a href="#联合索引失效的常见场景" class="headerlink" title="联合索引失效的常见场景"></a>联合索引失效的常见场景</h3><ol><li><p><strong>列顺序和查询条件</strong>：</p><ul><li>联合索引在使用时需要遵循索引列的顺序。如果查询中跳过了索引中的某一列，后面的列不会使用索引。</li><li>例如，如果只有 <code>a</code> 和 <code>b</code> 创建了索引，而查询中只使用了 <code>b</code> 列条件，索引将不会生效。</li></ul></li><li><p><strong>范围查询</strong>：</p><ul><li>在联合索引中，一旦有一列使用了范围查询（如 <code>&lt;</code>, <code>&gt;</code>, <code>BETWEEN</code>，<code>LIKE</code> 等），后面的列将不再使用索引。</li></ul></li><li><p><strong>NULL 判断</strong>：</p><ul><li>对于 <code>IS NULL</code> 和 <code>IS NOT NULL</code> 条件，索引的使用可能会有所不同，具体取决于索引类型和查询优化器的选择。</li></ul></li></ol><h3 id="具体问题分析"><a href="#具体问题分析" class="headerlink" title="具体问题分析"></a>具体问题分析</h3><p>对于查询 <code>b IS NULL</code> 和 <code>a = xx AND b = xx OR c = xx</code>，我们来分析是否会使用联合索引 <code>(a, b, c)</code>。</p><ol><li><p>**<code>b IS NULL</code>**：</p><ul><li>对于 <code>b IS NULL</code>，如果索引是 <code>(a, b, c)</code>，并且没有对 <code>a</code> 提供条件，那么在大多数情况下，这个查询不会使用到联合索引，特别是在传统的 B-Tree 索引中。</li></ul></li><li><p>**<code>a = xx AND b = xx OR c = xx</code>**：</p><ul><li>对于 <code>a = xx AND b = xx OR c = xx</code>，查询优化器会将其分为两个部分来处理：<ul><li><code>a = xx AND b = xx</code></li><li><code>c = xx</code></li></ul></li><li>这里有一个 <code>OR</code> 条件，MySQL 的查询优化器在遇到 <code>OR</code> 时，往往会放弃使用联合索引而改为全表扫描，特别是当 <code>OR</code> 的条件不能都使用到同一个索引时。</li><li>如果 <code>a = xx AND b = xx</code> 部分可以有效使用到 <code>(a, b, c)</code> 索引，但是 <code>c = xx</code> 不能单独使用这个索引，因此整体上可能会选择全表扫描。</li></ul></li></ol><h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><ol><li><p>**<code>b IS NULL</code>**：</p><ul><li>这个查询很可能不会使用联合索引 <code>(a, b, c)</code>，因为没有对索引的前导列 <code>a</code> 提供条件。</li></ul></li><li><p>**<code>a = xx AND b = xx OR c = xx</code>**：</p><ul><li>由于存在 <code>OR</code> 条件，并且 <code>c = xx</code> 不能利用 <code>(a, b, c)</code> 索引的前导列，因此查询优化器可能不会使用联合索引，而是选择全表扫描。</li></ul></li></ol><h3 id="优化建议"><a href="#优化建议" class="headerlink" title="优化建议"></a>优化建议</h3><ol><li><p><strong>避免使用 <code>OR</code> 条件</strong>：</p><ul><li><p>尽量避免在查询中使用 <code>OR</code> 条件，可以通过 <code>UNION</code> 分开两个查询来优化，如：</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> my_table <span class="keyword">WHERE</span> a <span class="operator">=</span> xx <span class="keyword">AND</span> b <span class="operator">=</span> xx)</span><br><span class="line"><span class="keyword">UNION</span></span><br><span class="line">(<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> my_table <span class="keyword">WHERE</span> c <span class="operator">=</span> xx);</span><br></pre></td></tr></table></figure></li></ul></li><li><p><strong>索引覆盖</strong>：</p><ul><li>设计联合索引时，考虑查询的具体使用情况，确保最左前缀原则。</li></ul></li><li><p><strong>EXPLAIN 分析</strong>：</p><ul><li>使用 <code>EXPLAIN</code> 命令来分析查询计划，确保索引的使用情况。</li></ul></li></ol><p>通过了解这些原则，可以更好地设计和优化 MySQL 数据库中的联合索引，提高查询性能。</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Hello World</title>
+      <link href="/2024/11/13/hello-world/"/>
+      <url>/2024/11/13/hello-world/</url>
+      
+        <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+  
+  
+</search>
