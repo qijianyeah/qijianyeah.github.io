@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>QiJian | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="什么是索引？ 索引是帮助MySQL高效获取数据的排好序的数据结构 索引的数据结构：二叉树，红黑树，Hash表，B-树  分析select语句1select * from t_user where age &#x3D; 18;  没有加索引没有加索引时，MySQL底层是通过一行一行的进行查找的，当找找到age&#x3D;18的字段后依然不能确定后面的数据时候还有age&#x3D;18的字段，所以依然需要继续查">
+<meta property="og:type" content="article">
+<meta property="og:title" content="QiJian">
+<meta property="og:url" content="https://qijianyeah.github.io/2024/11/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="什么是索引？ 索引是帮助MySQL高效获取数据的排好序的数据结构 索引的数据结构：二叉树，红黑树，Hash表，B-树  分析select语句1select * from t_user where age &#x3D; 18;  没有加索引没有加索引时，MySQL底层是通过一行一行的进行查找的，当找找到age&#x3D;18的字段后依然不能确定后面的数据时候还有age&#x3D;18的字段，所以依然需要继续查">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2024-11-13T12:30:57.449Z">
+<meta property="article:modified_time" content="2024-11-14T15:51:07.700Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="博客 Linux 算法 服务器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://qijianyeah.github.io/2024/11/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'QiJian',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">QiJian</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">无标题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-13T12:30:57.449Z" title="发表于 2024-11-13 20:30:57">2024-11-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-14T15:51:07.700Z" title="更新于 2024-11-14 23:51:07">2024-11-14</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h3 id="什么是索引？"><a href="#什么是索引？" class="headerlink" title="什么是索引？"></a>什么是索引？</h3><ol>
+<li>索引是帮助MySQL高效获取数据的排好序的数据结构</li>
+<li>索引的数据结构：二叉树，红黑树，Hash表，B-树</li>
+</ol>
+<h3 id="分析select语句"><a href="#分析select语句" class="headerlink" title="分析select语句"></a>分析select语句</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> t_user <span class="keyword">where</span> age <span class="operator">=</span> <span class="number">18</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="没有加索引"><a href="#没有加索引" class="headerlink" title="没有加索引"></a>没有加索引</h4><p>没有加索引时，MySQL底层是通过一行一行的进行查找的，当找找到age&#x3D;18的字段后依然不能确定后面的数据时候还有age&#x3D;18的字段，所以依然需要继续查找，一次查找就是一次磁盘IO（<strong>Mysql 通过磁盘 IO 次数衡量查询效率</strong>的），如果一张表有10万条数据那么就需要进行10万次的查找，把数据从磁盘加载到内存的速度不快，如果数据量大的话，需要花费相当多的时间，才能扫描完整张表。</p>
+<h4 id="加索引（二叉树）"><a href="#加索引（二叉树）" class="headerlink" title="加索引（二叉树）"></a>加索引（二叉树）</h4><p>加索引后，MySQL的查找就发生了变化，索引就是一种数据结构，如果索引是二叉树的话，就通过二叉树来查找。使用age索引后，就先去二叉树里去查找，每一个节点就相当于是键值对key存储的是age的值，value存储的就是文件地址指针（指向一列的数据）。要知道二叉树中一个节点的值大于它的左孩子小于它的右孩子，所以查找速度会很快。</p>
+<h4 id="MySQL索引使用的数据结构"><a href="#MySQL索引使用的数据结构" class="headerlink" title="MySQL索引使用的数据结构"></a>MySQL索引使用的数据结构</h4><p>体会了一把索引查找数据结构，发现索引确实提高了我们的查找速度。而我们知道MySQL索引使用额数据结构是B+树，先不考虑为什么选用B+树，先来考虑为什么不选用二叉树，因为二叉树存在弊端，当数据是按一定顺序来存储的话，二叉树就会退化成链表，这样的话查找速度就没有得到提升。那有没有一种数据结构能够做到避免这种弊端呢?接下来我们看看平衡二叉树红黑树。</p>
+<p>给出一段数据1,2,3,4,5,6,7,8,9。</p>
+<p>用二叉树存储</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/cca300c2b09b2b9a2f2efb0761104b08.png#pic_center" alt="在这里插入图片描述"></p>
+<p>用红黑树来存储，如下</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/dff171ece61403399d2eef6cf2e776b8.png#pic_center" alt="在这里插入图片描述"></p>
+<p>从红黑树额构建中发现当红黑树自身不能满足红黑树的特性的时候，红黑树会自旋，以保持红黑树的特性。那么既然解决了退化成链表的问题为什么又没有选择它呢？</p>
+<p>我们要知道<strong>AVL 树和红黑树基本都是存储在内存中才会使用的数据结构</strong>。&#x3D;&#x3D;在大规模数据存储的时候，红黑树往往出现由于<strong>树的深度过大</strong>而造成磁盘 IO 读写过于频繁，进而导致效率低下的情况&#x3D;&#x3D;。为什么会出现这样的情况，我们知道要获取磁盘上数据，必须先通过磁盘移动臂移动到数据所在的柱面，然后找到指定盘面，接着旋转盘面找到数据所在的磁道，最后对数据进行读写。磁盘 IO 代价主要花费在查找所需的柱面上，树的深度过大会造成磁盘 IO 频繁读写。根据<strong>磁盘查找存取的次数往往由树的高度所决定</strong>，所以，我们需要通过某种较好的树结构减少树的结构尽量减少树的高度来优化。</p>
+<p>这时有人就会说B-树，很好B-树能够解决树的深度的问题</p>
+<p>我们先来看看B-树的索引原理：B-树的搜索，从根结点开始，对结点内的关键字（有序）序列进行二分查找，如果命中则结束，否则进入查询关键字所属范围的儿子结点；重复，直到所对应的儿子指针为空，或已经是叶子结点；因此，B-Tree的查找过程是一个顺指针查找结点和在结点的关键字中进行查找的交叉进行的过程。</p>
+<p>接下来看看B-树对数据的存储，依然使用上面的数据1,2,3,4,5,6,7,8,9，且设置Max.degree&#x3D;4</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/c98586533d551318bf53fb805cf59bdd.png#pic_center" alt="在这里插入图片描述"></p>
+<p>了解完B-树的索引原理，这时候我们就可以拍手叫绝了，B-树相对于红黑树一定程度上解决了树的高度问题了，那么mysql的索引就可以使用B-树了吧。这时候mysql就会给你当头一击，mysql实际使用的数据结构是B+树。</p>
+<p>B+树存储1,2,3,4,5,6,7,8,9，且设置Max.degree&#x3D;4</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/b0932bb9028181676831650b465beb76.png#pic_center" alt="在这里插入图片描述"></p>
+<p>通过以上的图有一定数据结构基础的朋友就会想起一些区别</p>
+<p>这里就直接贴上总结：</p>
+<p>B树的特征：</p>
+<ul>
+<li><strong>关键字集合分布在整颗树中</strong></li>
+<li><strong>任何一个关键字出现且只出现在一个结点中</strong></li>
+<li>搜索有可能在非叶子结点结束（<strong>data与在节点</strong>）</li>
+<li>其搜索性能等价于在关键字全集内做一次二分查找</li>
+<li>自动层次控制</li>
+</ul>
+<p>B+树的特征：</p>
+<ul>
+<li>所有关键字都出现在叶子结点的链表中（稠密索引），且链表中的关键字恰好是有序的</li>
+<li><strong>不可能在非叶子结点命中（data域在叶子节点）</strong></li>
+<li>非叶子结点相当于是叶子结点的索引（稀疏索引），<strong>叶子结点相当于是存储（关键字）数据的数据层</strong></li>
+<li>每一个叶子节点都包含指向下一个叶子节点的指针，从而方便叶子节点的范围遍历。</li>
+<li>更适合文件索引系统</li>
+</ul>
+<p>B+树是B树的一个变体，区别在于，B+树：</p>
+<ol>
+<li><strong>叶子结点包含所有关键字以及指向相应记录的指针</strong></li>
+<li><strong>叶子结点中的关键字有序，相邻节点用指针连接</strong></li>
+<li>非叶子结点仅存储其子树的最大（或最小）关键字，可以看成是索引</li>
+</ol>
+<h4 id="B-树作为数据库索引的原因"><a href="#B-树作为数据库索引的原因" class="headerlink" title="B+ 树作为数据库索引的原因"></a><strong>B+ 树作为数据库索引的原因</strong></h4><ul>
+<li>B+ 树<strong>非叶结点仅存储其子树的最大（或最小）关键字（不存放真正数据）</strong>，一个结点可以存储更多的关键字</li>
+<li>每个结点能索引的<strong>范围更大更精确</strong></li>
+<li>B+ 树单次磁盘IO的<strong>信息量大</strong>于 B 树，I&#x2F;O 的次数相对减少</li>
+<li><strong>MySQL是一种关系型数据库，区间访问是常见的一种情况，B+树叶结点增加的链指针，加强了区间访问性；B 树则无法进行区间查找</strong></li>
+</ul>
+<h4 id="索引存储在文件系统中"><a href="#索引存储在文件系统中" class="headerlink" title="索引存储在文件系统中"></a><strong>索引存储在文件系统中</strong></h4><p>索引是占据物理空间的，在不同的存储引擎中，索引存在的文件也不同</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/5511cbc5e57f914971bc925bdc121ada.png#pic_center" alt="在这里插入图片描述"></p>
+<h4 id="MySQL叶结构示意图"><a href="#MySQL叶结构示意图" class="headerlink" title="MySQL叶结构示意图"></a>MySQL叶结构示意图</h4><p><img src="https://i-blog.csdnimg.cn/blog_migrate/02bd101f4e88b36dad26c45c31dd334b.png#pic_center" alt="在这里插入图片描述"></p>
+<h4 id="聚集索引与非聚集索引"><a href="#聚集索引与非聚集索引" class="headerlink" title="聚集索引与非聚集索引"></a>聚集索引与非聚集索引</h4><ul>
+<li><p>聚簇索引：将数据存储与索引放到了一块，找到索引也就找到了数据，主文件按照对应字段排序存储，索引文件无重复排序存储。<br><img src="https://i-blog.csdnimg.cn/blog_migrate/e12ebf746e3c75f4af813f9f6f32e5c2.png#pic_center" alt="在这里插入图片描述"></p>
+<ul>
+<li>聚集：把索引的元素和数据存储在一个文件中（*.ibd）</li>
+</ul>
+</li>
+<li><p>非聚簇索引：将数据存储于索引分开结构，索引结构的叶子节点指向了数据的对应行，主文件并没有按照对应字段排序存储，索引文件有重复排序存储。<br><img src="https://i-blog.csdnimg.cn/blog_migrate/4c0995c2262bec4cf8c9a1eec7d9d780.png#pic_center" alt="在这里插入图片描述"></p>
+<ul>
+<li>非聚集：把索引的元素和数据存储在不同的文件中，*.MYI存储索引， *.MYD存储数据</li>
+</ul>
+</li>
+</ul>
+<h4 id="InnoDB索引的实现（聚集）"><a href="#InnoDB索引的实现（聚集）" class="headerlink" title="InnoDB索引的实现（聚集）"></a>InnoDB索引的实现（聚集）</h4><ul>
+<li>表数据文件本身就是按B+Tree组织的一个索引结构文件</li>
+<li>聚集索引叶子结点包含完整的数据记录</li>
+<li>为什么InnoDB表必须有主键，并且推荐使用整形的自增主键？<ul>
+<li>如果设置了主键，那么InnoDB会选择主键作为聚集索引、</li>
+<li>如果没有显式定义主键，则InnoDB会选择第一个不包含有NULL值的唯一索引作为主键索引、如果也没有这样的唯一索引，则InnoDB会选择内置6字节长的ROWID作为隐含的聚集索引(ROWID随着行记录的写入而主键递增)。</li>
+<li>MySQL官方工程师就是这么设计的（更具主键来存储）</li>
+<li>如果表使用&#x3D;&#x3D;自增主键&#x3D;&#x3D;那么每次插入新的记录，记录就会顺序添加到<strong>当前索引节点的后续</strong>位置，主键的顺序按照数据记录的插入顺序排列，自动有序。当一页写满，就会自动开辟一个新的页</li>
+<li>如果使用&#x3D;&#x3D;非自增主键&#x3D;&#x3D;（如果身份证号或学号等）由于每次插入主键的值近似于随机，因此每次新纪录都要被插到<strong>现有索引页得中间某个位置</strong>，此时MySQL不得不为了将新记录插到合适位置而移动数据，甚至目标页面可能已经被回写到磁盘上而从缓存中清掉，此时又要从磁盘上读回来，这增加了很多开销，同时频繁的移动、分页操作造成了大量的碎片，得到了不够紧凑的索引结构，后续不得不通过OPTIMIZE TABLE来重建表并优化填充页面。</li>
+<li>uuid的使用与整形的对比：uuid比整形占用更多的存储空间；整形的比较效率更快（UUID是16字节128位长的数字，通常以36字节的字符串表示）</li>
+</ul>
+</li>
+<li>为什么非主键索引结构叶子结点存储主键？（一致性和节约存储空间）<ul>
+<li><strong>保持一致性：</strong><br>当数据库表进行DML操作时，同一行记录的页地址会发生改变，因非主键索引保存的是主键的值，无需进行更改。</li>
+<li>** 节省存储空间：**<br>Innodb数据本身就已经汇聚到主键索引所在的B+树上了， 如果普通索引还继续再保存一份数据，就会导致有多少索引就要存多少份数据。</li>
+</ul>
+</li>
+</ul>
+<p>参考：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wangfeijiu/article/details/113409719">https://blog.csdn.net/wangfeijiu/article/details/113409719</a></li>
+<li><a target="_blank" rel="noopener" href="https://long97.blog.csdn.net/article/details/106084627">https://long97.blog.csdn.net/article/details/106084627</a></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2024/11/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95/">https://qijianyeah.github.io/2024/11/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2024/11/13/%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80/" title="联合索引的基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">联合索引的基础</div></div><div class="info-2"><div class="info-item-1">&#x3D;&#x3D;联合索引失效的场景？a,b,c 联合索引 b&#x3D;null, a&#x3D;xx and b&#x3D;xx or c&#x3D;xx 会生效吗？&#x3D;&#x3D; 联合索引在 MySQL 中的使用可能会受到查询条件的影响，从而导致索引失效。了解联合索引失效的场景有助于优化数据库查询性能。 联合索引的基础假设有一个表 my_table，上面有一个联合索引 idx_abc，它包含列 a, b, c。该索引按照 (a, b, c) 的顺序存储。 联合索引失效的常见场景 列顺序和查询条件：  联合索引在使用时需要遵循索引列的顺序。如果查询中跳过了索引中的某一列，后面的列不会使用索引。 例如，如果只有 a 和 b 创建了索引，而查询中只使用了 b 列条件，索引将不会生效。   范围查询：  在联合索引中，一旦有一列使用了范围查询（如 &lt;, &gt;, BETWEEN，LIKE 等），后面的列将不再使用索引。   NULL 判断：  对于 IS NULL 和 IS NOT NULL...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%B4%A2%E5%BC%95%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">什么是索引？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90select%E8%AF%AD%E5%8F%A5"><span class="toc-number">2.</span> <span class="toc-text">分析select语句</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B2%A1%E6%9C%89%E5%8A%A0%E7%B4%A2%E5%BC%95"><span class="toc-number">2.1.</span> <span class="toc-text">没有加索引</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%88%E4%BA%8C%E5%8F%89%E6%A0%91%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">加索引（二叉树）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MySQL%E7%B4%A2%E5%BC%95%E4%BD%BF%E7%94%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">2.3.</span> <span class="toc-text">MySQL索引使用的数据结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#B-%E6%A0%91%E4%BD%9C%E4%B8%BA%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">2.4.</span> <span class="toc-text">B+ 树作为数据库索引的原因</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E5%AD%98%E5%82%A8%E5%9C%A8%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%AD"><span class="toc-number">2.5.</span> <span class="toc-text">索引存储在文件系统中</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MySQL%E5%8F%B6%E7%BB%93%E6%9E%84%E7%A4%BA%E6%84%8F%E5%9B%BE"><span class="toc-number">2.6.</span> <span class="toc-text">MySQL叶结构示意图</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%81%9A%E9%9B%86%E7%B4%A2%E5%BC%95%E4%B8%8E%E9%9D%9E%E8%81%9A%E9%9B%86%E7%B4%A2%E5%BC%95"><span class="toc-number">2.7.</span> <span class="toc-text">聚集索引与非聚集索引</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#InnoDB%E7%B4%A2%E5%BC%95%E7%9A%84%E5%AE%9E%E7%8E%B0%EF%BC%88%E8%81%9A%E9%9B%86%EF%BC%89"><span class="toc-number">2.8.</span> <span class="toc-text">InnoDB索引的实现（聚集）</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/14/%E7%AC%94%E8%AE%B0%E6%80%BB%E7%BB%93/" title="笔记总结">笔记总结</a><time datetime="2024-11-13T18:20:09.000Z" title="发表于 2024-11-14 02:20:09">2024-11-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/14/comment/" title="留言版">留言版</a><time datetime="2024-11-13T16:50:11.000Z" title="发表于 2024-11-14 00:50:11">2024-11-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/13/index/" title="无标题">无标题</a><time datetime="2024-11-13T14:25:05.626Z" title="发表于 2024-11-13 22:25:05">2024-11-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/13/%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80/" title="联合索引的基础">联合索引的基础</a><time datetime="2024-11-13T14:11:06.000Z" title="发表于 2024-11-13 22:11:06">2024-11-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AE%97%E6%B3%95/" title="无标题">无标题</a><time datetime="2024-11-13T12:30:57.449Z" title="发表于 2024-11-13 20:30:57">2024-11-13</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2024 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
