@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>MySQL阻塞与死锁 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="MySQL阻塞与死锁阻塞因为不同锁之间的兼容性关系，在有些时刻一个事务中的锁需要等待另一个事务中的锁释放它所占用的资源，这就是阻塞。 12345678910# 查看等待时间show variables like &#x27;innodb_lock_wait_timeout&#x27;;SET@@innodb_lock_wait_timeout&#x3D;60;# 是否在等待超时时对进行中的事务进行回滚操作s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL阻塞与死锁">
+<meta property="og:url" content="https://qijianyeah.github.io/2024/11/17/MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81/index.html">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="MySQL阻塞与死锁阻塞因为不同锁之间的兼容性关系，在有些时刻一个事务中的锁需要等待另一个事务中的锁释放它所占用的资源，这就是阻塞。 12345678910# 查看等待时间show variables like &#x27;innodb_lock_wait_timeout&#x27;;SET@@innodb_lock_wait_timeout&#x3D;60;# 是否在等待超时时对进行中的事务进行回滚操作s">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2024-11-16T18:23:12.000Z">
+<meta property="article:modified_time" content="2024-11-16T18:23:37.780Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="MYSQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://qijianyeah.github.io/2024/11/17/MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL阻塞与死锁',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">MySQL阻塞与死锁</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">MySQL阻塞与死锁</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-16T18:23:12.000Z" title="发表于 2024-11-17 02:23:12">2024-11-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-16T18:23:37.780Z" title="更新于 2024-11-17 02:23:37">2024-11-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL-%E6%B7%B1%E5%85%A5%E5%AD%A6%E4%B9%A0/">MySQL 深入学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="MySQL阻塞与死锁"><a href="#MySQL阻塞与死锁" class="headerlink" title="MySQL阻塞与死锁"></a>MySQL阻塞与死锁</h1><h2 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h2><p>因为不同锁之间的兼容性关系，在有些时刻一个事务中的锁需要等待另一个事务中的锁释放它所占用的资源，这就是阻塞。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 查看等待时间</span><br><span class="line">show variables like &#x27;innodb_lock_wait_timeout&#x27;;</span><br><span class="line">SET@@innodb_lock_wait_timeout=60;</span><br><span class="line"># 是否在等待超时时对进行中的事务进行回滚操作</span><br><span class="line">show variables like &#x27;innodb_rollback_on_timeout&#x27;;</span><br><span class="line"></span><br><span class="line">#设置等待时间  默认50秒</span><br><span class="line">SET@@innodb_lock_wait_timeout=60;  </span><br><span class="line">#设置是否在等待超时时对进行中的事务进行回滚操作  默认是OFF 代表不回滚</span><br><span class="line">SET@@innodb_rollback_on_timeout=on;</span><br></pre></td></tr></table></figure>
+
+<p>查询：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE1%EF%BC%89.png" alt="image-20230814102157758"></p>
+<p>设置值：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE2%EF%BC%89.png" alt="image-20230815165901211"></p>
+<p>注意：参数<code>innodb_lock_wait_timeout</code> 参数是动态的，在mysql运行时可进行调整，<code>innodb_rollback_on_timeout</code>参数是静态的，不可在运行时进行修改，否则会报错。</p>
+<p>需要特别注意：<strong>在默认情况下InnoDB存储引擎不会回滚超时引发的错误异常。</strong>（其实InnoDB存储引擎在大部分情况下都不会对异常进行回滚。）</p>
+<p>异常实例演示：</p>
+<p>左边为会话A，右边为会话B。初始状态数据库表film中有3条数据，ID，分别为3，5，6；</p>
+<p>首先会话A 开启了事务A，并且在Next-Key Lock算法下锁定了小与5包含5的记录。事务B正常插入记录ID:7，当插入ID:4 时就进人阻塞状态了</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE%E4%B8%89%EF%BC%89.png" alt="image-20230815174128914"></p>
+<p>当事务B达到事务超时间时间时，报错<code>ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction</code>.</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE%E5%9B%9B%EF%BC%89.png" alt="image-20230815174608612"></p>
+<p>这时事务B在此查询会发现，<strong>ID:7 这条记录依然存在，这是因为事务B虽然抛出了异常，但是既没有进行commit 操作也没有进行 rollback操作。</strong>这是非常危险的，因为此时数据库一致性特性被打破了。因此此时用户必须判断是否需要COMMIT还是ROLLBACK，之后再进行下一步的操作。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE%E4%BA%94%EF%BC%89.png" alt="image-20230815175103979"></p>
+<p>一般情况这时事务B需要进行 rollback操作，具体情况具体分析。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%EF%BC%88%E5%9B%BE%E5%85%AD%EF%BC%89.png" alt="image-20230815175620413"></p>
+<h2 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h2><p>死锁是指两个或两个以上的事务在执行过程中，因争夺锁资源而造成的一种互相等待的现象。</p>
+<p>当发生死锁的时候，若无外力作用事务都将无法进行下去。</p>
+<blockquote>
+<p>死锁产生的条件：</p>
+<ul>
+<li>互斥条件<br>临界资源是独占资源，进程应互斥且排他的使用这些资源。</li>
+<li>占有和等待条件<br>进程在请求资源得不到满足而等待时，不释放已占有资源。</li>
+<li>不剥夺条件<br>又称不可抢占，已获资源只能由进程自愿释放，不允许被其他进程剥夺。</li>
+<li>循环等待条件<br>又称环路条件，存在循环等待链，其中，每个进程都在等待链中等待下一个进程所持有的资源，造成这组进程处于永远等待状态。</li>
+</ul>
+</blockquote>
+<p>如何解决死锁问题：</p>
+<p>1.超时机制：当两个事务互相等待时，如果等待时间超过设置的某一阈值时，其中一个事务进行回滚，另一个等待的事务就能继续进行。在InnoDB存储引擎中，<code>innodb_lock_wait_timeout</code>设置超时的时间。</p>
+<p>我们知道，一条记录是有很多undo log的或者undo 版本链有很多版本的，如果一个事务操作更新了很多行，这时候如果要进行回滚所占用的时间可能就会很多。</p>
+<p>2.使用wai t-for graph （等待图）进行死锁检测，数据库需要保存锁的信息链表和事务等待链表。我们通过锁的信息链表和事务等待链表就可以构造出一张图，如果图中存在回路那就说明出现了死锁。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81_%E9%93%BE%E8%A1%A8%EF%BC%88%E5%9B%BE%E4%B8%83%EF%BC%89.png" alt="image-20230815235528149"></p>
+<p>​																								事务和锁状态图</p>
+<p>上图中，transaction wait list 中有四个事务，事务t2对row1加了x锁，事务t1对row1加了s锁，并且事务t1需要等待事务t2中的row1资源，因此wait-for graph图中有一条边冲节点t1指向t2。 row2记录的情况同理。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/mysql%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81%20wait-%20for%20graph%EF%BC%88%E5%9B%BE%E5%85%AB%EF%BC%89.png" alt="image-20230816001239711"></p>
+<p>​																						wait-for graph</p>
+<p>观察发现，t1 和 t2 存在回路，因此存在死锁。</p>
+<blockquote>
+<p>阅读到这里，我们需要意识到因为MySQL数据库是一个并发的程序，所以才存在死锁。因为如果程序是串行的，那么也就不会发生死锁了。</p>
+</blockquote>
+<p>死锁示例：</p>
+<p>有两个事务A，B： 事务A当前读查询记录ID:5 ,事务B当前读查询ID:6。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/%E6%AD%BB%E9%94%81%E7%A4%BA%E4%BE%8B%EF%BC%881%EF%BC%89.png" alt="image-20230816002539299"></p>
+<p>接着交换一下：</p>
+<p>事务A当前读查询记录ID:6 ,事务B当前读查询ID:5</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/%E6%AD%BB%E9%94%81%E7%A4%BA%E4%BE%8B%EF%BC%882%EF%BC%89.png" alt="image-20230816003007483"></p>
+<p>会发现两个事务中的事务B立马就报错：<code>ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</code></p>
+<p><strong>通常来说InnoDB存储引擎选择回滚undo量最小的事务。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2024/11/17/MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81/">https://qijianyeah.github.io/2024/11/17/MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MYSQL/">MYSQL</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/11/17/%E9%80%9A%E8%BF%87zookeeper%E6%B5%85%E8%B0%88%E4%B8%80%E8%87%B4%E6%80%A7%E7%AE%97%E6%B3%95/" title="通过zookeeper浅谈一致性算法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">通过zookeeper浅谈一致性算法</div></div><div class="info-2"><div class="info-item-1">通过zookeeper浅谈一致性算法CAP定理介绍CAP 定理指的是在一个分布式系统中，Consistency（一致性）、 Availability（可用性）、Partition...</div></div></div></a><a class="pagination-related" href="/2024/11/17/MySQL%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/" title="MySQL中的锁机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MySQL中的锁机制</div></div><div class="info-2"><div class="info-item-1">MySQL中的锁机制 抛砖引玉：多个查询需要在同一时刻进行数据的修改，就会产生并发控制的问题。我们需要如何避免写个问题从而保证我们的数据库数据不会被破坏。  锁的概念读锁是共享的互相不阻塞的。多个事务在听一时刻可以同时读取同一资源，而相互不干扰。 写锁的排他的。一个写锁会阻塞其他写锁或读锁。出于安全考虑只有这样才能保证在给定的时间里只有一个事务能够执行写入，并防止其他事务读取正写入的同一资源。 锁带来的问题通过锁定机制可以实现事务的隔离性要求，使得事务可以并发的工作，同时也带来了三个问题：脏读，不可重复读和丢失更新。 脏读 脏数据：未提交的数据  如果读到了脏数据即一个事务可以读取到另一个事务中未提交的数据那就违背了事务的隔离性。 所以脏读是指在不同的事务下，当前事务可以读取到另外事务的未提交的数据，简单来说就是可以读取到脏数据。 演示： 初始状态：  将会话A，B设置隔离级别为RU 1set session transaction isolation level READ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/11/17/MYSQL%E5%B9%BB%E8%AF%BB%E9%97%AE%E9%A2%98/" title="MYSQL幻读问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-11-17</div><div class="info-item-2">MYSQL幻读问题</div></div><div class="info-2"><div class="info-item-1">MYSQL幻读问题幻读是什么？  “Phantom Problem是指在同一事务下，连续执行两次同样的SQL语句可能导致不同的结果，第二次的SQL语句可能会返回之前不存在的行。”摘录来自 MySQL技术内幕：InnoDB存储引擎(第2版) (数据库技术丛书)  ​	 通俗来说就是，time1:事务A读取某个范围，time2:事务B在这个范围中插入了一条新记录并提交事务，time3:事务A再次读取该范围的记录时读取到事务B新增的记录。 如下： 目前InnoDB存储引擎中，数据库有表如下： 1234567891011121314151617-- ------------------------------ Table structure for film-- ----------------------------DROP TABLE IF EXISTS `film`;CREATE TABLE `film` (  `id` int NOT NULL AUTO_INCREMENT,  `name` varchar(10) DEFAULT NULL,  PRIMARY KEY...</div></div></div></a><a class="pagination-related" href="/2024/11/17/MySQL%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/" title="MySQL中的锁机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-11-17</div><div class="info-item-2">MySQL中的锁机制</div></div><div class="info-2"><div class="info-item-1">MySQL中的锁机制 抛砖引玉：多个查询需要在同一时刻进行数据的修改，就会产生并发控制的问题。我们需要如何避免写个问题从而保证我们的数据库数据不会被破坏。  锁的概念读锁是共享的互相不阻塞的。多个事务在听一时刻可以同时读取同一资源，而相互不干扰。 写锁的排他的。一个写锁会阻塞其他写锁或读锁。出于安全考虑只有这样才能保证在给定的时间里只有一个事务能够执行写入，并防止其他事务读取正写入的同一资源。 锁带来的问题通过锁定机制可以实现事务的隔离性要求，使得事务可以并发的工作，同时也带来了三个问题：脏读，不可重复读和丢失更新。 脏读 脏数据：未提交的数据  如果读到了脏数据即一个事务可以读取到另一个事务中未提交的数据那就违背了事务的隔离性。 所以脏读是指在不同的事务下，当前事务可以读取到另外事务的未提交的数据，简单来说就是可以读取到脏数据。 演示： 初始状态：  将会话A，B设置隔离级别为RU 1set session transaction isolation level READ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81"><span class="toc-number">1.</span> <span class="toc-text">MySQL阻塞与死锁</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%98%BB%E5%A1%9E"><span class="toc-number">1.1.</span> <span class="toc-text">阻塞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%BB%E9%94%81"><span class="toc-number">1.2.</span> <span class="toc-text">死锁</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/17/RocketMQ%E7%9A%84%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B/" title="RocketMQ的编程模型">RocketMQ的编程模型</a><time datetime="2024-11-16T18:29:21.000Z" title="发表于 2024-11-17 02:29:21">2024-11-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/17/RocketMQ%E5%AE%89%E8%A3%85/" title="RocketMQ安装">RocketMQ安装</a><time datetime="2024-11-16T18:27:16.000Z" title="发表于 2024-11-17 02:27:16">2024-11-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/17/%E9%80%9A%E8%BF%87zookeeper%E6%B5%85%E8%B0%88%E4%B8%80%E8%87%B4%E6%80%A7%E7%AE%97%E6%B3%95/" title="通过zookeeper浅谈一致性算法">通过zookeeper浅谈一致性算法</a><time datetime="2024-11-16T18:23:58.000Z" title="发表于 2024-11-17 02:23:58">2024-11-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/17/MySQL%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%AD%BB%E9%94%81/" title="MySQL阻塞与死锁">MySQL阻塞与死锁</a><time datetime="2024-11-16T18:23:12.000Z" title="发表于 2024-11-17 02:23:12">2024-11-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/17/MySQL%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/" title="MySQL中的锁机制">MySQL中的锁机制</a><time datetime="2024-11-16T18:22:01.000Z" title="发表于 2024-11-17 02:22:01">2024-11-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2024 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
