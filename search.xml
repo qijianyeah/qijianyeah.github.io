@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>悲观锁和乐观锁</title>
+      <link href="/2024/12/23/%E6%82%B2%E8%A7%82%E9%94%81%E5%92%8C%E4%B9%90%E8%A7%82%E9%94%81/"/>
+      <url>/2024/12/23/%E6%82%B2%E8%A7%82%E9%94%81%E5%92%8C%E4%B9%90%E8%A7%82%E9%94%81/</url>
+      
+        <content type="html"><![CDATA[<h1 id="悲观锁和乐观锁"><a href="#悲观锁和乐观锁" class="headerlink" title="悲观锁和乐观锁"></a>悲观锁和乐观锁</h1><h3 id="1、初步认识"><a href="#1、初步认识" class="headerlink" title="1、初步认识"></a>1、初步认识</h3><p>悲观锁：&#x3D;&#x3D;认为自己在使用数据的时候一定有别的线程来修改数据，因此在获取数据的时候会先加锁，确保数据不会被别的线程修改。&#x3D;&#x3D;synchronized关键字和Lock的实现类都是悲观锁。适合写操作多的场景，先加锁可以保证写操作时数据正确。显式的锁定之后再操作同步资源。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//=============悲观锁的调用方式</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">m1</span><span class="params">()</span>&#123;</span><br><span class="line"><span class="comment">//加锁后的业务逻辑......</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 保证多个线程使用的是同一个lock对象的前提下</span></span><br><span class="line"><span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>(); <span class="comment">// 默认false</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">m2</span><span class="params">()</span> &#123;</span><br><span class="line">lock.lock();...</span><br></pre></td></tr></table></figure><p>乐观锁:&#x3D;&#x3D;乐观锁认为自己在使用数据时不会有别的线程修改数据，所以不会添加锁，只是在更新数据的时候去判断之前有没有别的线程更新了这个数据。如果这个数据没有被更新，当前线程将自己修改的数据成功写入&#x3D;&#x3D;。如果数据已经被其他线程更新，则根据不同的实现方式执行不同的操作。乐观锁在Java中是通过使用无锁编程来实现，最常采用的是CAS算法，Java原子类中的递增操作就通过CAS自旋实现的。适合读操作多的场景，不加锁的特点能够使其读操作的性能大幅提升。乐观锁则直接去操作同步资源，是一种无锁算法，得之我幸不得我命，再抢。</p><p>乐观锁一般有三种实现方式：1、采用版本号机制。2、CAS（Compare-and-Swap，即比较并替换）算法实现。</p><blockquote><p>悲观锁与乐观锁思想的出现：为了在不同场景中保证多线程工作的安全性，Java主要基于两种思想进行线程安全性的设计</p></blockquote><h3 id="3、悲观锁"><a href="#3、悲观锁" class="headerlink" title="3、悲观锁"></a>3、悲观锁</h3><p>​为了保证在多线程工作环境中资源操作的安全性，就需要在操作资源前独占该资源，最后在操作完成后释放该资源的独占操作权；其他操作者如果需要操作该资源，则需要等待，直到自己获得该资源的独占操作权，才能进行操作。</p><p>由此可见，这种思想假设带有绝对性，对客观工作环境有严格的前提约束，这种安全性操作思想称为悲观锁思想。</p><p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202412240147709.png" alt="image-20241224014717137"></p><h3 id="4、乐观锁"><a href="#4、乐观锁" class="headerlink" title="4、乐观锁"></a>4、乐观锁</h3><p>​操作者无须获得资源的操作独占权，也无须等待其他操作者释放资源的独占操作权。换句话说，这是一种无须加锁的，带有并发操作性的思想。在操作结束后，操作者只需比较实际操作结果是否符合预期操作结果，如果不符合，则放弃本次操作并重试。这种线程安全性的操作思想称为乐观锁思想。</p><p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/202412240146929.png" alt="image-20241224014626180"></p><p>​乐观锁思想的本质是无锁，这种思想对客观工作条件的限制更宽松，包容度更好；对工作过程中产生操作冲突的预测也更乐观。操作者只需在可能产生错误数据的关键位置应用这种对比方式，无须将操作停止并等待。</p><p>​Java中的乐观锁思想通常基于CAS（Compare and Swap，比较与交换）技术实现，但<strong>CAS进行比较的判定依据及比较后是否要进行重试，往往由操作者自行决定。</strong>所以在Java中，基于乐观锁工作的工具类都存在类似于for(;;)或while(true)的源码结构，这并不是BUG，而是为了匹配乐观锁的实现思想。例如，在ConcurrentHashMap集合中，基于乐观锁思想添加数据对象。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> java 并发编程 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> java 知识总结 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>LinkedHashMap类</title>
       <link href="/2024/11/20/LinkedHashMap%E7%B1%BB/"/>
       <url>/2024/11/20/LinkedHashMap%E7%B1%BB/</url>
