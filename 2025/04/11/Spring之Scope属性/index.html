@@ -1,0 +1,302 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Spring之Scope属性 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Scope属性 &lt; bean&gt;的一个属性,控制如何实例化对象  Scope属性可取值：  singleton: 默认值,单例的.使用ApplicationContext启动时实例化对象 prototype:原型.每次调用时实例化. request:每次请求时实例化对象. session:每次产生session(HttpSession)时实例化 application:产生applic">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring之Scope属性">
+<meta property="og:url" content="https://qijianyeah.github.io/2025/04/11/Spring%E4%B9%8BScope%E5%B1%9E%E6%80%A7/index.html">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Scope属性 &lt; bean&gt;的一个属性,控制如何实例化对象  Scope属性可取值：  singleton: 默认值,单例的.使用ApplicationContext启动时实例化对象 prototype:原型.每次调用时实例化. request:每次请求时实例化对象. session:每次产生session(HttpSession)时实例化 application:产生applic">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2025-04-11T15:42:40.000Z">
+<meta property="article:modified_time" content="2025-04-11T16:51:34.873Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://qijianyeah.github.io/2025/04/11/Spring%E4%B9%8BScope%E5%B1%9E%E6%80%A7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring之Scope属性',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Spring之Scope属性</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Spring之Scope属性</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-11T15:42:40.000Z" title="发表于 2025-04-11 23:42:40">2025-04-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-11T16:51:34.873Z" title="更新于 2025-04-12 00:51:34">2025-04-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Spring-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">Spring 基础知识</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<h4 id="Scope属性"><a href="#Scope属性" class="headerlink" title="Scope属性"></a>Scope属性</h4><ul>
+<li><code>&lt; bean&gt;</code>的一个属性,控制如何实例化对象</li>
+</ul>
+<p><strong>Scope属性可取值：</strong></p>
+<ul>
+<li>singleton: 默认值,单例的.使用ApplicationContext启动时实例化对象</li>
+<li>prototype:原型.每次调用时实例化.</li>
+<li>request:每次请求时实例化对象.</li>
+<li>session:每次产生session(HttpSession)时实例化</li>
+<li>application:产生application对象时实例化.一般都实例化一次.</li>
+<li>golbal session: 全局Golbal Session,web应用中一个新的全局HttpSessin对象.在spring-webmvc-portlet提供</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;&lt;bean id=<span class="string">&quot;stu&quot;</span> class=<span class="string">&quot;com.spring1.Student&quot;</span> scope=<span class="string">&quot;prototype&quot;</span>&gt;&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>这些都是 Spring 框架中 <strong>Bean 的作用域（Scope）</strong> 属性的可选值，它们决定了 Spring 容器是如何创建和管理 Bean 实例的。下面我来详细解释一下每个作用域的含义、适用场景以及注意事项：</p>
+<hr>
+<blockquote>
+<p>基础类：</p>
+<pre><code>@Component
+public class MyBean &#123;
+    private final String id = UUID.randomUUID().toString();
+        public String getId() &#123;
+        return id;
+        &#125;
+&#125;
+</code></pre>
+</blockquote>
+<h3 id="1-singleton（单例）-–-默认值"><a href="#1-singleton（单例）-–-默认值" class="headerlink" title="1. singleton（单例） – 默认值"></a>1. <strong>singleton（单例）</strong> – 默认值</h3><ul>
+<li><p><strong>解释</strong>：Spring 容器中只创建 <strong>一个共享的 Bean 实例</strong>，所有请求（无论是单线程还是多线程）都返回这个实例。</p>
+</li>
+<li><p><strong>实例化时机</strong>：在容器启动时就实例化（如果是 <code>ApplicationContext</code> 启动）</p>
+</li>
+<li><p><strong>适用场景</strong>：无状态、线程安全的 Bean（如 Service 层）</p>
+</li>
+<li><p><strong>示意</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;singleton&quot;)</span> <span class="comment">// 可省略，默认就是 singleton</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SingletonBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SingletonController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> SingletonBean singletonBean;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/singleton&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getSingleton</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;singleton bean ID: &quot;</span> + singletonBean.getId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>说明</strong>：无论访问几次 <code>/singleton</code>，得到的 ID 是一样的。</p>
+<hr>
+<h3 id="2-prototype（原型）"><a href="#2-prototype（原型）" class="headerlink" title="2. prototype（原型）"></a>2. <strong>prototype（原型）</strong></h3><ul>
+<li><p><strong>解释</strong>：<strong>每次调用 Bean 时都会创建一个新的实例</strong>。Spring 管理创建动作，生命周期由调用者负责（不会自动销毁）</p>
+</li>
+<li><p><strong>实例化时机</strong>：每次调用时才会实例化</p>
+</li>
+<li><p><strong>适用场景</strong>：有状态的对象或非线程安全的场景</p>
+</li>
+<li><p><strong>示意</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;prototype&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PrototypeBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PrototypeController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ObjectFactory&lt;PrototypeBean&gt; prototypeBeanFactory;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/prototype&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getPrototype</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">PrototypeBean</span> <span class="variable">prototypeBean</span> <span class="operator">=</span> prototypeBeanFactory.getObject();</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;prototype bean ID: &quot;</span> + prototypeBean.getId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：每次访问 <code>/prototype</code> 会返回不同的 ID。</p>
+</li>
+</ul>
+<hr>
+<h3 id="3-request（请求作用域）"><a href="#3-request（请求作用域）" class="headerlink" title="3. request（请求作用域）"></a>3. <strong>request（请求作用域）</strong></h3><ul>
+<li><p><strong>解释</strong>：<strong>每一个 HTTP 请求都会创建一个新的 Bean 实例</strong>，请求结束后，该 Bean 被销毁</p>
+</li>
+<li><p><strong>使用限制</strong>：只能用于 Web 应用，并且需要 Spring Web 环境</p>
+</li>
+<li><p><strong>适用场景</strong>：如 Controller 层中和用户请求强相关的对象</p>
+</li>
+<li><p><strong>示意</strong>（Web 项目中有效）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;request&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RequestBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RequestController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RequestBean requestBean;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/request&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getRequest</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;request bean ID: &quot;</span> + requestBean.getId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：每次 HTTP 请求都会生成一个新实例。</p>
+</li>
+</ul>
+<hr>
+<h3 id="4-session（会话作用域）"><a href="#4-session（会话作用域）" class="headerlink" title="4. session（会话作用域）"></a>4. <strong>session（会话作用域）</strong></h3><ul>
+<li><p><strong>解释</strong>：<strong>每一个 HTTP 会话（HttpSession）拥有一个 Bean 实例</strong></p>
+</li>
+<li><p><strong>使用限制</strong>：只能用于 Web 环境</p>
+</li>
+<li><p><strong>适用场景</strong>：需要保存用户会话状态的组件（如购物车）</p>
+</li>
+<li><p><strong>示意</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;session&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SessionBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SessionController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> SessionBean sessionBean;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/session&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getSession</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;session bean ID: &quot;</span> + sessionBean.getId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：每个会话有自己的实例，同一个浏览器刷新页面 ID 不变，换浏览器 ID 会变。</p>
+</li>
+</ul>
+<hr>
+<h3 id="5-application（应用作用域）"><a href="#5-application（应用作用域）" class="headerlink" title="5. application（应用作用域）"></a>5. <strong>application（应用作用域）</strong></h3><ul>
+<li><p><strong>解释</strong>：Bean 的生命周期与 ServletContext 相同。整个 Web 应用共享一个实例（类似 singleton，但受 Web 容器管理）</p>
+</li>
+<li><p><strong>适用场景</strong>：全局共享资源，且是 Web 应用</p>
+</li>
+<li><p><strong>示意</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;application&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApplicationBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApplicationController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ApplicationBean applicationBean;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/application&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getApplication</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;application bean ID: &quot;</span> + applicationBean.getId();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明</strong>：整个 Web 应用范围内只有一个实例，类似 singleton，但作用域更明确是 Web 全局。</p>
+</li>
+</ul>
+<hr>
+<h3 id="6-globalSession（全局会话作用域）"><a href="#6-globalSession（全局会话作用域）" class="headerlink" title="6. globalSession（全局会话作用域）"></a>6. <strong>globalSession（全局会话作用域）</strong></h3><ul>
+<li><p><strong>解释</strong>：<strong>仅在 Portlet 应用中使用</strong>，代表一个全局的 HTTP Session（多个 Portlet 共享）。</p>
+</li>
+<li><p><strong>注意</strong>：在普通的 Web 应用中无效，只适用于使用 Spring Portlet MVC 的场景。</p>
+</li>
+<li><p><strong>示意</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Scope(&quot;globalSession&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GlobalSessionBean</span> <span class="keyword">extends</span> <span class="title class_">MyBean</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>⚠️ 注意：<code>globalSession</code> 只在 Portlet 环境中（如 Liferay 等门户系统）使用。Spring MVC 普通 Web 项目无法使用该作用域，会抛异常。</p>
+</li>
+</ul>
+<hr>
+<h3 id="🌟-简单对比总结"><a href="#🌟-简单对比总结" class="headerlink" title="🌟 简单对比总结"></a>🌟 简单对比总结</h3><table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>是否 Web 环境</th>
+<th>实例数量</th>
+<th>生命周期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>singleton</td>
+<td>否</td>
+<td>容器中一个</td>
+<td>容器启动到销毁</td>
+</tr>
+<tr>
+<td>prototype</td>
+<td>否</td>
+<td>每次请求新建</td>
+<td>调用者负责管理生命周期</td>
+</tr>
+<tr>
+<td>request</td>
+<td>是</td>
+<td>每个 HTTP 请求一个</td>
+<td>请求完成后销毁</td>
+</tr>
+<tr>
+<td>session</td>
+<td>是</td>
+<td>每个会话一个</td>
+<td>会话结束后销毁</td>
+</tr>
+<tr>
+<td>application</td>
+<td>是</td>
+<td>全 Web 应用共享</td>
+<td>应用结束时销毁</td>
+</tr>
+<tr>
+<td>globalSession</td>
+<td>是（Portlet）</td>
+<td>全局会话共享</td>
+<td>Portlet 全局会话结束销毁</td>
+</tr>
+</tbody></table>
+<hr>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2025/04/11/Spring%E4%B9%8BScope%E5%B1%9E%E6%80%A7/">https://qijianyeah.github.io/2025/04/11/Spring%E4%B9%8BScope%E5%B1%9E%E6%80%A7/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width no-desc" href="/2025/01/12/Java%E5%9F%BA%E7%A1%80/" title="Java基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java基础</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Scope%E5%B1%9E%E6%80%A7"><span class="toc-number">1.</span> <span class="toc-text">Scope属性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-singleton%EF%BC%88%E5%8D%95%E4%BE%8B%EF%BC%89-%E2%80%93-%E9%BB%98%E8%AE%A4%E5%80%BC"><span class="toc-number"></span> <span class="toc-text">1. singleton（单例） – 默认值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-prototype%EF%BC%88%E5%8E%9F%E5%9E%8B%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">2. prototype（原型）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-request%EF%BC%88%E8%AF%B7%E6%B1%82%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">3. request（请求作用域）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-session%EF%BC%88%E4%BC%9A%E8%AF%9D%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">4. session（会话作用域）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-application%EF%BC%88%E5%BA%94%E7%94%A8%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">5. application（应用作用域）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-globalSession%EF%BC%88%E5%85%A8%E5%B1%80%E4%BC%9A%E8%AF%9D%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%89"><span class="toc-number"></span> <span class="toc-text">6. globalSession（全局会话作用域）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8C%9F-%E7%AE%80%E5%8D%95%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number"></span> <span class="toc-text">🌟 简单对比总结</span></a></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/11/Spring%E4%B9%8BScope%E5%B1%9E%E6%80%A7/" title="Spring之Scope属性">Spring之Scope属性</a><time datetime="2025-04-11T15:42:40.000Z" title="发表于 2025-04-11 23:42:40">2025-04-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/01/12/Java%E5%9F%BA%E7%A1%80/" title="Java基础">Java基础</a><time datetime="2025-01-12T06:34:30.000Z" title="发表于 2025-01-12 14:34:30">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/01/01/%E9%9B%86%E5%90%88/" title="集合">集合</a><time datetime="2025-01-01T14:27:35.000Z" title="发表于 2025-01-01 22:27:35">2025-01-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/01/01/Java%E5%85%AB%E5%A4%A7%E5%86%85%E9%83%A8%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" title="Java八大内部排序算法">Java八大内部排序算法</a><time datetime="2024-12-31T17:34:33.000Z" title="发表于 2025-01-01 01:34:33">2025-01-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/31/%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6/" title="如何判断一个对象是否是可回收">如何判断一个对象是否是可回收</a><time datetime="2024-12-31T12:50:46.000Z" title="发表于 2024-12-31 20:50:46">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2025 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
