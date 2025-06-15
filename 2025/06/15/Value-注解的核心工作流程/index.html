@@ -1,0 +1,397 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Value 注解的核心工作流程 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="@Value 注解的核心工作流程@Value 是 Spring 框架中用于属性注入的核心注解，其工作流程涉及多个 Spring 组件和生命周期阶段。以下是其详细的工作机制： 1. 基本使用方式12345678@Value(&quot;$&#123;property.name&#125;&quot;)private String propertyName;@Value(&quot;#&#123;sy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Value 注解的核心工作流程">
+<meta property="og:url" content="https://qijianyeah.github.io/2025/06/15/Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="@Value 注解的核心工作流程@Value 是 Spring 框架中用于属性注入的核心注解，其工作流程涉及多个 Spring 组件和生命周期阶段。以下是其详细的工作机制： 1. 基本使用方式12345678@Value(&quot;$&#123;property.name&#125;&quot;)private String propertyName;@Value(&quot;#&#123;sy">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2025-06-15T14:21:14.000Z">
+<meta property="article:modified_time" content="2025-06-15T15:26:33.689Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="spring 知识总结">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://qijianyeah.github.io/2025/06/15/Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Value 注解的核心工作流程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">28</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Value 注解的核心工作流程</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Value 注解的核心工作流程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-15T14:21:14.000Z" title="发表于 2025-06-15 22:21:14">2025-06-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-15T15:26:33.689Z" title="更新于 2025-06-15 23:26:33">2025-06-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/spring-%E5%AE%9E%E7%94%A8%E6%80%BB%E7%BB%93/">spring 实用总结</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Value-注解的核心工作流程"><a href="#Value-注解的核心工作流程" class="headerlink" title="@Value 注解的核心工作流程"></a>@Value 注解的核心工作流程</h1><p><code>@Value</code> 是 Spring 框架中用于属性注入的核心注解，其工作流程涉及多个 Spring 组件和生命周期阶段。以下是其详细的工作机制：</p>
+<h2 id="1-基本使用方式"><a href="#1-基本使用方式" class="headerlink" title="1. 基本使用方式"></a>1. 基本使用方式</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;property.name&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String propertyName;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Value(&quot;#&#123;systemProperties[&#x27;user.name&#x27;]&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String userName;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Value(&quot;defaultValue&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String defaultValue;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-核心工作流程"><a href="#2-核心工作流程" class="headerlink" title="2. 核心工作流程"></a>2. 核心工作流程</h2><h3 id="2-1-解析阶段（ConfigurationClassPostProcessor）"><a href="#2-1-解析阶段（ConfigurationClassPostProcessor）" class="headerlink" title="2.1 解析阶段（ConfigurationClassPostProcessor）"></a>2.1 解析阶段（ConfigurationClassPostProcessor）</h3><ol>
+<li><p><strong>配置类解析</strong>：</p>
+<ul>
+<li>在容器刷新阶段的 <code>invokeBeanFactoryPostProcessors()</code> 过程中</li>
+<li><code>ConfigurationClassPostProcessor</code> 处理所有 <code>@Configuration</code> 类</li>
+<li>识别带有 <code>@Value</code> 注解的字段和方法参数</li>
+</ul>
+</li>
+<li><p><strong>元数据存储</strong>：</p>
+<ul>
+<li>将 <code>@Value</code> 注解信息存储在 <code>BeanDefinition</code> 的 <code>AutowiredAnnotationBeanPostProcessor</code> 的注入元数据缓存中</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-2-依赖注入阶段（AutowiredAnnotationBeanPostProcessor）"><a href="#2-2-依赖注入阶段（AutowiredAnnotationBeanPostProcessor）" class="headerlink" title="2.2 依赖注入阶段（AutowiredAnnotationBeanPostProcessor）"></a>2.2 依赖注入阶段（AutowiredAnnotationBeanPostProcessor）</h3><ol>
+<li><p><strong>后处理器注册</strong>：</p>
+<ul>
+<li><code>AutowiredAnnotationBeanPostProcessor</code> 在容器初始化时自动注册</li>
+<li>它同时处理 <code>@Autowired</code> 和 <code>@Value</code> 注解</li>
+</ul>
+</li>
+<li><p><strong>注入时机</strong>：</p>
+<ul>
+<li>在 bean 实例化之后、初始化之前执行（<code>postProcessProperties</code> 阶段）</li>
+</ul>
+</li>
+<li><p><strong>具体处理流程</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> PropertyValues <span class="title function_">postProcessProperties</span><span class="params">(PropertyValues pvs, Object bean, String beanName)</span> &#123;</span><br><span class="line">    <span class="comment">// 1. 获取注入元数据</span></span><br><span class="line">    <span class="type">InjectionMetadata</span> <span class="variable">metadata</span> <span class="operator">=</span> findAutowiringMetadata(beanName, bean.getClass(), pvs);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 2. 执行实际注入</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        metadata.inject(bean, beanName, pvs);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanCreationException</span>(beanName, <span class="string">&quot;Injection of @Value dependencies failed&quot;</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> pvs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="2-3-值解析阶段（StringValueResolver）"><a href="#2-3-值解析阶段（StringValueResolver）" class="headerlink" title="2.3 值解析阶段（StringValueResolver）"></a>2.3 值解析阶段（StringValueResolver）</h3><ol>
+<li><p><strong>解析器链</strong>：</p>
+<ul>
+<li>Spring 维护一个 <code>StringValueResolver</code> 解析器链</li>
+<li>默认包含：<ul>
+<li><code>PropertySourcesPlaceholderConfigurer</code>：处理 <code>$&#123;&#125;</code> 占位符</li>
+<li><code>BeanExpressionResolver</code>：处理 <code>#&#123;&#125;</code> SpEL 表达式</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>解析过程</strong>：</p>
+<ul>
+<li>对于 <code>$&#123;property.name&#125;</code> 形式：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">environment.resolvePlaceholders(text)</span><br></pre></td></tr></table></figure></li>
+<li>对于 <code>#&#123;expression&#125;</code> 形式：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">beanFactory.getBean(BeanExpressionResolver.class).evaluate(text, <span class="keyword">new</span> <span class="title class_">BeanExpressionContext</span>(...))</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h3 id="2-4-类型转换阶段（ConversionService）"><a href="#2-4-类型转换阶段（ConversionService）" class="headerlink" title="2.4 类型转换阶段（ConversionService）"></a>2.4 类型转换阶段（ConversionService）</h3><ol>
+<li><p><strong>值转换</strong>：</p>
+<ul>
+<li>获取解析后的字符串值后，如果需要注入到非 String 类型字段</li>
+<li>使用配置的 <code>ConversionService</code> 进行类型转换</li>
+<li>默认使用 <code>DefaultConversionService</code></li>
+</ul>
+</li>
+<li><p><strong>转换示例</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;server.port&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> port;  <span class="comment">// 字符串&quot;8080&quot;转换为int 8080</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="3-关键组件详解"><a href="#3-关键组件详解" class="headerlink" title="3. 关键组件详解"></a>3. 关键组件详解</h2><h3 id="3-1-PropertySourcesPlaceholderConfigurer"><a href="#3-1-PropertySourcesPlaceholderConfigurer" class="headerlink" title="3.1 PropertySourcesPlaceholderConfigurer"></a>3.1 PropertySourcesPlaceholderConfigurer</h3><ol>
+<li><p><strong>作用</strong>：</p>
+<ul>
+<li>处理 <code>$&#123;...&#125;</code> 占位符</li>
+<li>实现 <code>BeanFactoryPostProcessor</code> 接口</li>
+</ul>
+</li>
+<li><p><strong>属性源查找顺序</strong>：</p>
+<ol>
+<li>命令行参数 (<code>--property.name=value</code>)</li>
+<li>JNDI 属性</li>
+<li>Java 系统属性 (<code>System.getProperties()</code>)</li>
+<li>操作系统环境变量</li>
+<li>随机属性 (<code>random.*</code>)</li>
+<li>应用配置文件 (<code>application.properties/yml</code>)</li>
+</ol>
+</li>
+</ol>
+<h3 id="3-2-BeanExpressionResolver"><a href="#3-2-BeanExpressionResolver" class="headerlink" title="3.2 BeanExpressionResolver"></a>3.2 BeanExpressionResolver</h3><ol>
+<li><p><strong>作用</strong>：</p>
+<ul>
+<li>处理 <code>#&#123;...&#125;</code> SpEL 表达式</li>
+<li>默认实现为 <code>StandardBeanExpressionResolver</code></li>
+</ul>
+</li>
+<li><p><strong>表达式上下文</strong>：</p>
+<ul>
+<li>提供对 bean 工厂、环境变量等的访问</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-3-ConversionService"><a href="#3-3-ConversionService" class="headerlink" title="3.3 ConversionService"></a>3.3 ConversionService</h3><ol>
+<li><strong>默认支持的类型转换</strong>：<ul>
+<li>基本类型和包装类型</li>
+<li>集合&#x2F;数组类型</li>
+<li>日期&#x2F;时间类型</li>
+<li>自定义转换器可注册</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-完整处理流程图"><a href="#4-完整处理流程图" class="headerlink" title="4. 完整处理流程图"></a>4. 完整处理流程图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Bean 实例化</span><br><span class="line">  ↓</span><br><span class="line">AutowiredAnnotationBeanPostProcessor.postProcessProperties()</span><br><span class="line">  ↓</span><br><span class="line">获取 @Value 注解元数据</span><br><span class="line">  ↓</span><br><span class="line">for 每个 @Value 注解</span><br><span class="line">  ├─ 如果是 $&#123;...&#125; 形式 → PropertySourcesPlaceholderConfigurer 解析</span><br><span class="line">  ├─ 如果是 #&#123;...&#125; 形式 → BeanExpressionResolver 解析</span><br><span class="line">  └─ 其他情况 → 直接使用字面值</span><br><span class="line">  ↓</span><br><span class="line">ConversionService 类型转换 (如果需要)</span><br><span class="line">  ↓</span><br><span class="line">反射注入到目标字段/参数</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-特殊处理场景"><a href="#5-特殊处理场景" class="headerlink" title="5. 特殊处理场景"></a>5. 特殊处理场景</h2><h3 id="5-1-动态刷新"><a href="#5-1-动态刷新" class="headerlink" title="5.1 动态刷新"></a>5.1 动态刷新</h3><p>结合 <code>@RefreshScope</code> (Spring Cloud)：</p>
+<ul>
+<li>当配置变更时，可以重新注入新值</li>
+<li>依赖于 <code>ContextRefresher.refresh()</code> 触发</li>
+</ul>
+<h3 id="5-2-默认值设置"><a href="#5-2-默认值设置" class="headerlink" title="5.2 默认值设置"></a>5.2 默认值设置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;property.name:default&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String value;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>冒号后为默认值，当属性不存在时使用</li>
+</ul>
+<h3 id="5-3-嵌套属性"><a href="#5-3-嵌套属性" class="headerlink" title="5.3 嵌套属性"></a>5.3 嵌套属性</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;user.address.city&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String city;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>支持属性路径的嵌套访问</li>
+</ul>
+<h2 id="6-常见问题排查"><a href="#6-常见问题排查" class="headerlink" title="6. 常见问题排查"></a>6. 常见问题排查</h2><ol>
+<li><p><strong>属性未找到</strong>：</p>
+<ul>
+<li>检查属性源是否包含该属性</li>
+<li>检查属性名拼写</li>
+<li>查看 <code>environment.getProperty()</code> 返回值</li>
+</ul>
+</li>
+<li><p><strong>类型转换失败</strong>：</p>
+<ul>
+<li>检查目标类型与属性值是否兼容</li>
+<li>注册自定义 <code>Converter</code> 或 <code>ConversionService</code></li>
+</ul>
+</li>
+<li><p><strong>SpEL 表达式错误</strong>：</p>
+<ul>
+<li>检查表达式语法</li>
+<li>确保引用的 bean 存在</li>
+</ul>
+</li>
+</ol>
+<p><code>@Value</code> 注解通过这种分层解析机制，实现了灵活多样的属性注入方式，是 Spring 属性管理的核心组件之一。</p>
+<br>
+
+<p><code>$&#123;&#125;</code> 和 <code>#&#123;&#125;</code> 是 Spring 中两种完全不同的注入语法，它们的核心区别体现在 <strong>数据来源</strong>、<strong>解析机制</strong> 和 <strong>使用场景</strong> 上。以下是详细对比：</p>
+<hr>
+<h3 id="1-本质区别"><a href="#1-本质区别" class="headerlink" title="1. 本质区别"></a>1. <strong>本质区别</strong></h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>$&#123;&#125;</code> (属性占位符)</th>
+<th><code>#&#123;&#125;</code> (SpEL 表达式)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>语法类型</strong></td>
+<td>属性引用</td>
+<td>表达式语言</td>
+</tr>
+<tr>
+<td><strong>主要用途</strong></td>
+<td>注入外部配置值</td>
+<td>动态计算复杂值</td>
+</tr>
+<tr>
+<td><strong>解析时机</strong></td>
+<td>在 Bean 初始化阶段解析</td>
+<td>在 Bean 初始化阶段动态计算</td>
+</tr>
+<tr>
+<td><strong>是否需要环境属性</strong></td>
+<td>必须依赖 <code>Environment</code></td>
+<td>不依赖环境，可直接访问运行时上下文</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="2-数据来源对比"><a href="#2-数据来源对比" class="headerlink" title="2. 数据来源对比"></a>2. <strong>数据来源对比</strong></h3><h4 id="的数据来源："><a href="#的数据来源：" class="headerlink" title="${} 的数据来源："></a><code>$&#123;&#125;</code> 的数据来源：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;db.url&#125;&quot;)</span> <span class="comment">// 从配置文件中读取</span></span><br><span class="line"><span class="keyword">private</span> String dbUrl;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>查找顺序</strong>：<ol>
+<li><code>application.properties</code>&#x2F;<code>application.yml</code></li>
+<li>系统环境变量 (<code>System.getenv()</code>)</li>
+<li>JVM 系统属性 (<code>System.getProperties()</code>)</li>
+<li>命令行参数 (<code>--key=value</code>)</li>
+</ol>
+</li>
+</ul>
+<h4 id="的数据来源：-1"><a href="#的数据来源：-1" class="headerlink" title="#{} 的数据来源："></a><code>#&#123;&#125;</code> 的数据来源：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;#&#123;systemProperties[&#x27;user.timezone&#x27;]&#125;&quot;)</span> <span class="comment">// 直接访问系统属性</span></span><br><span class="line"><span class="keyword">private</span> String timezone;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>可访问对象</strong>：<ul>
+<li>Spring Bean 引用 (<code>@beanName</code>)</li>
+<li>系统属性&#x2F;环境变量</li>
+<li>静态方法&#x2F;常量 (<code>T(java.lang.Math).PI</code>)</li>
+<li>集合&#x2F;数组操作</li>
+<li>条件运算和三目表达式</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="3-功能对比"><a href="#3-功能对比" class="headerlink" title="3. 功能对比"></a>3. <strong>功能对比</strong></h3><h4 id="的典型场景："><a href="#的典型场景：" class="headerlink" title="${} 的典型场景："></a><code>$&#123;&#125;</code> 的典型场景：</h4><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.properties</span></span><br><span class="line"><span class="attr">app.max.retry</span>=<span class="string">3</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 基础注入</span></span><br><span class="line"><span class="meta">@Value(&quot;$&#123;app.max.retry&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> maxRetry;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 带默认值</span></span><br><span class="line"><span class="meta">@Value(&quot;$&#123;app.timeout:5000&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">long</span> timeout;</span><br></pre></td></tr></table></figure>
+
+<h4 id="的典型场景：-1"><a href="#的典型场景：-1" class="headerlink" title="#{} 的典型场景："></a><code>#&#123;&#125;</code> 的典型场景：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 动态计算</span></span><br><span class="line"><span class="meta">@Value(&quot;#&#123;2 * T(java.lang.Math).PI * circle.radius&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">double</span> circumference;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 条件注入</span></span><br><span class="line"><span class="meta">@Value(&quot;#&#123;systemProperties[&#x27;env&#x27;] == &#x27;prod&#x27; ? &#x27;prod.db&#x27; : &#x27;dev.db&#x27;&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String dbConfig;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 调用Bean方法</span></span><br><span class="line"><span class="meta">@Value(&quot;#&#123;userService.getDefaultUserName()&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String userName;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-执行过程对比"><a href="#4-执行过程对比" class="headerlink" title="4. 执行过程对比"></a>4. <strong>执行过程对比</strong></h3><h4 id="的执行流程："><a href="#的执行流程：" class="headerlink" title="${} 的执行流程："></a><code>$&#123;&#125;</code> 的执行流程：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[解析$&#123;&#125;] --&gt; B[从Environment查找属性]</span><br><span class="line">    B --&gt; C&#123;属性是否存在?&#125;</span><br><span class="line">    C --&gt;|是| D[注入值]</span><br><span class="line">    C --&gt;|否| E[使用默认值或报错]</span><br></pre></td></tr></table></figure>
+
+<h4 id="的执行流程：-1"><a href="#的执行流程：-1" class="headerlink" title="#{} 的执行流程："></a><code>#&#123;&#125;</code> 的执行流程：</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[解析#&#123;&#125;] --&gt; B[创建SpEL表达式上下文]</span><br><span class="line">    B --&gt; C[计算表达式]</span><br><span class="line">    C --&gt; D[类型转换]</span><br><span class="line">    D --&gt; E[注入结果]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="5-组合使用示例"><a href="#5-组合使用示例" class="headerlink" title="5. 组合使用示例"></a>5. <strong>组合使用示例</strong></h3><h4 id="场景：根据环境动态构造路径"><a href="#场景：根据环境动态构造路径" class="headerlink" title="场景：根据环境动态构造路径"></a>场景：根据环境动态构造路径</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 组合使用：先解析$&#123;&#125;，再作为SpEL的一部分</span></span><br><span class="line"><span class="meta">@Value(&quot;#&#123;&#x27;$&#123;storage.base.path&#125;&#x27; + systemProperties[&#x27;user.name&#x27;]&#125;&quot;)</span></span><br><span class="line"><span class="keyword">private</span> String userStoragePath;</span><br></pre></td></tr></table></figure>
+
+<h4 id="解析步骤："><a href="#解析步骤：" class="headerlink" title="解析步骤："></a>解析步骤：</h4><ol>
+<li>先解析 <code>$&#123;storage.base.path&#125;</code> → <code>/data/storage</code></li>
+<li>再获取 <code>systemProperties[&#39;user.name&#39;]</code> → <code>alice</code></li>
+<li>拼接结果 → <code>/data/storage/alice</code></li>
+</ol>
+<hr>
+<h3 id="6-常见错误对比"><a href="#6-常见错误对比" class="headerlink" title="6. 常见错误对比"></a>6. <strong>常见错误对比</strong></h3><h4 id="的典型错误："><a href="#的典型错误：" class="headerlink" title="${} 的典型错误："></a><code>$&#123;&#125;</code> 的典型错误：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;$&#123;undefined.property&#125;&quot;)</span> <span class="comment">// 没有默认值</span></span><br><span class="line"><span class="keyword">private</span> String value;</span><br></pre></td></tr></table></figure>
+<p><strong>报错</strong>：<br><code>IllegalArgumentException: Could not resolve placeholder &#39;undefined.property&#39;</code></p>
+<p><strong>解决方案</strong>：<br>添加默认值：<code>@Value(&quot;$&#123;undefined.property:default&#125;&quot;)</code></p>
+<h4 id="的典型错误：-1"><a href="#的典型错误：-1" class="headerlink" title="#{} 的典型错误："></a><code>#&#123;&#125;</code> 的典型错误：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value(&quot;#&#123;unknownBean.method()&#125;&quot;)</span> <span class="comment">// Bean不存在</span></span><br><span class="line"><span class="keyword">private</span> String value;</span><br></pre></td></tr></table></figure>
+<p><strong>报错</strong>：<br><code>SpelEvaluationException: EL1008E: Property or field &#39;unknownBean&#39; cannot be found</code></p>
+<p><strong>解决方案</strong>：<br>使用安全导航运算符：<code>#&#123;unknownBean?.method()&#125;</code></p>
+<hr>
+<h3 id="7-最佳实践建议"><a href="#7-最佳实践建议" class="headerlink" title="7. 最佳实践建议"></a>7. <strong>最佳实践建议</strong></h3><ol>
+<li><p><strong>优先用 <code>$&#123;&#125;</code> 的场景</strong>：</p>
+<ul>
+<li>注入配置文件中的值</li>
+<li>需要环境隔离的配置（如数据库连接）</li>
+</ul>
+</li>
+<li><p><strong>优先用 <code>#&#123;&#125;</code> 的场景</strong>：</p>
+<ul>
+<li>需要动态计算的属性</li>
+<li>需要访问其他 Bean 或系统资源</li>
+<li>需要条件逻辑（如三目运算符）</li>
+</ul>
+</li>
+<li><p><strong>避免滥用</strong>：</p>
+<ul>
+<li>不要用 SpEL 替代简单的属性注入</li>
+<li>复杂的业务逻辑应该放在 Service 层而非 SpEL 中</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="8-性能注意事项"><a href="#8-性能注意事项" class="headerlink" title="8. 性能注意事项"></a>8. <strong>性能注意事项</strong></h3><ul>
+<li><code>$&#123;&#125;</code> 在应用启动时一次性解析，无运行时开销</li>
+<li><code>#&#123;&#125;</code> 每次访问时可能重新计算（取决于上下文），对性能敏感的场景需谨慎使用</li>
+</ul>
+<p>通过理解这些区别，你可以更精准地选择适合的注入方式。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2025/06/15/Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/">https://qijianyeah.github.io/2025/06/15/Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/spring-%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">spring 知识总结</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/06/14/Spring-Boot-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E8%AF%A6%E8%A7%A3/" title="Spring Boot 启动过程详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Spring Boot 启动过程详解</div></div><div class="info-2"><div class="info-item-1">Spring Boot 启动过程详解Spring Boot 的启动过程是一个精心设计的自动化流程，下面我将详细解析其核心步骤和原理。 1. 入口点：main 方法Spring Boot 应用的启动始于标注了 @SpringBootApplication 的主类中的 main 方法： 123456@SpringBootApplicationpublic class MyApplication &#123;    public static void main(String[] args) &#123;        SpringApplication.run(MyApplication.class, args);    &#125;&#125;  2. SpringApplication 初始化SpringApplication.run() 方法内部会创建一个 SpringApplication 实例： 123public static ConfigurableApplicationContext run(Class&lt;?&gt; primarySource,...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/06/12/%E5%A6%82%E4%BD%95%E5%BF%AB%E9%80%9F%E6%89%BE%E5%88%B0-Spring-%E4%B8%AD%E9%80%82%E5%90%88%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9/" title="如何快速找到 Spring 中适合的扩展点"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-12</div><div class="info-item-2">如何快速找到 Spring 中适合的扩展点</div></div><div class="info-2"><div class="info-item-1">如何快速找到 Spring 中适合的扩展点在 Spring 框架中要找到适合的扩展点来修改或扩展功能，可以按照以下系统化的方法进行： 1. 理解 Spring 容器生命周期首先需要了解 Spring 容器的核心生命周期阶段：  Bean 定义加载 Bean 实例化 依赖注入 初始化 使用 销毁  2. 常用扩展点快速定位表   需求场景 适合的扩展点 使用说明    拦截&#x2F;修改 Bean 定义 BeanDefinitionRegistryPostProcessor 最早介入点，可以添加&#x2F;修改&#x2F;删除 Bean 定义   修改实例化后的 Bean BeanPostProcessor 对实例化后的 Bean 进行包装或修改   替换特定 Bean 实现 @Primary + @Bean 定义更高优先级的同类型 Bean   条件化控制 Bean 加载 @Conditional 系列注解 基于条件决定是否创建...</div></div></div></a><a class="pagination-related" href="/2025/06/12/Spring-%E5%AE%B9%E5%99%A8%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/" title="Spring 容器生命周期详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-12</div><div class="info-item-2">Spring 容器生命周期详解</div></div><div class="info-2"><div class="info-item-1">Spring 容器生命周期详解Spring 容器的生命周期是理解 Spring 框架运作机制的核心。下面我将详细展开每个阶段的运作原理和关键点： 1. Bean 定义加载阶段核心过程：  容器读取配置元数据（XML、Java 注解或代码） 解析并转换为 BeanDefinition 对象 注册到 BeanDefinitionRegistry  关键点：  配置来源：  XML 配置文件（&lt;bean&gt; 标签） Java 注解（@Component, @Bean 等） 编程方式（BeanDefinitionBuilder）   扩展点： 12345678// 1. BeanDefinitionRegistryPostProcessor// 可以添加/修改/删除 BeanDefinitionpublic interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor &#123;    void...</div></div></div></a><a class="pagination-related" href="/2025/06/13/%E4%BD%BF%E7%94%A8-InstantiationAwareBeanPostProcessor-%E8%AF%A6%E8%A7%A3/" title="使用 InstantiationAwareBeanPostProcessor 详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-13</div><div class="info-item-2">使用 InstantiationAwareBeanPostProcessor 详解</div></div><div class="info-2"><div class="info-item-1">使用 InstantiationAwareBeanPostProcessor 详解InstantiationAwareBeanPostProcessor 是 Spring 容器中非常强大的扩展接口，它允许你在 Bean 实例化前后进行干预。下面我将详细介绍如何使用这个接口。 基本用法1. 实现接口并注册为 Bean12345678910111213141516171819202122232425@Componentpublic class CustomInstantiationProcessor implements InstantiationAwareBeanPostProcessor &#123;    @Override    public Object postProcessBeforeInstantiation(Class&lt;?&gt; beanClass, String beanName) throws BeansException &#123;        // 在实例化前执行        if (beanClass ==...</div></div></div></a><a class="pagination-related" href="/2025/06/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%92%8C%E4%BD%BF%E7%94%A8-BeanDefinitionRegistryPostProcessor/" title="深入理解和使用 BeanDefinitionRegistryPostProcessor"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-13</div><div class="info-item-2">深入理解和使用 BeanDefinitionRegistryPostProcessor</div></div><div class="info-2"><div class="info-item-1">深入理解和使用 BeanDefinitionRegistryPostProcessorBeanDefinitionRegistryPostProcessor 是 Spring 框架中非常强大的扩展接口，它允许你在 Spring 容器完成标准 Bean 定义加载后，但在任何 Bean 实例化之前，对 Bean 定义进行修改或添加。下面我将详细介绍如何使用这个接口。 基本概念接口定义123public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor &#123;    void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException;&#125;  特点 执行时机最早：在所有常规 Bean 定义加载后，但在 Bean 实例化前 可以修改容器核心结构：能添加、修改或删除 Bean 定义 **优先级高于 @Bean**：比 @Configuration...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">28</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">@Value 注解的核心工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">1. 基本使用方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">2. 核心工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%A7%A3%E6%9E%90%E9%98%B6%E6%AE%B5%EF%BC%88ConfigurationClassPostProcessor%EF%BC%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 解析阶段（ConfigurationClassPostProcessor）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E9%98%B6%E6%AE%B5%EF%BC%88AutowiredAnnotationBeanPostProcessor%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 依赖注入阶段（AutowiredAnnotationBeanPostProcessor）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%80%BC%E8%A7%A3%E6%9E%90%E9%98%B6%E6%AE%B5%EF%BC%88StringValueResolver%EF%BC%89"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 值解析阶段（StringValueResolver）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E9%98%B6%E6%AE%B5%EF%BC%88ConversionService%EF%BC%89"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 类型转换阶段（ConversionService）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B3%E9%94%AE%E7%BB%84%E4%BB%B6%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">3. 关键组件详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-PropertySourcesPlaceholderConfigurer"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 PropertySourcesPlaceholderConfigurer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-BeanExpressionResolver"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 BeanExpressionResolver</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-ConversionService"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 ConversionService</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%8C%E6%95%B4%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">4. 完整处理流程图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%89%B9%E6%AE%8A%E5%A4%84%E7%90%86%E5%9C%BA%E6%99%AF"><span class="toc-number">1.5.</span> <span class="toc-text">5. 特殊处理场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8A%A8%E6%80%81%E5%88%B7%E6%96%B0"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 动态刷新</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%BB%98%E8%AE%A4%E5%80%BC%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 默认值设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%B5%8C%E5%A5%97%E5%B1%9E%E6%80%A7"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3 嵌套属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">6. 常见问题排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB"><span class="toc-number">1.6.1.</span> <span class="toc-text">1. 本质区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.2.</span> <span class="toc-text">2. 数据来源对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%EF%BC%9A"><span class="toc-number">1.6.2.1.</span> <span class="toc-text">${} 的数据来源：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90%EF%BC%9A-1"><span class="toc-number">1.6.2.2.</span> <span class="toc-text">#{} 的数据来源：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.3.</span> <span class="toc-text">3. 功能对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%EF%BC%9A"><span class="toc-number">1.6.3.1.</span> <span class="toc-text">${} 的典型场景：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%EF%BC%9A-1"><span class="toc-number">1.6.3.2.</span> <span class="toc-text">#{} 的典型场景：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.4.</span> <span class="toc-text">4. 执行过程对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="toc-number">1.6.4.1.</span> <span class="toc-text">${} 的执行流程：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%EF%BC%9A-1"><span class="toc-number">1.6.4.2.</span> <span class="toc-text">#{} 的执行流程：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E7%BB%84%E5%90%88%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.6.5.</span> <span class="toc-text">5. 组合使用示例</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%EF%BC%9A%E6%A0%B9%E6%8D%AE%E7%8E%AF%E5%A2%83%E5%8A%A8%E6%80%81%E6%9E%84%E9%80%A0%E8%B7%AF%E5%BE%84"><span class="toc-number">1.6.5.1.</span> <span class="toc-text">场景：根据环境动态构造路径</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E6%AD%A5%E9%AA%A4%EF%BC%9A"><span class="toc-number">1.6.5.2.</span> <span class="toc-text">解析步骤：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%AF%B9%E6%AF%94"><span class="toc-number">1.6.6.</span> <span class="toc-text">6. 常见错误对比</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E5%85%B8%E5%9E%8B%E9%94%99%E8%AF%AF%EF%BC%9A"><span class="toc-number">1.6.6.1.</span> <span class="toc-text">${} 的典型错误：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9A%84%E5%85%B8%E5%9E%8B%E9%94%99%E8%AF%AF%EF%BC%9A-1"><span class="toc-number">1.6.6.2.</span> <span class="toc-text">#{} 的典型错误：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.6.7.</span> <span class="toc-text">7. 最佳实践建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E6%80%A7%E8%83%BD%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.6.8.</span> <span class="toc-text">8. 性能注意事项</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/15/Value-%E6%B3%A8%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="Value 注解的核心工作流程">Value 注解的核心工作流程</a><time datetime="2025-06-15T14:21:14.000Z" title="发表于 2025-06-15 22:21:14">2025-06-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/14/Spring-Boot-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E8%AF%A6%E8%A7%A3/" title="Spring Boot 启动过程详解">Spring Boot 启动过程详解</a><time datetime="2025-06-14T08:47:47.000Z" title="发表于 2025-06-14 16:47:47">2025-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/13/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%92%8C%E4%BD%BF%E7%94%A8-BeanDefinitionRegistryPostProcessor/" title="深入理解和使用 BeanDefinitionRegistryPostProcessor">深入理解和使用 BeanDefinitionRegistryPostProcessor</a><time datetime="2025-06-12T16:28:58.000Z" title="发表于 2025-06-13 00:28:58">2025-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/13/%E4%BD%BF%E7%94%A8-InstantiationAwareBeanPostProcessor-%E8%AF%A6%E8%A7%A3/" title="使用 InstantiationAwareBeanPostProcessor 详解">使用 InstantiationAwareBeanPostProcessor 详解</a><time datetime="2025-06-12T16:24:35.000Z" title="发表于 2025-06-13 00:24:35">2025-06-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/12/Spring-%E5%AE%B9%E5%99%A8%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/" title="Spring 容器生命周期详解">Spring 容器生命周期详解</a><time datetime="2025-06-12T15:06:02.000Z" title="发表于 2025-06-12 23:06:02">2025-06-12</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2025 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
