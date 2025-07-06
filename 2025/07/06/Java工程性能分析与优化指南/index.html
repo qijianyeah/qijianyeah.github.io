@@ -1,0 +1,479 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Java工程性能分析与优化指南 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Java工程性能分析与优化指南性能优化是Java开发中的重要环节，下面我将介绍一套完整的Java性能分析和优化方法。 一、性能分析工具1. JVM内置工具jps: 查看Java进程.用于查看当前系统中所有 Java 进程的信息。它可以帮助你快速找到正在运行的 Java 应用程序的进程 ID（PID）和其他相关信息。 命令格式1jps [options]  常用选项 无选项：列出当前用户的所有 Ja">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java工程性能分析与优化指南">
+<meta property="og:url" content="https://qijianyeah.github.io/2025/07/06/Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Java工程性能分析与优化指南性能优化是Java开发中的重要环节，下面我将介绍一套完整的Java性能分析和优化方法。 一、性能分析工具1. JVM内置工具jps: 查看Java进程.用于查看当前系统中所有 Java 进程的信息。它可以帮助你快速找到正在运行的 Java 应用程序的进程 ID（PID）和其他相关信息。 命令格式1jps [options]  常用选项 无选项：列出当前用户的所有 Ja">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2025-07-06T08:48:47.000Z">
+<meta property="article:modified_time" content="2025-07-06T08:49:37.800Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="博客 Linux 算法 服务器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://qijianyeah.github.io/2025/07/06/Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Java工程性能分析与优化指南',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">37</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Java工程性能分析与优化指南</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Java工程性能分析与优化指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-07-06T08:48:47.000Z" title="发表于 2025-07-06 16:48:47">2025-07-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-07-06T08:49:37.800Z" title="更新于 2025-07-06 16:49:37">2025-07-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Java工程性能分析与优化指南"><a href="#Java工程性能分析与优化指南" class="headerlink" title="Java工程性能分析与优化指南"></a>Java工程性能分析与优化指南</h1><p>性能优化是Java开发中的重要环节，下面我将介绍一套完整的Java性能分析和优化方法。</p>
+<h2 id="一、性能分析工具"><a href="#一、性能分析工具" class="headerlink" title="一、性能分析工具"></a>一、性能分析工具</h2><h3 id="1-JVM内置工具"><a href="#1-JVM内置工具" class="headerlink" title="1. JVM内置工具"></a>1. JVM内置工具</h3><h4 id="jps-查看Java进程"><a href="#jps-查看Java进程" class="headerlink" title="jps: 查看Java进程."></a><strong>jps</strong>: 查看Java进程.</h4><p>用于查看当前系统中所有 Java 进程的信息。它可以帮助你快速找到正在运行的 Java 应用程序的进程 ID（PID）和其他相关信息。</p>
+<h5 id="命令格式"><a href="#命令格式" class="headerlink" title="命令格式"></a>命令格式</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps [options]</span><br></pre></td></tr></table></figure>
+
+<h5 id="常用选项"><a href="#常用选项" class="headerlink" title="常用选项"></a>常用选项</h5><ul>
+<li><strong>无选项</strong>：列出当前用户的所有 Java 进程的 PID 和主类名。</li>
+<li>**<code>-q</code>**：仅显示 Java 进程的 PID，不显示主类名。</li>
+<li>**<code>-m</code>**：显示传递给主类的参数。</li>
+<li>**<code>-l</code>**：显示主类的全限定名。</li>
+<li>**<code>-v</code>**：显示传递给 JVM 的参数。</li>
+</ul>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><h6 id="1-基本用法"><a href="#1-基本用法" class="headerlink" title="1. 基本用法"></a>1. 基本用法</h6><p>运行 <code>jps</code> 命令，列出当前用户的所有 Java 进程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12345 MainClass</span><br><span class="line">23456 AnotherMainClass</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>**<code>12345</code>**：Java 进程的 PID。</li>
+<li>**<code>MainClass</code>**：主类名。</li>
+</ul>
+<h6 id="2-仅显示-PID"><a href="#2-仅显示-PID" class="headerlink" title="2. 仅显示 PID"></a>2. 仅显示 PID</h6><p>使用 <code>-q</code> 选项，仅显示 Java 进程的 PID：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps -q</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12345</span><br><span class="line">23456</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-显示主类的全限定名"><a href="#3-显示主类的全限定名" class="headerlink" title="3. 显示主类的全限定名"></a>3. 显示主类的全限定名</h6><p>使用 <code>-l</code> 选项，显示主类的全限定名：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps -l</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12345 com.example.MainClass</span><br><span class="line">23456 com.example.AnotherMainClass</span><br></pre></td></tr></table></figure>
+
+<h6 id="4-显示传递给主类的参数"><a href="#4-显示传递给主类的参数" class="headerlink" title="4. 显示传递给主类的参数"></a>4. 显示传递给主类的参数</h6><p>使用 <code>-m</code> 选项，显示传递给主类的参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps -m</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12345 MainClass arg1 arg2</span><br><span class="line">23456 AnotherMainClass arg3 arg4</span><br></pre></td></tr></table></figure>
+
+<h6 id="5-显示传递给-JVM-的参数"><a href="#5-显示传递给-JVM-的参数" class="headerlink" title="5. 显示传递给 JVM 的参数"></a>5. 显示传递给 JVM 的参数</h6><p>使用 <code>-v</code> 选项，显示传递给 JVM 的参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jps -v</span><br></pre></td></tr></table></figure>
+
+<p>输出示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">12345 MainClass -Xms128m -Xmx512m</span><br><span class="line">23456 AnotherMainClass -XX:+UseG1GC</span><br></pre></td></tr></table></figure>
+
+<h5 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h5><p><code>jps</code> 命令通常用于以下场景：</p>
+<ol>
+<li><strong>查找 Java 进程的 PID</strong>：当你需要使用其他工具（如 <code>jstat</code>、<code>jstack</code>、<code>jmap</code> 等）监控或调试 Java 进程时，<code>jps</code> 可以帮助你快速找到目标进程的 PID。</li>
+<li><strong>监控 Java 应用程序的运行情况</strong>：通过列出所有 Java 进程，你可以了解当前系统中正在运行的 Java 应用程序及其状态。</li>
+<li><strong>调试和优化</strong>：结合 <code>-m</code> 和 <code>-v</code> 选项，可以查看传递给主类和 JVM 的参数，这对于调试和优化 Java 应用程序非常有帮助。</li>
+</ol>
+<p>希望这些信息对你有帮助！</p>
+<h4 id="jstat-监控-Java-虚拟机（JVM）的性能指标"><a href="#jstat-监控-Java-虚拟机（JVM）的性能指标" class="headerlink" title="jstat: 监控 Java 虚拟机（JVM）的性能指标"></a><strong>jstat</strong>: 监控 Java 虚拟机（JVM）的性能指标</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jstat -gcutil &lt;pid&gt; 1000 10</span><br><span class="line">jstat [-命令选项] [vmid] [间隔时间(毫秒)] [查询次数]</span><br></pre></td></tr></table></figure>
+
+<p>jstat -gcutil <pid> <interval> <count></p>
+<h5 id="参数解释"><a href="#参数解释" class="headerlink" title="参数解释"></a>参数解释</h5><ul>
+<li><strong><code>-gcutil</code><strong>：指定要监控的性能指标类型。<code>-gcutil</code> 表示</strong>监控垃圾回收（Garbage Collection, GC）的利用率。</strong></li>
+<li>**<code>&lt;pid&gt;</code>**：Java 进程的进程 ID（Process ID）。这是运行 Java 应用程序的进程的唯一标识符。你可以通过 <code>jps</code> 命令来获取当前系统中所有 Java 进程的 PID。</li>
+<li>**<code>&lt;interval&gt;</code>**：采样间隔时间，单位为毫秒（ms）。在这个例子中，<code>1000</code> 表示每 1000 毫秒（即每秒）采样一次。</li>
+<li>**<code>&lt;count&gt;</code>**：采样次数。在这个例子中，<code>10</code> 表示总共采样 10 次。</li>
+</ul>
+<h5 id="输出解释"><a href="#输出解释" class="headerlink" title="输出解释"></a>输出解释</h5><p>运行 <code>jstat -gcutil &lt;pid&gt; 1000 10</code> 命令后，你会看到类似以下的输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">S0   S1    E     O    M     CCS    YGC   YGCT    FGC FGCT     GCT   </span><br><span class="line">0.00 0.00 75.68 36.92 97.72 100.00 1234  0.123   56  0.045   0.168</span><br><span class="line">0.00 0.00 75.68 36.92 97.72 100.00 1234  0.123   56  0.045   0.168</span><br><span class="line">0.00 0.00 75.68 36.92 97.72 100.00 1234  0.123   56  0.045   0.168</span><br></pre></td></tr></table></figure>
+
+<h5 id="列的含义"><a href="#列的含义" class="headerlink" title="列的含义"></a>列的含义</h5><ul>
+<li>**<code>S0</code>**：Survivor 0 区的使用率（百分比）。Survivor 区是新生代的一部分，用于存放经过一次 Minor GC 后存活的对象。</li>
+<li>**<code>S1</code>**：Survivor 1 区的使用率（百分比）。与 Survivor 0 区类似，但用于存放经过下一次 Minor GC 后存活的对象。</li>
+<li>**<code>E</code>**：Eden 区的使用率（百分比）。Eden 区是新生代的一部分，用于存放新创建的对象。</li>
+<li>**<code>O</code>**：Old 区的使用率（百分比）。Old 区用于存放经过多次 Minor GC 后仍然存活的对象。</li>
+<li>**<code>M</code>**：Metaspace 区的使用率（百分比）。Metaspace 区用于存放类的元数据。</li>
+<li>**<code>CCS</code>**：Compressed Class Space 区的使用率（百分比）。这是 Metaspace 区的一部分，用于存放类的压缩元数据。</li>
+<li>**<code>YGC</code>**：Young Generation GC 的次数。表示新生代垃圾回收的总次数。</li>
+<li>**<code>YGCT</code>**：Young Generation GC 的总耗时（秒）。表示新生代垃圾回收的总时间。</li>
+<li>**<code>FGC</code>**：Full GC 的次数。表示全垃圾回收的总次数。</li>
+<li>**<code>FGCT</code>**：Full GC 的总耗时（秒）。表示全垃圾回收的总时间。</li>
+<li>**<code>GCT</code>**：GC 的总耗时（秒）。表示所有垃圾回收的总时间。</li>
+</ul>
+<h5 id="使用场景-1"><a href="#使用场景-1" class="headerlink" title="使用场景"></a>使用场景</h5><p><code>jstat -gcutil</code> 命令主要用于监控 JVM 的垃圾回收情况，帮助开发者了解垃圾回收的频率、耗时以及各个内存区域的使用情况。这对于优化 Java 应用程序的性能和内存管理非常有帮助。</p>
+<h4 id="jmap-内存分析"><a href="#jmap-内存分析" class="headerlink" title="jmap: 内存分析"></a><strong>jmap</strong>: 内存分析</h4><h5 id="命令格式-1"><a href="#命令格式-1" class="headerlink" title="命令格式"></a>命令格式</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap [options] &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="常用选项-1"><a href="#常用选项-1" class="headerlink" title="常用选项"></a>常用选项</h5><ul>
+<li>**<code>-heap</code>**：显示 JVM 堆内存的详细信息，包括各代内存的使用情况。</li>
+<li>**<code>-histo</code>**：显示堆中对象的统计信息，包括类名、实例数量和占用的内存大小。</li>
+<li>**<code>-dump</code>**：生成堆转储文件，用于后续分析。</li>
+<li>**<code>-finalizerinfo</code>**：显示正在等待终结的对象信息。</li>
+<li>**<code>-F</code>**：强制执行操作，通常与 <code>-dump</code> 选项一起使用。</li>
+</ul>
+<h5 id="1、堆内存概况："><a href="#1、堆内存概况：" class="headerlink" title="1、堆内存概况："></a>1、堆内存概况：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -heap &lt;pid&gt; # 堆内存概况</span><br></pre></td></tr></table></figure>
+
+<p>但如果报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Error: -heap option used</span><br><span class="line">Cannot connect to core dump or remote debug server. Use jhsdb jmap instead</span><br></pre></td></tr></table></figure>
+
+<p>说明你的 JDK 版本较新，必须使用 <code>jhsdb</code>。</p>
+<h5 id="2、对象直方图"><a href="#2、对象直方图" class="headerlink" title="2、对象直方图"></a>2、对象直方图</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">jmap -histo:live &lt;pid&gt;  或 jmap -histo:live &lt;pid&gt; | head -20</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输出</span></span><br><span class="line"> num     #instances         #bytes  class name</span><br><span class="line">----------------------------------------------</span><br><span class="line">   1:       1000000    2000000000  [B    # byte数组</span><br><span class="line">   2:        500000     800000000  java.lang.String</span><br><span class="line">   3:        200000     400000000  java.util.HashMap$Node</span><br><span class="line">   4:        100000     200000000  [Ljava.lang.Object;  # Object数组</span><br><span class="line">   ...</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关键说明：</p>
+<ol>
+<li><strong><code>-histo:live</code> vs <code>-histo</code></strong><ul>
+<li><code>-histo:live</code>：触发 Full GC 后统计 <strong>存活对象</strong></li>
+<li><code>-histo</code>：统计当前堆中的对象（不触发 GC）</li>
+</ul>
+</li>
+<li><strong>会触发 Full GC</strong><ul>
+<li>生产环境慎用，可能导致应用短暂卡顿</li>
+<li>如果只是分析内存分布，可以用 <code>-histo</code>（不带 <code>:live</code>）</li>
+</ul>
+</li>
+<li>输出列说明</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="left">列名</th>
+<th align="left">示例值</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>num</strong></td>
+<td align="left"><code>1</code>, <code>2</code>, <code>3</code>…</td>
+<td align="left">序号，按对象总占用内存（#bytes）降序排列</td>
+</tr>
+<tr>
+<td align="left"><strong>#instances</strong></td>
+<td align="left"><code>1000000</code>, <code>500000</code></td>
+<td align="left">该类的 <strong>存活实例数量</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>#bytes</strong></td>
+<td align="left"><code>2000000000</code>, <code>800000000</code></td>
+<td align="left">这些实例 <strong>占用的总内存（字节）</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>class name</strong></td>
+<td align="left"><code>[B</code>, <code>java.lang.String</code></td>
+<td align="left">类名（JVM内部表示格式）</td>
+</tr>
+</tbody></table>
+</blockquote>
+<h5 id="3、生成堆转储文件"><a href="#3、生成堆转储文件" class="headerlink" title="3、生成堆转储文件"></a>3、生成堆转储文件</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -dump:format=b,file=heap.hprof &lt;pid&gt; # 用于生成 Java 堆内存转储文件（Heap Dump）的命令</span><br></pre></td></tr></table></figure>
+
+<p><strong>命令组成</strong></p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>jmap</code></td>
+<td>JDK 自带的 Java 内存分析工具</td>
+</tr>
+<tr>
+<td><code>-dump:format=b</code></td>
+<td>指定转储格式为二进制（binary）</td>
+</tr>
+<tr>
+<td><code>file=heap.hprof</code></td>
+<td>输出文件名为 <code>heap.hprof</code></td>
+</tr>
+<tr>
+<td><code>&lt;pid&gt;</code></td>
+<td>目标 Java 进程的进程 ID</td>
+</tr>
+</tbody></table>
+<h5 id="关键作用"><a href="#关键作用" class="headerlink" title="关键作用"></a><strong>关键作用</strong></h5><ol>
+<li><h6 id="生成堆转储文件"><a href="#生成堆转储文件" class="headerlink" title="生成堆转储文件"></a><strong>生成堆转储文件</strong></h6><ul>
+<li><h6 id="捕获-JVM-堆内存的完整快照（包含所有对象及其引用关系）"><a href="#捕获-JVM-堆内存的完整快照（包含所有对象及其引用关系）" class="headerlink" title="捕获 JVM 堆内存的完整快照（包含所有对象及其引用关系）"></a>捕获 JVM <strong>堆内存的完整快照</strong>（包含所有对象及其引用关系）</h6></li>
+<li><p>文件扩展名通常为 <code>.hprof</code>（Heap Profile）</p>
+</li>
+</ul>
+</li>
+<li><h6 id="用途"><a href="#用途" class="headerlink" title="用途"></a><strong>用途</strong></h6><ul>
+<li>分析内存泄漏（如哪些对象无法被 GC 回收）</li>
+<li>检查大对象占用（如缓存失控）</li>
+<li>优化内存使用（识别可优化的数据结构）</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h5 id="执行示例"><a href="#执行示例" class="headerlink" title="执行示例"></a><strong>执行示例</strong></h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -dump:format=b,file=/tmp/heap.hprof 1234</span><br></pre></td></tr></table></figure>
+
+<p>生成的文件路径为 <code>/tmp/heap.hprof</code>。</p>
+<hr>
+<h5 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a><strong>注意事项</strong></h5><ol>
+<li><h6 id="生产环境慎用"><a href="#生产环境慎用" class="headerlink" title="生产环境慎用"></a><strong>生产环境慎用</strong></h6><ul>
+<li>生成堆转储时会 <strong>暂停 JVM</strong>（STW, Stop-The-World），时间取决于堆大小</li>
+<li>建议在低峰期操作，或通过 <code>-F</code> 强制模式（但风险更高）</li>
+</ul>
+</li>
+<li><p><strong>文件大小</strong>  </p>
+<ul>
+<li>转储文件 ≈ JVM 堆内存使用量（如堆占用 4GB，文件约 4GB）</li>
+<li>确保磁盘空间充足</li>
+</ul>
+</li>
+<li><h6 id="权限要求"><a href="#权限要求" class="headerlink" title="权限要求"></a><strong>权限要求</strong></h6><ul>
+<li><p>必须与 Java 进程 <strong>同一用户</strong> 执行</p>
+</li>
+<li><p>如需 <code>sudo</code>，建议保留文件权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> -u &lt;java_user&gt; jmap -dump:format=b,file=heap.hprof &lt;pid&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h4 id="jstack-线程分析"><a href="#jstack-线程分析" class="headerlink" title="jstack: 线程分析"></a><strong>jstack</strong>: 线程分析</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">jstack &lt;pid&gt; &gt; thread.txt   </span><br><span class="line"><span class="comment"># 快速分析死锁</span></span><br><span class="line">jstack &lt;pid&gt; | grep -A 10 <span class="string">&quot;deadlock&quot;</span></span><br><span class="line"><span class="comment"># 统计线程状态分布</span></span><br><span class="line">jstack &lt;pid&gt; | grep <span class="string">&quot;java.lang.Thread.State&quot;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c</span><br><span class="line"><span class="comment"># 监控线程数增长</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> jstack &lt;pid&gt; | grep <span class="string">&#x27;java.lang.Thread.State&#x27;</span> | <span class="built_in">wc</span> -l; <span class="built_in">sleep</span> 1; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>用于捕获 Java 进程的线程快照（Thread Dump），帮助诊断线程阻塞、死锁、高 CPU 占用等问题。以下是详细说明：</p>
+</blockquote>
+<ul>
+<li><strong><code>&lt;pid&gt;</code></strong>: Java 进程 ID（通过 <code>jps</code> 或 <code>ps -ef | grep java</code> 获取）</li>
+<li><strong><code>&gt; thread_dump.txt</code></strong>: 将输出重定向到文件（推荐保存供后续分析）</li>
+</ul>
+<p>线程快照包含以下关键信息：</p>
+<h5 id="1-线程状态"><a href="#1-线程状态" class="headerlink" title="1. 线程状态"></a>1. <strong>线程状态</strong></h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;main&quot;</span> #<span class="number">1</span> prio=<span class="number">5</span> os_prio=<span class="number">0</span> tid=<span class="number">0x00007f4874009800</span> nid=<span class="number">0x1e03</span> waiting on condition [<span class="number">0x00007f487c4e6000</span>]</span><br><span class="line">   java.lang.Thread.State: TIMED_WAITING (sleeping)</span><br></pre></td></tr></table></figure>
+
+<p>常见状态：</p>
+<ul>
+<li><strong>RUNNABLE</strong>: 正在运行或等待 CPU 调度</li>
+<li><strong>BLOCKED</strong>: 等待获取锁（可能引发死锁）</li>
+<li><strong>WAITING&#x2F;TIMED_WAITING</strong>: 等待条件触发（如 <code>wait()</code> 或 <code>sleep()</code>）</li>
+<li><strong>DEADLOCK</strong>: 死锁（需重点关注）</li>
+</ul>
+<h5 id="2-关键字段"><a href="#2-关键字段" class="headerlink" title="2. 关键字段"></a>2. <strong>关键字段</strong></h5><ul>
+<li><strong><code>nid</code></strong>: 原生线程 ID（对应操作系统的线程 ID）</li>
+<li><strong><code>tid</code></strong>: Java 线程 ID</li>
+<li><strong><code>waiting on condition</code></strong>: 线程等待的资源（如锁、IO等）</li>
+</ul>
+<h5 id="3-死锁检测"><a href="#3-死锁检测" class="headerlink" title="3. 死锁检测"></a>3. <strong>死锁检测</strong></h5><p>如果存在死锁，末尾会显示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Found one Java-level deadlock:</span><br><span class="line">=============================</span><br><span class="line">&quot;Thread-1&quot;:</span><br><span class="line">  waiting to lock monitor 0x00007f483400a8e8 (object 0x000000076ac00000, a java.lang.Object),</span><br><span class="line">  which is held by &quot;Thread-2&quot;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-可视化工具"><a href="#2-可视化工具" class="headerlink" title="2. 可视化工具"></a>2. 可视化工具</h3><ul>
+<li><strong>VisualVM</strong>: 综合监控和分析</li>
+<li><strong>JConsole</strong>: 基础监控</li>
+<li><strong>Java Mission Control (JMC)</strong>: Oracle提供的专业工具</li>
+<li><strong>Eclipse MAT</strong>: 内存分析工具</li>
+</ul>
+<h3 id="3-性能剖析工具"><a href="#3-性能剖析工具" class="headerlink" title="3. 性能剖析工具"></a>3. 性能剖析工具</h3><ul>
+<li><strong>Async Profiler</strong>: 低开销的采样分析器</li>
+<li><strong>JProfiler</strong>: 商业性能分析工具</li>
+<li><strong>YourKit</strong>: 另一款商业分析工具</li>
+</ul>
+<h2 id="二、性能优化方法"><a href="#二、性能优化方法" class="headerlink" title="二、性能优化方法"></a>二、性能优化方法</h2><h3 id="1-JVM调优"><a href="#1-JVM调优" class="headerlink" title="1. JVM调优"></a>1. JVM调优</h3><h4 id="内存配置"><a href="#内存配置" class="headerlink" title="内存配置"></a>内存配置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 常用参数示例</span></span><br><span class="line">java -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>-Xms</strong> 和 <strong>-Xmx</strong>: 设置堆的初始和最大大小(建议设为相同值)</li>
+<li><strong>-Xmn</strong>: 新生代大小(通常为堆的1&#x2F;3到1&#x2F;2)</li>
+<li><strong>-XX:MetaspaceSize</strong> 和 <strong>-XX:MaxMetaspaceSize</strong>: 元空间大小</li>
+</ul>
+<h4 id="GC调优"><a href="#GC调优" class="headerlink" title="GC调优"></a>GC调优</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># G1 GC示例</span></span><br><span class="line">java -XX:+UseG1GC -XX:MaxGCPauseMillis=200</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>-XX:+UseG1GC</strong>: 使用G1垃圾收集器(JDK9+默认)</li>
+<li><strong>-XX:MaxGCPauseMillis</strong>: 目标最大GC停顿时间</li>
+<li><strong>-XX:ParallelGCThreads</strong>: 并行GC线程数</li>
+</ul>
+<h3 id="2-代码级优化"><a href="#2-代码级优化" class="headerlink" title="2. 代码级优化"></a>2. 代码级优化</h3><h4 id="集合使用优化"><a href="#集合使用优化" class="headerlink" title="集合使用优化"></a>集合使用优化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不好的做法</span></span><br><span class="line">List&lt;String&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(); </span><br><span class="line"><span class="comment">// 好的做法 - 预估容量</span></span><br><span class="line">List&lt;String&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(<span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="字符串处理"><a href="#字符串处理" class="headerlink" title="字符串处理"></a>字符串处理</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不好的做法 - 大量字符串拼接</span></span><br><span class="line"><span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">    result += i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 好的做法 - 使用StringBuilder</span></span><br><span class="line"><span class="type">StringBuilder</span> <span class="variable">sb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">    sb.append(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> sb.toString();</span><br></pre></td></tr></table></figure>
+
+<h4 id="对象复用"><a href="#对象复用" class="headerlink" title="对象复用"></a>对象复用</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用对象池</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;SimpleDateFormat&gt; dateFormat = </span><br><span class="line">    ThreadLocal.withInitial(() -&gt; <span class="keyword">new</span> <span class="title class_">SimpleDateFormat</span>(<span class="string">&quot;yyyy-MM-dd&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-并发优化"><a href="#3-并发优化" class="headerlink" title="3. 并发优化"></a>3. 并发优化</h3><h4 id="线程池配置"><a href="#线程池配置" class="headerlink" title="线程池配置"></a>线程池配置</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根据任务类型选择合适的线程池</span></span><br><span class="line"><span class="comment">// CPU密集型</span></span><br><span class="line"><span class="type">int</span> <span class="variable">poolSize</span> <span class="operator">=</span> Runtime.getRuntime().availableProcessors();</span><br><span class="line"><span class="type">ExecutorService</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newFixedThreadPool(poolSize);</span><br><span class="line"></span><br><span class="line"><span class="comment">// IO密集型(可以设置更大线程数)</span></span><br><span class="line"><span class="type">ExecutorService</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newCachedThreadPool();</span><br></pre></td></tr></table></figure>
+
+<h4 id="锁优化"><a href="#锁优化" class="headerlink" title="锁优化"></a>锁优化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用更细粒度的锁</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">lock1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">lock2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">method1</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span>(lock1) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">method2</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span>(lock2) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-数据库优化"><a href="#4-数据库优化" class="headerlink" title="4. 数据库优化"></a>4. 数据库优化</h3><h4 id="连接池配置"><a href="#连接池配置" class="headerlink" title="连接池配置"></a>连接池配置</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HikariCP配置示例</span></span><br><span class="line"><span class="type">HikariConfig</span> <span class="variable">config</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HikariConfig</span>();</span><br><span class="line">config.setJdbcUrl(<span class="string">&quot;jdbc:mysql://localhost:3306/mydb&quot;</span>);</span><br><span class="line">config.setUsername(<span class="string">&quot;user&quot;</span>);</span><br><span class="line">config.setPassword(<span class="string">&quot;password&quot;</span>);</span><br><span class="line">config.setMaximumPoolSize(<span class="number">20</span>);</span><br><span class="line">config.setConnectionTimeout(<span class="number">30000</span>);</span><br><span class="line"><span class="type">HikariDataSource</span> <span class="variable">ds</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HikariDataSource</span>(config);</span><br></pre></td></tr></table></figure>
+
+<h4 id="SQL优化"><a href="#SQL优化" class="headerlink" title="SQL优化"></a>SQL优化</h4><ul>
+<li>使用预编译语句(PreparedStatement)</li>
+<li>添加适当的索引</li>
+<li>避免N+1查询问题</li>
+</ul>
+<h2 id="三、性能优化流程"><a href="#三、性能优化流程" class="headerlink" title="三、性能优化流程"></a>三、性能优化流程</h2><ol>
+<li><p><strong>基准测试</strong>: 使用JMH(Java Microbenchmark Harness)进行基准测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Benchmark</span></span><br><span class="line"><span class="meta">@BenchmarkMode(Mode.AverageTime)</span></span><br><span class="line"><span class="meta">@OutputTimeUnit(TimeUnit.MICROSECONDS)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testMethod</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 测试代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>性能分析</strong>: 使用工具找出瓶颈</p>
+<ul>
+<li>CPU瓶颈: 检查热点方法</li>
+<li>内存瓶颈: 检查内存泄漏和大对象</li>
+<li>IO瓶颈: 检查磁盘和网络IO</li>
+</ul>
+</li>
+<li><p><strong>优化实施</strong>: 针对瓶颈进行优化</p>
+<ul>
+<li>算法优化</li>
+<li>缓存常用数据</li>
+<li>并行化处理</li>
+</ul>
+</li>
+<li><p><strong>验证测试</strong>: 验证优化效果</p>
+</li>
+</ol>
+<h2 id="四、常见性能问题及解决方案"><a href="#四、常见性能问题及解决方案" class="headerlink" title="四、常见性能问题及解决方案"></a>四、常见性能问题及解决方案</h2><ol>
+<li><p><strong>内存泄漏</strong></p>
+<ul>
+<li>现象: GC后内存不释放，最终OOM</li>
+<li>解决方案: 使用MAT分析堆转储，找出泄漏对象</li>
+</ul>
+</li>
+<li><p><strong>CPU占用高</strong></p>
+<ul>
+<li>现象: 某个线程长期占用CPU</li>
+<li>解决方案: 使用jstack或Async Profiler找出热点方法</li>
+</ul>
+</li>
+<li><p><strong>频繁GC</strong></p>
+<ul>
+<li>现象: GC日志显示频繁Young GC或Full GC</li>
+<li>解决方案: 调整堆大小、调整新生代&#x2F;老年代比例</li>
+</ul>
+</li>
+<li><p><strong>线程阻塞</strong></p>
+<ul>
+<li>现象: 应用响应慢但CPU不高</li>
+<li>解决方案: 分析线程转储，找出阻塞点</li>
+</ul>
+</li>
+</ol>
+<h2 id="五、性能优化原则"><a href="#五、性能优化原则" class="headerlink" title="五、性能优化原则"></a>五、性能优化原则</h2><ol>
+<li><strong>测量优先</strong>: 不测量不优化</li>
+<li><strong>二八法则</strong>: 关注关键路径</li>
+<li><strong>逐步优化</strong>: 每次改变一个变量</li>
+<li><strong>权衡取舍</strong>: 考虑可维护性与性能的平衡</li>
+</ol>
+<p>通过以上方法和工具的组合使用，可以系统地分析和优化Java应用程序的性能。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2025/07/06/Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97/">https://qijianyeah.github.io/2025/07/06/Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/07/01/spring%E6%98%93%E9%94%99%E9%97%AE%E9%A2%98%E4%B9%8B%E6%9E%84%E9%80%A0%E5%99%A8%E5%86%85%E6%8A%9B%E7%A9%BA%E6%8C%87%E9%92%88%E5%BC%82%E5%B8%B8/" title="spring易错问题之构造器内抛空指针异常"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">spring易错问题之构造器内抛空指针异常</div></div><div class="info-2"><div class="info-item-1">代码示例： 1234567891011import org.springframework.beans.factory.annotation.Autowired;import org.springframework.stereotype.Component;@Componentpublic class LightMgrService &#123;  	@Autowired	private LightService lightService;public LightMgrService() &#123;		lightService.check();	&#125;  &#125;    这段代码存在一个问题，可能会导致 NullPointerException。问题出在构造器中使用 @Autowired 依赖的时机。 问题分析： 依赖注入时机问题：Spring 的依赖注入（通过 @Autowired）发生在对象构造之后。也就是说，Spring 会先调用类的构造器创建实例，然后再进行依赖注入。 当前代码的问题：在 LightMgrService 的构造器中直接调用了...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">37</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97"><span class="toc-number">1.</span> <span class="toc-text">Java工程性能分析与优化指南</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">一、性能分析工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-JVM%E5%86%85%E7%BD%AE%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. JVM内置工具</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#jps-%E6%9F%A5%E7%9C%8BJava%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">jps: 查看Java进程.</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.1.1.1.1.</span> <span class="toc-text">命令格式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E9%80%89%E9%A1%B9"><span class="toc-number">1.1.1.1.2.</span> <span class="toc-text">常用选项</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.1.1.1.3.</span> <span class="toc-text">示例</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.3.1.</span> <span class="toc-text">1. 基本用法</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-%E4%BB%85%E6%98%BE%E7%A4%BA-PID"><span class="toc-number">1.1.1.1.3.2.</span> <span class="toc-text">2. 仅显示 PID</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-%E6%98%BE%E7%A4%BA%E4%B8%BB%E7%B1%BB%E7%9A%84%E5%85%A8%E9%99%90%E5%AE%9A%E5%90%8D"><span class="toc-number">1.1.1.1.3.3.</span> <span class="toc-text">3. 显示主类的全限定名</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#4-%E6%98%BE%E7%A4%BA%E4%BC%A0%E9%80%92%E7%BB%99%E4%B8%BB%E7%B1%BB%E7%9A%84%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.1.1.3.4.</span> <span class="toc-text">4. 显示传递给主类的参数</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#5-%E6%98%BE%E7%A4%BA%E4%BC%A0%E9%80%92%E7%BB%99-JVM-%E7%9A%84%E5%8F%82%E6%95%B0"><span class="toc-number">1.1.1.1.3.5.</span> <span class="toc-text">5. 显示传递给 JVM 的参数</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.1.1.4.</span> <span class="toc-text">使用场景</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#jstat-%E7%9B%91%E6%8E%A7-Java-%E8%99%9A%E6%8B%9F%E6%9C%BA%EF%BC%88JVM%EF%BC%89%E7%9A%84%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">jstat: 监控 Java 虚拟机（JVM）的性能指标</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E8%A7%A3%E9%87%8A"><span class="toc-number">1.1.1.2.1.</span> <span class="toc-text">参数解释</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BE%93%E5%87%BA%E8%A7%A3%E9%87%8A"><span class="toc-number">1.1.1.2.2.</span> <span class="toc-text">输出解释</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%97%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">1.1.1.2.3.</span> <span class="toc-text">列的含义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF-1"><span class="toc-number">1.1.1.2.4.</span> <span class="toc-text">使用场景</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#jmap-%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90"><span class="toc-number">1.1.1.3.</span> <span class="toc-text">jmap: 内存分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E6%A0%BC%E5%BC%8F-1"><span class="toc-number">1.1.1.3.1.</span> <span class="toc-text">命令格式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E9%80%89%E9%A1%B9-1"><span class="toc-number">1.1.1.3.2.</span> <span class="toc-text">常用选项</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1%E3%80%81%E5%A0%86%E5%86%85%E5%AD%98%E6%A6%82%E5%86%B5%EF%BC%9A"><span class="toc-number">1.1.1.3.3.</span> <span class="toc-text">1、堆内存概况：</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%E3%80%81%E5%AF%B9%E8%B1%A1%E7%9B%B4%E6%96%B9%E5%9B%BE"><span class="toc-number">1.1.1.3.4.</span> <span class="toc-text">2、对象直方图</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3%E3%80%81%E7%94%9F%E6%88%90%E5%A0%86%E8%BD%AC%E5%82%A8%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.1.3.5.</span> <span class="toc-text">3、生成堆转储文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E4%BD%9C%E7%94%A8"><span class="toc-number">1.1.1.3.6.</span> <span class="toc-text">关键作用</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%A0%86%E8%BD%AC%E5%82%A8%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.1.3.6.1.</span> <span class="toc-text">生成堆转储文件</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E6%8D%95%E8%8E%B7-JVM-%E5%A0%86%E5%86%85%E5%AD%98%E7%9A%84%E5%AE%8C%E6%95%B4%E5%BF%AB%E7%85%A7%EF%BC%88%E5%8C%85%E5%90%AB%E6%89%80%E6%9C%89%E5%AF%B9%E8%B1%A1%E5%8F%8A%E5%85%B6%E5%BC%95%E7%94%A8%E5%85%B3%E7%B3%BB%EF%BC%89"><span class="toc-number">1.1.1.3.6.2.</span> <span class="toc-text">捕获 JVM 堆内存的完整快照（包含所有对象及其引用关系）</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%94%A8%E9%80%94"><span class="toc-number">1.1.1.3.6.3.</span> <span class="toc-text">用途</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.1.1.3.7.</span> <span class="toc-text">执行示例</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">1.1.1.3.8.</span> <span class="toc-text">注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%85%8E%E7%94%A8"><span class="toc-number">1.1.1.3.8.1.</span> <span class="toc-text">生产环境慎用</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E8%A6%81%E6%B1%82"><span class="toc-number">1.1.1.3.8.2.</span> <span class="toc-text">权限要求</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#jstack-%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90"><span class="toc-number">1.1.1.4.</span> <span class="toc-text">jstack: 线程分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="toc-number">1.1.1.4.1.</span> <span class="toc-text">1. 线程状态</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">1.1.1.4.2.</span> <span class="toc-text">2. 关键字段</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B"><span class="toc-number">1.1.1.4.3.</span> <span class="toc-text">3. 死锁检测</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. 可视化工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%80%A7%E8%83%BD%E5%89%96%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. 性能剖析工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">二、性能优化方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-JVM%E8%B0%83%E4%BC%98"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. JVM调优</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">内存配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#GC%E8%B0%83%E4%BC%98"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">GC调优</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BB%A3%E7%A0%81%E7%BA%A7%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. 代码级优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9B%86%E5%90%88%E4%BD%BF%E7%94%A8%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">集合使用优化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%A4%84%E7%90%86"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">字符串处理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E5%A4%8D%E7%94%A8"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">对象复用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B9%B6%E5%8F%91%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. 并发优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">线程池配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%94%81%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.3.2.</span> <span class="toc-text">锁优化</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.4.</span> <span class="toc-text">4. 数据库优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%B1%A0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">连接池配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SQL%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.4.2.</span> <span class="toc-text">SQL优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">三、性能优化流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.</span> <span class="toc-text">四、常见性能问题及解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%8E%9F%E5%88%99"><span class="toc-number">1.5.</span> <span class="toc-text">五、性能优化原则</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/07/06/Java%E5%B7%A5%E7%A8%8B%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E6%8C%87%E5%8D%97/" title="Java工程性能分析与优化指南">Java工程性能分析与优化指南</a><time datetime="2025-07-06T08:48:47.000Z" title="发表于 2025-07-06 16:48:47">2025-07-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/07/01/spring%E6%98%93%E9%94%99%E9%97%AE%E9%A2%98%E4%B9%8B%E6%9E%84%E9%80%A0%E5%99%A8%E5%86%85%E6%8A%9B%E7%A9%BA%E6%8C%87%E9%92%88%E5%BC%82%E5%B8%B8/" title="spring易错问题之构造器内抛空指针异常">spring易错问题之构造器内抛空指针异常</a><time datetime="2025-07-01T13:51:49.000Z" title="发表于 2025-07-01 21:51:49">2025-07-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/07/01/spring%E6%98%93%E9%94%99%E9%97%AE%E9%A2%98%E4%B9%8B%E6%9E%84%E9%80%A0%E5%99%A8%E5%86%85%E6%8A%9B%E7%A9%BA%E6%8C%87%E9%92%88%E5%BC%82%E5%B8%B8-1/" title="spring易错问题之构造器内抛空指针异常">spring易错问题之构造器内抛空指针异常</a><time datetime="2025-07-01T13:51:49.000Z" title="发表于 2025-07-01 21:51:49">2025-07-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/19/java-SPI-Service-Provider-Interface-%E8%AF%A6%E8%A7%A3/" title="java SPI (Service Provider Interface) 详解">java SPI (Service Provider Interface) 详解</a><time datetime="2025-06-19T14:34:51.000Z" title="发表于 2025-06-19 22:34:51">2025-06-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/17/Spring-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E9%A1%BA%E5%BA%8F%E8%AF%A6%E8%A7%A3/" title="Spring 依赖注入顺序详解">Spring 依赖注入顺序详解</a><time datetime="2025-06-16T16:36:23.000Z" title="发表于 2025-06-17 00:36:23">2025-06-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2025 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
