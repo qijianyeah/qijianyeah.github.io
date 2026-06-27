@@ -37,9 +37,15 @@
     .sidebar-toggle {
       padding: 0 0 0 16px;
     }
-    @media screen and (max-width: 768px) {
+    @media screen and (min-width: 769px) {
       .sidebar {
-        width: 260px;
+        transform: translateX(0) !important;
+      }
+      .content {
+        left: var(--sidebar-width) !important;
+      }
+      .sidebar-toggle {
+        display: none;
       }
     }
   </style>
@@ -57,7 +63,7 @@
       repo: 'https://github.com/qijianyeah/qijianyeah.github.io.git',
       // 侧边栏（使用 sidebar.md，避免 GitHub Pages Jekyll 忽略 _ 开头文件）
       loadSidebar: 'sidebar.md',
-      sidebarDisplayLevel: 2,
+      sidebarDisplayLevel: 0,
       alias: {
         '/.*/sidebar.md': '/sidebar.md',
         '/.*/_sidebar.md': '/sidebar.md'

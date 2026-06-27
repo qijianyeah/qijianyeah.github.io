@@ -1,6 +1,6 @@
 * [文档首页](/)
 
-* **面试题**
+* 面试题
   * [BAT 面试题汇总及详解](interview/bat-interview)
   * [零、面试开场与项目介绍](interview/bat-interview?id=零面试开场与项目介绍)
   * [一、Java 多线程与并发](interview/bat-interview?id=一java-多线程与并发)
