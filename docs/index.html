@@ -28,6 +28,15 @@
       font-size: 15px;
       color: #2c3e50;
     }
+    /* 无链接的专题分类标题（如「链表」「数组与双指针」） */
+    .sidebar-nav li > p,
+    .sidebar-nav li > span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #505d6b;
+      margin: 8px 0 4px;
+      padding-left: 0;
+    }
     .sidebar-nav li {
       line-height: 1.6;
     }
@@ -63,8 +72,8 @@
       repo: 'https://github.com/qijianyeah/qijianyeah.github.io.git',
       // 侧边栏（使用 sidebar.md，避免 GitHub Pages Jekyll 忽略 _ 开头文件）
       loadSidebar: 'sidebar.md',
-      // 默认展开到「分类 + 子分类」两层，算法题下可看到各专题
-      sidebarDisplayLevel: 2,
+      // 默认只展开「一级分类 + 文章/子分类标题」，不展示文章内段落
+      sidebarDisplayLevel: 1,
       alias: {
         '/.*/sidebar.md': '/sidebar.md',
         '/.*/_sidebar.md': '/sidebar.md'
@@ -75,8 +84,8 @@
       coverpage: false,
       // 最大支持渲染的标题层级
       maxLevel: 5,
-      // 进入文章后，在侧边栏追加该文目录（## / ### 标题）
-      subMaxLevel: 2,
+      // 点击进入文章后，才在侧边栏追加该文段落目录（## / ### / ####）
+      subMaxLevel: 3,
       // 小屏设备下合并导航栏到侧边栏
       mergeNavbar: true,
       auto2top: true,
