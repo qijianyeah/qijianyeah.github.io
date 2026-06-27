@@ -28,15 +28,6 @@
       font-size: 15px;
       color: #2c3e50;
     }
-    /* 无链接的专题分类标题（如「链表」「数组与双指针」） */
-    .sidebar-nav li > p,
-    .sidebar-nav li > span {
-      font-size: 14px;
-      font-weight: 600;
-      color: #505d6b;
-      margin: 8px 0 4px;
-      padding-left: 0;
-    }
     .sidebar-nav li {
       line-height: 1.6;
     }
@@ -72,7 +63,7 @@
       repo: 'https://github.com/qijianyeah/qijianyeah.github.io.git',
       // 侧边栏（使用 sidebar.md，避免 GitHub Pages Jekyll 忽略 _ 开头文件）
       loadSidebar: 'sidebar.md',
-      // 默认只展开「一级分类 + 文章/子分类标题」，不展示文章内段落
+      // 默认只展示 sidebar.md 中的分类与文章；段落目录由 subMaxLevel 在点击文章后注入
       sidebarDisplayLevel: 1,
       alias: {
         '/.*/sidebar.md': '/sidebar.md',
@@ -84,8 +75,8 @@
       coverpage: false,
       // 最大支持渲染的标题层级
       maxLevel: 5,
-      // 点击进入文章后，才在侧边栏追加该文段落目录（## / ### / ####）
-      subMaxLevel: 3,
+      // 点击进入文章后，才在侧边栏追加该文 ## / ### / #### 段落目录
+      subMaxLevel: 4,
       // 小屏设备下合并导航栏到侧边栏
       mergeNavbar: true,
       auto2top: true,
@@ -110,7 +101,7 @@
         },
         noData: '找不到结果',
         depth: 4,
-        hideOtherSidebarContent: false,
+        hideOtherSidebarContent: true,
         namespace: 'Docsify-Guide',
       },
 
@@ -131,6 +122,9 @@
   <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
   <!-- docsify的js依赖 -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <!-- 侧边栏折叠：sidebarDisplayLevel 需此插件才生效 -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css">
+  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
   <!-- emoji表情支持 -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
   <!-- 图片放大缩小支持 -->
