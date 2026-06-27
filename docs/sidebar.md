@@ -2,15 +2,3 @@
 
 * 面试题
   * [BAT 面试题汇总及详解](interview/bat-interview)
-  * [零、面试开场与项目介绍](interview/bat-interview?id=零面试开场与项目介绍)
-  * [一、Java 多线程与并发](interview/bat-interview?id=一java-多线程与并发)
-  * [二、JVM 相关](interview/bat-interview?id=二jvm-相关)
-  * [三、Java 基础与集合](interview/bat-interview?id=三java-基础与集合)
-  * [四、Spring 生态](interview/bat-interview?id=四spring-生态)
-  * [五、中间件（Dubbo / MQ / Spring Cloud）](interview/bat-interview?id=五中间件dubbo--mq--spring-cloud)
-  * [六、数据库与 SQL](interview/bat-interview?id=六数据库与-sql)
-  * [七、Redis](interview/bat-interview?id=七redis)
-  * [八、分布式与高并发设计](interview/bat-interview?id=八分布式与高并发设计)
-  * [九、算法与数据结构](interview/bat-interview?id=九算法与数据结构)
-  * [十、网络与操作系统](interview/bat-interview?id=十网络与操作系统)
-  * [附录：面试技巧](interview/bat-interview?id=附录面试技巧)
