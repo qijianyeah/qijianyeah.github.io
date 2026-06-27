@@ -2,8 +2,6 @@
 
 按专题分类的 LeetCode 经典题目详解，含思路、代码与复杂度分析。
 
-<!-- {docsify-ignore} -->
-
 ## 目录
 
 ### [链表](linked-list)
