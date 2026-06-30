@@ -8,6 +8,7 @@
 
 * 数据库
   * [MySQL 性能优化实战指南](interview/mysql-performance)
+  * [MySQL 索引篇](interview/mysql-index)
 
 * 算法题
   * [LeetCode 算法题详解](leetcode/leetcode)
