@@ -1,0 +1,945 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Ollama 本地大模型使用教程 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Ollama 本地大模型使用教程 目录 一、Ollama 是什么 二、安装与验证 三、快速上手 四、模型管理 五、CLI 命令速查 六、交互式对话技巧 七、REST API 八、Python &#x2F; JavaScript SDK 九、Modelfile 自定义模型 十、环境变量与服务配置 十一、Docker 部署 十二、与开发工具集成 十三、硬件与选型建议 十四、常见问题排查   一、Oll">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ollama 本地大模型使用教程">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Ollama 本地大模型使用教程 目录 一、Ollama 是什么 二、安装与验证 三、快速上手 四、模型管理 五、CLI 命令速查 六、交互式对话技巧 七、REST API 八、Python &#x2F; JavaScript SDK 九、Modelfile 自定义模型 十、环境变量与服务配置 十一、Docker 部署 十二、与开发工具集成 十三、硬件与选型建议 十四、常见问题排查   一、Oll">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-01T02:22:00.000Z">
+<meta property="article:modified_time" content="2026-08-01T02:23:50.336Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Ollama">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="本地大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Ollama 本地大模型使用教程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Ollama 本地大模型使用教程</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Ollama 本地大模型使用教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-01T02:22:00.000Z" title="发表于 2026-08-01 10:22:00">2026-08-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-01T02:23:50.336Z" title="更新于 2026-08-01 10:23:50">2026-08-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">AI 工程实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Ollama-本地大模型使用教程"><a href="#Ollama-本地大模型使用教程" class="headerlink" title="Ollama 本地大模型使用教程"></a>Ollama 本地大模型使用教程</h1><hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E4%B8%80ollama-%E6%98%AF%E4%BB%80%E4%B9%88">一、Ollama 是什么</a></li>
+<li><a href="#%E4%BA%8C%E5%AE%89%E8%A3%85%E4%B8%8E%E9%AA%8C%E8%AF%81">二、安装与验证</a></li>
+<li><a href="#%E4%B8%89%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B">三、快速上手</a></li>
+<li><a href="#%E5%9B%9B%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86">四、模型管理</a></li>
+<li><a href="#%E4%BA%94cli-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5">五、CLI 命令速查</a></li>
+<li><a href="#%E5%85%AD%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%AF%B9%E8%AF%9D%E6%8A%80%E5%B7%A7">六、交互式对话技巧</a></li>
+<li><a href="#%E4%B8%83rest-api">七、REST API</a></li>
+<li><a href="#%E5%85%ABpython--javascript-sdk">八、Python &#x2F; JavaScript SDK</a></li>
+<li><a href="#%E4%B9%9Dmodelfile-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9E%8B">九、Modelfile 自定义模型</a></li>
+<li><a href="#%E5%8D%81%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E4%B8%8E%E6%9C%8D%E5%8A%A1%E9%85%8D%E7%BD%AE">十、环境变量与服务配置</a></li>
+<li><a href="#%E5%8D%81%E4%B8%80docker-%E9%83%A8%E7%BD%B2">十一、Docker 部署</a></li>
+<li><a href="#%E5%8D%81%E4%BA%8C%E4%B8%8E%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7%E9%9B%86%E6%88%90">十二、与开发工具集成</a></li>
+<li><a href="#%E5%8D%81%E4%B8%89%E7%A1%AC%E4%BB%B6%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE">十三、硬件与选型建议</a></li>
+<li><a href="#%E5%8D%81%E5%9B%9B%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5">十四、常见问题排查</a></li>
+</ul>
+<hr>
+<h2 id="一、Ollama-是什么"><a href="#一、Ollama-是什么" class="headerlink" title="一、Ollama 是什么"></a>一、Ollama 是什么</h2><p>Ollama 是一款本地大模型运行时，把「下载模型 → 加载推理 → 提供 API」做成一条命令即可完成的体验，常被比作 <strong>「大模型界的 Docker」</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>本地运行</td>
+<td>模型在本机推理，默认不上传提示词与对话内容</td>
+</tr>
+<tr>
+<td>一条命令开聊</td>
+<td><code>ollama run &lt;模型名&gt;</code> 自动拉取并进入对话</td>
+</tr>
+<tr>
+<td>内置 HTTP API</td>
+<td>默认 <code>http://localhost:11434</code>，便于接入应用</td>
+</tr>
+<tr>
+<td>官方 SDK</td>
+<td>提供 Python、JavaScript 库</td>
+</tr>
+<tr>
+<td>可定制</td>
+<td>通过 Modelfile 改系统提示、参数、导入 GGUF</td>
+</tr>
+<tr>
+<td>生态集成</td>
+<td>可对接 Claude Code、Codex、VS Code、各类 Agent</td>
+</tr>
+</tbody></table>
+<p><strong>适合场景</strong>：本地私有对话、RAG、代码助手、离线推理、把 OpenAI 风格接口指向本机。</p>
+<p><strong>官方入口</strong>：</p>
+<ul>
+<li>官网 &#x2F; 下载：<a target="_blank" rel="noopener" href="https://ollama.com/">https://ollama.com</a></li>
+<li>模型库：<a target="_blank" rel="noopener" href="https://ollama.com/search">https://ollama.com/search</a></li>
+<li>文档：<a target="_blank" rel="noopener" href="https://docs.ollama.com/">https://docs.ollama.com</a></li>
+</ul>
+<hr>
+<h2 id="二、安装与验证"><a href="#二、安装与验证" class="headerlink" title="二、安装与验证"></a>二、安装与验证</h2><h3 id="2-1-macOS"><a href="#2-1-macOS" class="headerlink" title="2.1 macOS"></a>2.1 macOS</h3><p>要求：<strong>macOS 14 Sonoma</strong> 及以上。</p>
+<p>一键安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://ollama.com/install.sh | sh</span><br></pre></td></tr></table></figure>
+
+<p>或下载安装包：<a target="_blank" rel="noopener" href="https://ollama.com/download/Ollama.dmg">https://ollama.com/download/Ollama.dmg</a></p>
+<p>安装后打开 Ollama App，后台服务会自动启动。</p>
+<h3 id="2-2-Linux"><a href="#2-2-Linux" class="headerlink" title="2.2 Linux"></a>2.2 Linux</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://ollama.com/install.sh | sh</span><br></pre></td></tr></table></figure>
+
+<p>指定版本（版本号见 <a target="_blank" rel="noopener" href="https://github.com/ollama/ollama/releases">Releases</a>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.5.7 sh</span><br></pre></td></tr></table></figure>
+
+<p>升级：再执行一次安装脚本即可。</p>
+<p>查看服务状态（systemd）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl status ollama</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-Windows"><a href="#2-3-Windows" class="headerlink" title="2.3 Windows"></a>2.3 Windows</h3><p>PowerShell：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">irm</span> https://ollama.com/install.ps1 | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure>
+
+<p>或下载安装程序：<a target="_blank" rel="noopener" href="https://ollama.com/download/OllamaSetup.exe">https://ollama.com/download/OllamaSetup.exe</a></p>
+<p>也可使用：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">winget install Ollama.Ollama</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-验证安装"><a href="#2-4-验证安装" class="headerlink" title="2.4 验证安装"></a>2.4 验证安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ollama --version</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">ollama -v</span><br></pre></td></tr></table></figure>
+
+<p>检查服务是否就绪：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/</span><br><span class="line"><span class="comment"># 正常时通常返回：Ollama is running</span></span><br></pre></td></tr></table></figure>
+
+<p>默认监听地址：**<code>127.0.0.1:11434</code>**。macOS &#x2F; Windows 启动 App 后服务一般已在后台运行；Linux 可通过 <code>ollama serve</code> 或 systemd 服务启动。</p>
+<hr>
+<h2 id="三、快速上手"><a href="#三、快速上手" class="headerlink" title="三、快速上手"></a>三、快速上手</h2><h3 id="3-1-交互式菜单"><a href="#3-1-交互式菜单" class="headerlink" title="3.1 交互式菜单"></a>3.1 交互式菜单</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama</span><br></pre></td></tr></table></figure>
+
+<p>可从菜单选择运行模型，或启动与 Claude Code、VS Code 等工具的集成。</p>
+<h3 id="3-2-第一条对话"><a href="#3-2-第一条对话" class="headerlink" title="3.2 第一条对话"></a>3.2 第一条对话</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama run gemma4</span><br></pre></td></tr></table></figure>
+
+<p>首次运行会自动下载模型。进入对话后输入问题，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用一段话解释为什么天空是蓝色的。</span><br></pre></td></tr></table></figure>
+
+<p>退出对话：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bye</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-云端模型（可选）"><a href="#3-3-云端模型（可选）" class="headerlink" title="3.3 云端模型（可选）"></a>3.3 云端模型（可选）</h3><p>若已登录 Ollama 账号，可用云端模型（本机资源不足时）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama signin</span><br><span class="line">ollama run gemma4:cloud</span><br></pre></td></tr></table></figure>
+
+<p>纯本地、关闭云能力见 <a href="#%E5%8D%81%E5%9B%9B%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5">十四、常见问题排查</a>。</p>
+<h3 id="3-4-非交互一次性提问"><a href="#3-4-非交互一次性提问" class="headerlink" title="3.4 非交互一次性提问"></a>3.4 非交互一次性提问</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama run gemma4 <span class="string">&quot;用三句话介绍 Kubernetes&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>多模态（模型支持视觉时）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama run gemma4 <span class="string">&quot;这张图里有什么？ /Users/你的路径/image.png&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、模型管理"><a href="#四、模型管理" class="headerlink" title="四、模型管理"></a>四、模型管理</h2><h3 id="4-1-拉取-删除-列表"><a href="#4-1-拉取-删除-列表" class="headerlink" title="4.1 拉取 &#x2F; 删除 &#x2F; 列表"></a>4.1 拉取 &#x2F; 删除 &#x2F; 列表</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 仅下载，不进入对话</span></span><br><span class="line">ollama pull gemma4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出本地模型</span></span><br><span class="line">ollama list</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">ollama <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除模型</span></span><br><span class="line">ollama <span class="built_in">rm</span> gemma4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看模型详情（参数、模板、许可证等）</span></span><br><span class="line">ollama show gemma4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看该模型的 Modelfile</span></span><br><span class="line">ollama show --modelfile gemma4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制模型（改名）</span></span><br><span class="line">ollama <span class="built_in">cp</span> gemma4 my-gemma</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-查看已加载模型"><a href="#4-2-查看已加载模型" class="headerlink" title="4.2 查看已加载模型"></a>4.2 查看已加载模型</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama ps</span><br></pre></td></tr></table></figure>
+
+<p>示例输出含义：</p>
+<table>
+<thead>
+<tr>
+<th>列</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NAME</td>
+<td>模型名</td>
+</tr>
+<tr>
+<td>SIZE</td>
+<td>占用内存&#x2F;显存规模</td>
+</tr>
+<tr>
+<td>PROCESSOR</td>
+<td><code>100% GPU</code> &#x2F; <code>100% CPU</code> &#x2F; 混合比例</td>
+</tr>
+<tr>
+<td>CONTEXT</td>
+<td>当前上下文长度</td>
+</tr>
+<tr>
+<td>UNTIL</td>
+<td>预计多久后卸载</td>
+</tr>
+</tbody></table>
+<p>立即卸载：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama stop gemma4</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-模型存储位置"><a href="#4-3-模型存储位置" class="headerlink" title="4.3 模型存储位置"></a>4.3 模型存储位置</h3><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>默认路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>macOS</td>
+<td><code>~/.ollama/models</code></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><code>/usr/share/ollama/.ollama/models</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>C:\Users\%username%\.ollama\models</code></td>
+</tr>
+</tbody></table>
+<p>换盘存放：设置环境变量 <code>OLLAMA_MODELS</code>（见第十章）。Linux 安装脚本创建的 <code>ollama</code> 用户需要对目标目录可读写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R ollama:ollama /path/to/models</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-常用模型选型（示例）"><a href="#4-4-常用模型选型（示例）" class="headerlink" title="4.4 常用模型选型（示例）"></a>4.4 常用模型选型（示例）</h3><p>模型名与体积以 <a target="_blank" rel="noopener" href="https://ollama.com/search">模型库</a> 实时页面为准，下面按用途举例：</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>可尝试的模型名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通用对话</td>
+<td><code>gemma4</code>、<code>llama3.2</code>、<code>qwen3</code></td>
+<td>入门首选</td>
+</tr>
+<tr>
+<td>代码</td>
+<td><code>qwen2.5-coder</code>、<code>codellama</code>、<code>deepseek-coder</code></td>
+<td>编程 &#x2F; Agent</td>
+</tr>
+<tr>
+<td>中文</td>
+<td><code>qwen3</code>、<code>qwen2.5</code></td>
+<td>中文理解与生成通常更好</td>
+</tr>
+<tr>
+<td>向量嵌入</td>
+<td><code>nomic-embed-text</code>、<code>embeddinggemma</code></td>
+<td>RAG &#x2F; 检索</td>
+</tr>
+<tr>
+<td>视觉</td>
+<td>带 vision 能力的多模态模型</td>
+<td>看图问答</td>
+</tr>
+</tbody></table>
+<p><strong>内存经验（量化后大致量级，仅供参考）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数规模</th>
+<th>建议可用内存 &#x2F; 显存</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1B～3B</td>
+<td>8GB 级机器可跑</td>
+<td>轻量、响应快</td>
+</tr>
+<tr>
+<td>7B～8B</td>
+<td>建议 ≥16GB</td>
+<td>性价比常见区间</td>
+</tr>
+<tr>
+<td>13B～14B</td>
+<td>建议 ≥24GB</td>
+<td>质量更好，更吃资源</td>
+</tr>
+<tr>
+<td>70B+</td>
+<td>高端多卡 &#x2F; 云端</td>
+<td>本机常需量化或云推理</td>
+</tr>
+</tbody></table>
+<p>标签常带量化信息，如 <code>:q4_K_M</code>、<code>:latest</code>。量化越小越省显存，质量会有折损。</p>
+<hr>
+<h2 id="五、CLI-命令速查"><a href="#五、CLI-命令速查" class="headerlink" title="五、CLI 命令速查"></a>五、CLI 命令速查</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ollama</code></td>
+<td>打开交互菜单</td>
+</tr>
+<tr>
+<td><code>ollama run &lt;model&gt;</code></td>
+<td>运行并对话（本地无则自动 pull）</td>
+</tr>
+<tr>
+<td><code>ollama pull &lt;model&gt;</code></td>
+<td>下载模型</td>
+</tr>
+<tr>
+<td><code>ollama push &lt;model&gt;</code></td>
+<td>推送到 Ollama 账号（需登录）</td>
+</tr>
+<tr>
+<td><code>ollama list</code> &#x2F; <code>ls</code></td>
+<td>列出本地模型</td>
+</tr>
+<tr>
+<td><code>ollama rm &lt;model&gt;</code></td>
+<td>删除模型</td>
+</tr>
+<tr>
+<td><code>ollama cp &lt;src&gt; &lt;dst&gt;</code></td>
+<td>复制模型</td>
+</tr>
+<tr>
+<td><code>ollama show &lt;model&gt;</code></td>
+<td>查看模型信息</td>
+</tr>
+<tr>
+<td><code>ollama ps</code></td>
+<td>查看已加载模型</td>
+</tr>
+<tr>
+<td><code>ollama stop &lt;model&gt;</code></td>
+<td>卸载已加载模型</td>
+</tr>
+<tr>
+<td><code>ollama create -f Modelfile</code></td>
+<td>根据 Modelfile 创建模型</td>
+</tr>
+<tr>
+<td><code>ollama serve</code></td>
+<td>启动 API 服务</td>
+</tr>
+<tr>
+<td><code>ollama launch</code></td>
+<td>配置并启动外部集成</td>
+</tr>
+<tr>
+<td><code>ollama launch claude</code></td>
+<td>启动 Claude Code 集成</td>
+</tr>
+<tr>
+<td><code>ollama signin</code> &#x2F; <code>signout</code></td>
+<td>登录 &#x2F; 退出账号</td>
+</tr>
+</tbody></table>
+<p>创建自定义模型时建议显式命名：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama create my-assistant -f ./Modelfile</span><br><span class="line">ollama run my-assistant</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、交互式对话技巧"><a href="#六、交互式对话技巧" class="headerlink" title="六、交互式对话技巧"></a>六、交互式对话技巧</h2><p>进入 <code>ollama run</code> 后，常用斜杠命令：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/bye</code></td>
+<td>退出</td>
+</tr>
+<tr>
+<td><code>/set parameter num_ctx 8192</code></td>
+<td>设置上下文长度</td>
+</tr>
+<tr>
+<td><code>/set parameter temperature 0.7</code></td>
+<td>设置温度</td>
+</tr>
+<tr>
+<td><code>/set system ...</code></td>
+<td>设置系统提示（会话内）</td>
+</tr>
+<tr>
+<td><code>/show info</code></td>
+<td>显示当前会话信息</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>清空会话上下文</td>
+</tr>
+</tbody></table>
+<p>多行输入用三引号包裹：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; &quot;&quot;&quot;请帮我写一个函数：</span><br><span class="line">... 输入是列表，返回去重后的结果。</span><br><span class="line">... &quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>生成向量（嵌入模型）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Hello world&quot;</span> | ollama run nomic-embed-text</span><br></pre></td></tr></table></figure>
+
+<p>预热模型（先加载进内存，缩短首包延迟）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama run llama3.2 <span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、REST-API"><a href="#七、REST-API" class="headerlink" title="七、REST API"></a>七、REST API</h2><p>安装后本地 API 基址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:11434/api</span><br></pre></td></tr></table></figure>
+
+<p>云端 API（需账号，用于 cloud 模型）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://ollama.com/api</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-1-文本生成-api-generate"><a href="#7-1-文本生成-api-generate" class="headerlink" title="7.1 文本生成 /api/generate"></a>7.1 文本生成 <code>/api/generate</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;model&quot;: &quot;gemma4&quot;,</span></span><br><span class="line"><span class="string">  &quot;prompt&quot;: &quot;为什么天空是蓝色的？&quot;,</span></span><br><span class="line"><span class="string">  &quot;stream&quot;: false</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>带参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;model&quot;: &quot;llama3.2&quot;,</span></span><br><span class="line"><span class="string">  &quot;prompt&quot;: &quot;写一首关于秋天的短诗&quot;,</span></span><br><span class="line"><span class="string">  &quot;options&quot;: &#123;</span></span><br><span class="line"><span class="string">    &quot;temperature&quot;: 0.7,</span></span><br><span class="line"><span class="string">    &quot;num_ctx&quot;: 4096</span></span><br><span class="line"><span class="string">  &#125;,</span></span><br><span class="line"><span class="string">  &quot;stream&quot;: false</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-对话-api-chat"><a href="#7-2-对话-api-chat" class="headerlink" title="7.2 对话 /api/chat"></a>7.2 对话 <code>/api/chat</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/api/chat -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;model&quot;: &quot;gemma4&quot;,</span></span><br><span class="line"><span class="string">  &quot;messages&quot;: [</span></span><br><span class="line"><span class="string">    &#123;&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;你是简洁的中文助手&quot;&#125;,</span></span><br><span class="line"><span class="string">    &#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;用一句话解释什么是 Docker&quot;&#125;</span></span><br><span class="line"><span class="string">  ],</span></span><br><span class="line"><span class="string">  &quot;stream&quot;: false</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>stream: true</code>（默认）时返回 NDJSON 流式分片；做脚本解析时常用 <code>&quot;stream&quot;: false</code> 拿完整 JSON。</p>
+<h3 id="7-3-列出模型-查看详情"><a href="#7-3-列出模型-查看详情" class="headerlink" title="7.3 列出模型 &#x2F; 查看详情"></a>7.3 列出模型 &#x2F; 查看详情</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/api/tags</span><br><span class="line">curl http://localhost:11434/api/show -d <span class="string">&#x27;&#123;&quot;name&quot;:&quot;gemma4&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-预加载与保活"><a href="#7-4-预加载与保活" class="headerlink" title="7.4 预加载与保活"></a>7.4 预加载与保活</h3><p>预加载：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;&quot;model&quot;: &quot;mistral&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>keep_alive</code>：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;10m&quot;</code> &#x2F; <code>3600</code></td>
+<td>闲置多久后卸载</td>
+</tr>
+<tr>
+<td><code>-1</code></td>
+<td>常驻内存</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>生成后立即卸载</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 常驻</span></span><br><span class="line">curl http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;keep_alive&quot;:-1&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 立刻卸载</span></span><br><span class="line">curl http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;keep_alive&quot;:0&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-OpenAI-兼容接口"><a href="#7-5-OpenAI-兼容接口" class="headerlink" title="7.5 OpenAI 兼容接口"></a>7.5 OpenAI 兼容接口</h3><p>不少项目把 <code>base_url</code> 指到 Ollama 即可复用 OpenAI 客户端。常见路径形态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:11434/v1</span><br></pre></td></tr></table></figure>
+
+<p>例如聊天补全：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/v1/chat/completions \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;model&quot;: &quot;gemma4&quot;,</span></span><br><span class="line"><span class="string">    &quot;messages&quot;: [&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;你好&quot;&#125;]</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>具体字段以当前版本文档为准：<a target="_blank" rel="noopener" href="https://docs.ollama.com/api">https://docs.ollama.com/api</a></p>
+<hr>
+<h2 id="八、Python-JavaScript-SDK"><a href="#八、Python-JavaScript-SDK" class="headerlink" title="八、Python &#x2F; JavaScript SDK"></a>八、Python &#x2F; JavaScript SDK</h2><h3 id="8-1-Python"><a href="#8-1-Python" class="headerlink" title="8.1 Python"></a>8.1 Python</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install ollama</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat</span><br><span class="line"></span><br><span class="line">response = chat(</span><br><span class="line">    model=<span class="string">&quot;gemma4&quot;</span>,</span><br><span class="line">    messages=[</span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;为什么天空是蓝色的？&quot;</span>&#125;,</span><br><span class="line">    ],</span><br><span class="line">)</span><br><span class="line"><span class="built_in">print</span>(response.message.content)</span><br></pre></td></tr></table></figure>
+
+<p>流式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat</span><br><span class="line"></span><br><span class="line">stream = chat(</span><br><span class="line">    model=<span class="string">&quot;gemma4&quot;</span>,</span><br><span class="line">    messages=[&#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;讲一个短笑话&quot;</span>&#125;],</span><br><span class="line">    stream=<span class="literal">True</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> chunk <span class="keyword">in</span> stream:</span><br><span class="line">    <span class="built_in">print</span>(chunk.message.content, end=<span class="string">&quot;&quot;</span>, flush=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-JavaScript-Node-js"><a href="#8-2-JavaScript-Node-js" class="headerlink" title="8.2 JavaScript &#x2F; Node.js"></a>8.2 JavaScript &#x2F; Node.js</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm i ollama</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ollama <span class="keyword">from</span> <span class="string">&quot;ollama&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> response = <span class="keyword">await</span> ollama.<span class="title function_">chat</span>(&#123;</span><br><span class="line">  <span class="attr">model</span>: <span class="string">&quot;gemma4&quot;</span>,</span><br><span class="line">  <span class="attr">messages</span>: [&#123; <span class="attr">role</span>: <span class="string">&quot;user&quot;</span>, <span class="attr">content</span>: <span class="string">&quot;为什么天空是蓝色的？&quot;</span> &#125;],</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(response.<span class="property">message</span>.<span class="property">content</span>);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、Modelfile-自定义模型"><a href="#九、Modelfile-自定义模型" class="headerlink" title="九、Modelfile 自定义模型"></a>九、Modelfile 自定义模型</h2><p>Modelfile 是创建定制模型的蓝图，类似 Dockerfile。</p>
+<h3 id="9-1-最小示例"><a href="#9-1-最小示例" class="headerlink" title="9.1 最小示例"></a>9.1 最小示例</h3><p>创建文件 <code>Modelfile</code>：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> gemma4</span><br><span class="line"></span><br><span class="line">PARAMETER temperature <span class="number">0.7</span></span><br><span class="line">PARAMETER num_ctx <span class="number">8192</span></span><br><span class="line"></span><br><span class="line">SYSTEM <span class="string">&quot;&quot;</span><span class="string">&quot;你是资深后端工程师，回答简洁、优先给可执行建议，必要时用中文。&quot;</span><span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>构建并运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama create backend-assistant -f Modelfile</span><br><span class="line">ollama run backend-assistant</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-常用指令"><a href="#9-2-常用指令" class="headerlink" title="9.2 常用指令"></a>9.2 常用指令</h3><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FROM</code></td>
+<td>基座模型（必填）：已有模型名、Safetensors 目录或 GGUF 路径</td>
+</tr>
+<tr>
+<td><code>PARAMETER</code></td>
+<td>推理参数：<code>temperature</code>、<code>num_ctx</code>、<code>top_p</code>、<code>top_k</code> 等</td>
+</tr>
+<tr>
+<td><code>SYSTEM</code></td>
+<td>系统提示</td>
+</tr>
+<tr>
+<td><code>TEMPLATE</code></td>
+<td>完整提示模板（Go template）</td>
+</tr>
+<tr>
+<td><code>ADAPTER</code></td>
+<td>挂载 LoRA &#x2F; QLoRA</td>
+</tr>
+<tr>
+<td><code>MESSAGE</code></td>
+<td>预设 few-shot 对话</td>
+</tr>
+<tr>
+<td><code>LICENSE</code></td>
+<td>许可证文本</td>
+</tr>
+<tr>
+<td><code>REQUIRES</code></td>
+<td>要求最低 Ollama 版本</td>
+</tr>
+</tbody></table>
+<p>从 GGUF 导入：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> ./my-model.gguf</span><br><span class="line">SYSTEM <span class="string">&quot;&quot;</span><span class="string">&quot;You are a helpful assistant.&quot;</span><span class="string">&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>查看现成模型的 Modelfile 再改：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ollama show --modelfile llama3.2 &gt; Modelfile</span><br><span class="line"><span class="comment"># 编辑后</span></span><br><span class="line">ollama create my-llama -f Modelfile</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-常用-PARAMETER"><a href="#9-3-常用-PARAMETER" class="headerlink" title="9.3 常用 PARAMETER"></a>9.3 常用 PARAMETER</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>典型值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>temperature</code></td>
+<td>随机性，越高越发散</td>
+<td><code>0.2</code>～<code>1.0</code></td>
+</tr>
+<tr>
+<td><code>num_ctx</code></td>
+<td>上下文窗口 token 数</td>
+<td><code>4096</code>、<code>8192</code>、<code>64000</code></td>
+</tr>
+<tr>
+<td><code>top_p</code></td>
+<td>核采样</td>
+<td><code>0.9</code></td>
+</tr>
+<tr>
+<td><code>top_k</code></td>
+<td>Top-K 采样</td>
+<td><code>40</code></td>
+</tr>
+<tr>
+<td><code>repeat_penalty</code></td>
+<td>重复惩罚</td>
+<td><code>1.1</code></td>
+</tr>
+<tr>
+<td><code>num_predict</code></td>
+<td>最大生成 token，<code>-1</code> 不限制</td>
+<td><code>256</code>、<code>-1</code></td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>随机种子，固定可复现</td>
+<td><code>42</code></td>
+</tr>
+<tr>
+<td><code>stop</code></td>
+<td>停止序列，可写多条</td>
+<td>按模型模板</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十、环境变量与服务配置"><a href="#十、环境变量与服务配置" class="headerlink" title="十、环境变量与服务配置"></a>十、环境变量与服务配置</h2><p>服务端配置主要通过<strong>启动时的环境变量</strong>生效，改完后需重启 Ollama。</p>
+<h3 id="10-1-高频变量"><a href="#10-1-高频变量" class="headerlink" title="10.1 高频变量"></a>10.1 高频变量</h3><table>
+<thead>
+<tr>
+<th>变量</th>
+<th>作用</th>
+<th>常见设置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>OLLAMA_HOST</code></td>
+<td>监听地址</td>
+<td><code>0.0.0.0:11434</code>（局域网访问）</td>
+</tr>
+<tr>
+<td><code>OLLAMA_MODELS</code></td>
+<td>模型目录</td>
+<td>外置 SSD 路径</td>
+</tr>
+<tr>
+<td><code>OLLAMA_ORIGINS</code></td>
+<td>CORS 允许来源</td>
+<td>浏览器扩展需额外放行</td>
+</tr>
+<tr>
+<td><code>OLLAMA_KEEP_ALIVE</code></td>
+<td>模型闲置保活</td>
+<td><code>5m</code>、<code>-1</code></td>
+</tr>
+<tr>
+<td><code>OLLAMA_CONTEXT_LENGTH</code></td>
+<td>默认上下文长度</td>
+<td><code>8192</code>、<code>64000</code></td>
+</tr>
+<tr>
+<td><code>OLLAMA_NUM_PARALLEL</code></td>
+<td>单模型并行请求数</td>
+<td><code>1</code>、<code>4</code>（显存随并行线性涨）</td>
+</tr>
+<tr>
+<td><code>OLLAMA_MAX_LOADED_MODELS</code></td>
+<td>同时加载模型数上限</td>
+<td>按显存调整</td>
+</tr>
+<tr>
+<td><code>OLLAMA_MAX_QUEUE</code></td>
+<td>排队上限，过载返回 503</td>
+<td>默认 <code>512</code></td>
+</tr>
+<tr>
+<td><code>OLLAMA_FLASH_ATTENTION</code></td>
+<td>Flash Attention</td>
+<td><code>1</code> 开启</td>
+</tr>
+<tr>
+<td><code>OLLAMA_KV_CACHE_TYPE</code></td>
+<td>KV 缓存量化</td>
+<td><code>f16</code> &#x2F; <code>q8_0</code> &#x2F; <code>q4_0</code></td>
+</tr>
+<tr>
+<td><code>OLLAMA_NO_CLOUD</code></td>
+<td>关闭云功能</td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>HTTPS_PROXY</code></td>
+<td>拉取模型走代理</td>
+<td>公司代理地址</td>
+</tr>
+</tbody></table>
+<p>上下文经验：做 Agent &#x2F; 长文档 &#x2F; 联网检索时，常需把上下文提到 <strong>至少 64K</strong>；但上下文越大越吃显存。可用 <code>ollama ps</code> 看 <code>PROCESSOR</code> 是否仍是 <code>100% GPU</code>。</p>
+<h3 id="10-2-各平台如何设置"><a href="#10-2-各平台如何设置" class="headerlink" title="10.2 各平台如何设置"></a>10.2 各平台如何设置</h3><p><strong>macOS（App 方式）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">launchctl setenv OLLAMA_HOST <span class="string">&quot;0.0.0.0:11434&quot;</span></span><br><span class="line">launchctl setenv OLLAMA_MODELS <span class="string">&quot;/Volumes/SSD/ollama-models&quot;</span></span><br><span class="line"><span class="comment"># 然后重启 Ollama App</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Linux（systemd）</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl edit ollama.service</span><br></pre></td></tr></table></figure>
+
+<p>写入：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Environment</span>=<span class="string">&quot;OLLAMA_HOST=0.0.0.0:11434&quot;</span></span><br><span class="line"><span class="attr">Environment</span>=<span class="string">&quot;OLLAMA_KEEP_ALIVE=30m&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl daemon-reload</span><br><span class="line"><span class="built_in">sudo</span> systemctl restart ollama</span><br></pre></td></tr></table></figure>
+
+<p><strong>Windows</strong>：退出托盘中的 Ollama →「编辑账户的环境变量」添加上述变量 → 再从开始菜单启动 Ollama。</p>
+<h3 id="10-3-局域网暴露注意点"><a href="#10-3-局域网暴露注意点" class="headerlink" title="10.3 局域网暴露注意点"></a>10.3 局域网暴露注意点</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 仅示例：绑定到所有网卡</span></span><br><span class="line">OLLAMA_HOST=0.0.0.0:11434</span><br></pre></td></tr></table></figure>
+
+<p>Ollama 默认<strong>无鉴权</strong>。暴露到局域网或公网前应配合防火墙、反向代理鉴权或隧道，避免未授权访问。</p>
+<p>Nginx 反代示例：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">server_name</span> llm.example.com;</span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:11434;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host localhost:<span class="number">11434</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>临时穿透：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ngrok http 11434 --host-header=<span class="string">&quot;localhost:11434&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十一、Docker-部署"><a href="#十一、Docker-部署" class="headerlink" title="十一、Docker 部署"></a>十一、Docker 部署</h2><p>官方镜像：<code>ollama/ollama</code></p>
+<p>CPU：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama</span><br></pre></td></tr></table></figure>
+
+<p>NVIDIA GPU（需安装 <a target="_blank" rel="noopener" href="https://github.com/NVIDIA/nvidia-container-toolkit">NVIDIA Container Toolkit</a>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama</span><br></pre></td></tr></table></figure>
+
+<p>进入容器拉取模型：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it ollama ollama pull gemma4</span><br><span class="line">docker <span class="built_in">exec</span> -it ollama ollama run gemma4</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Docker Desktop for macOS 一般无法把本机 GPU 透传给容器，Mac 上优先用原生 App。</p>
+</blockquote>
+<hr>
+<h2 id="十二、与开发工具集成"><a href="#十二、与开发工具集成" class="headerlink" title="十二、与开发工具集成"></a>十二、与开发工具集成</h2><h3 id="12-1-ollama-launch"><a href="#12-1-ollama-launch" class="headerlink" title="12.1 ollama launch"></a>12.1 <code>ollama launch</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ollama launch                 <span class="comment"># 交互选择</span></span><br><span class="line">ollama launch claude          <span class="comment"># Claude Code</span></span><br><span class="line">ollama launch claude --model qwen3.5</span><br><span class="line">ollama launch droid --config  <span class="comment"># 只配置不启动</span></span><br></pre></td></tr></table></figure>
+
+<p>文档中常见支持对象包括：OpenCode、Claude Code、Codex、VS Code、Droid 等（以当前版本文档为准）。</p>
+<h3 id="12-2-通用接入方式"><a href="#12-2-通用接入方式" class="headerlink" title="12.2 通用接入方式"></a>12.2 通用接入方式</h3><p>绝大多数支持「自定义 OpenAI Base URL」的工具，只需：</p>
+<ol>
+<li>Base URL：<code>http://localhost:11434/v1</code></li>
+<li>API Key：随意填占位（本地通常不校验）</li>
+<li>Model：填 <code>ollama list</code> 中的名字</li>
+</ol>
+<p>适合 Cursor、Continue、Open WebUI、Dify、自建 Agent 等。</p>
+<h3 id="12-3-嵌入与-RAG"><a href="#12-3-嵌入与-RAG" class="headerlink" title="12.3 嵌入与 RAG"></a>12.3 嵌入与 RAG</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama pull nomic-embed-text</span><br></pre></td></tr></table></figure>
+
+<p>应用侧对文档分块后调用嵌入接口 &#x2F; SDK，再把向量写入向量库（如 Chroma、Milvus、pgvector），检索后把片段塞进 <code>/api/chat</code> 的上下文。</p>
+<hr>
+<h2 id="十三、硬件与选型建议"><a href="#十三、硬件与选型建议" class="headerlink" title="十三、硬件与选型建议"></a>十三、硬件与选型建议</h2><h3 id="13-1-GPU-是否生效"><a href="#13-1-GPU-是否生效" class="headerlink" title="13.1 GPU 是否生效"></a>13.1 GPU 是否生效</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ollama ps</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>100% GPU</code>：理想，推理最快</li>
+<li><code>100% CPU</code>：能跑但慢，注意散热与风扇</li>
+<li><code>CPU/GPU</code> 混合：模型或上下文过大，部分层在内存，通常变慢</li>
+</ul>
+<h3 id="13-2-上下文与显存"><a href="#13-2-上下文与显存" class="headerlink" title="13.2 上下文与显存"></a>13.2 上下文与显存</h3><p>官方大致默认策略（会随版本与机器显存调整）：</p>
+<table>
+<thead>
+<tr>
+<th>显存量级</th>
+<th>默认上下文量级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&lt; 24 GiB</td>
+<td>约 4K</td>
+</tr>
+<tr>
+<td>24～48 GiB</td>
+<td>约 32K</td>
+</tr>
+<tr>
+<td>≥ 48 GiB</td>
+<td>可到很高（如 256K 量级）</td>
+</tr>
+</tbody></table>
+<p>Agent &#x2F; 编码工具建议主动把上下文调到 <strong>≥ 64K</strong>，并确认仍是 GPU 满载。</p>
+<p>省显存手段：</p>
+<ul>
+<li>换更小模型或更高量化</li>
+<li>降低 <code>num_ctx</code> &#x2F; <code>OLLAMA_CONTEXT_LENGTH</code></li>
+<li>开启 Flash Attention，KV 缓存用 <code>q8_0</code></li>
+<li>降低 <code>OLLAMA_NUM_PARALLEL</code></li>
+</ul>
+<h3 id="13-3-选型口诀"><a href="#13-3-选型口诀" class="headerlink" title="13.3 选型口诀"></a>13.3 选型口诀</h3><ol>
+<li><strong>先能跑起来</strong>：从 3B～8B 开始，确认延迟可接受。</li>
+<li><strong>按任务换模型</strong>：代码用 coder 系列，中文优先 Qwen 系。</li>
+<li><strong>质量不够再加大</strong>：同系列升参数，或降低量化压缩。</li>
+<li><strong>本机吃力再用 cloud tag &#x2F; 远程 GPU</strong>。</li>
+</ol>
+<hr>
+<h2 id="十四、常见问题排查"><a href="#十四、常见问题排查" class="headerlink" title="十四、常见问题排查"></a>十四、常见问题排查</h2><h3 id="14-1-服务没起来"><a href="#14-1-服务没起来" class="headerlink" title="14.1 服务没起来"></a>14.1 服务没起来</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:11434/</span><br><span class="line">ollama serve   <span class="comment"># 前台启动，便于看日志</span></span><br></pre></td></tr></table></figure>
+
+<p>Linux：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl status ollama</span><br><span class="line">journalctl -u ollama -f</span><br></pre></td></tr></table></figure>
+
+<h3 id="14-2-拉取模型失败-很慢"><a href="#14-2-拉取模型失败-很慢" class="headerlink" title="14.2 拉取模型失败 &#x2F; 很慢"></a>14.2 拉取模型失败 &#x2F; 很慢</h3><ul>
+<li>检查网络与 DNS</li>
+<li>公司网络设置 <code>HTTPS_PROXY</code>（不要乱设 <code>HTTP_PROXY</code>，可能干扰本机客户端连接）</li>
+<li>换网络或镜像源环境后再 <code>ollama pull</code></li>
+</ul>
+<h3 id="14-3-回答很慢或占满内存"><a href="#14-3-回答很慢或占满内存" class="headerlink" title="14.3 回答很慢或占满内存"></a>14.3 回答很慢或占满内存</h3><ul>
+<li><code>ollama ps</code> 看是否掉到 CPU</li>
+<li>减小模型或 <code>num_ctx</code></li>
+<li><code>ollama stop &lt;model&gt;</code> 释放显存后再跑更小模型</li>
+<li>避免同时加载过多模型（调低 <code>OLLAMA_MAX_LOADED_MODELS</code>）</li>
+</ul>
+<h3 id="14-4-浏览器-插件跨域失败"><a href="#14-4-浏览器-插件跨域失败" class="headerlink" title="14.4 浏览器 &#x2F; 插件跨域失败"></a>14.4 浏览器 &#x2F; 插件跨域失败</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 示例：允许常见浏览器扩展来源</span></span><br><span class="line">OLLAMA_ORIGINS=chrome-extension://*,moz-extension://*,safari-web-extension://*</span><br></pre></td></tr></table></figure>
+
+<h3 id="14-5-关闭云功能（纯本地）"><a href="#14-5-关闭云功能（纯本地）" class="headerlink" title="14.5 关闭云功能（纯本地）"></a>14.5 关闭云功能（纯本地）</h3><p><code>~/.ollama/server.json</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;disable_ollama_cloud&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>或：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OLLAMA_NO_CLOUD=1</span><br></pre></td></tr></table></figure>
+
+<p>重启后日志中应出现 cloud disabled 相关提示。</p>
+<h3 id="14-6-升级"><a href="#14-6-升级" class="headerlink" title="14.6 升级"></a>14.6 升级</h3><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>macOS &#x2F; Windows</td>
+<td>App 提示更新，或重新下载安装包</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>重新执行 <code>curl -fsSL https://ollama.com/install.sh | sh</code></td>
+</tr>
+</tbody></table>
+<h3 id="14-7-隐私边界"><a href="#14-7-隐私边界" class="headerlink" title="14.7 隐私边界"></a>14.7 隐私边界</h3><ul>
+<li><strong>本地模型</strong>：提示词与回复在本地处理，Ollama 默认看不到你的对话内容。</li>
+<li><strong>Cloud 模型</strong>：请求会发到 Ollama 云端以完成推理；官方说明不将内容用于训练，但仍属于远程处理。敏感数据优先本地模型 + <code>OLLAMA_NO_CLOUD=1</code>。</li>
+</ul>
+<h3 id="14-8-开机自启关闭"><a href="#14-8-开机自启关闭" class="headerlink" title="14.8 开机自启关闭"></a>14.8 开机自启关闭</h3><ul>
+<li><strong>Windows</strong>：任务管理器 → 启动应用 → 禁用 Ollama  </li>
+<li><strong>macOS</strong>：系统设置 → 登录项 → 关闭 Ollama 后台项</li>
+</ul>
+<hr>
+<h2 id="附录：最小实战清单"><a href="#附录：最小实战清单" class="headerlink" title="附录：最小实战清单"></a>附录：最小实战清单</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 安装（macOS / Linux）</span></span><br><span class="line">curl -fsSL https://ollama.com/install.sh | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 验证</span></span><br><span class="line">ollama -v</span><br><span class="line">curl http://localhost:11434/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 跑起来</span></span><br><span class="line">ollama run gemma4</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. API 冒烟</span></span><br><span class="line">curl http://localhost:11434/api/chat -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;model&quot;: &quot;gemma4&quot;,</span></span><br><span class="line"><span class="string">  &quot;messages&quot;: [&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;你好，用一句话介绍你自己&quot;&#125;],</span></span><br><span class="line"><span class="string">  &quot;stream&quot;: false</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 定制一个助手</span></span><br><span class="line"><span class="built_in">cat</span> &gt; Modelfile &lt;&lt;<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">FROM gemma4</span><br><span class="line">PARAMETER temperature 0.5</span><br><span class="line">SYSTEM <span class="string">&quot;&quot;</span><span class="string">&quot;你是简洁的中文技术助手。&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">EOF</span><br><span class="line">ollama create tech-bot -f Modelfile</span><br><span class="line">ollama run tech-bot</span><br></pre></td></tr></table></figure>
+
+<p>更多命令与 API 细节以官方文档为准：</p>
+<ul>
+<li>CLI：<a target="_blank" rel="noopener" href="https://docs.ollama.com/cli">https://docs.ollama.com/cli</a></li>
+<li>API：<a target="_blank" rel="noopener" href="https://docs.ollama.com/api">https://docs.ollama.com/api</a></li>
+<li>Modelfile：<a target="_blank" rel="noopener" href="https://docs.ollama.com/modelfile">https://docs.ollama.com/modelfile</a></li>
+<li>FAQ：<a target="_blank" rel="noopener" href="https://docs.ollama.com/faq">https://docs.ollama.com/faq</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">https://qijianyeah.github.io/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Ollama/">Ollama</a><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/%E6%9C%AC%E5%9C%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B/">本地大模型</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/07/19/Spring-AI-Tool%E4%B8%8EPreAuthorize%E5%86%B2%E7%AA%81%E6%8E%92%E6%9F%A5/" title="Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效</div></div><div class="info-2"><div class="info-item-1">Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效 运行环境本文基于以下本地环境排查与验证（05tools 模块）：    组件 版本    JDK Oracle JDK 17.0.19（LTS，java version &quot;17.0.19&quot;）   Maven Apache Maven 3.9.11   Spring Boot 3.2.5   Spring Framework 6.1.6（由 Spring Boot 3.2.5 依赖管理引入）   Spring AI 1.0.0   Spring AI Alibaba 1.0.0.2（spring-ai-alibaba-starter-dashscope）   大模型 阿里云百炼 &#x2F; DashScope，默认 Chat 模型 **qwen-plus**（05tools 未显式配置 spring.ai.dashscope.chat.options.model，使用 starter 默认值 DEFAULT_DEPLOYMENT_NAME）    OS 参考：macOS...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">17</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Ollama-%E6%9C%AC%E5%9C%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">Ollama 本地大模型使用教程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Ollama-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.</span> <span class="toc-text">一、Ollama 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%89%E8%A3%85%E4%B8%8E%E9%AA%8C%E8%AF%81"><span class="toc-number">1.3.</span> <span class="toc-text">二、安装与验证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-macOS"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 macOS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Linux"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 Linux</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Windows"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 Windows</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 验证安装</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B"><span class="toc-number">1.4.</span> <span class="toc-text">三、快速上手</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%8F%9C%E5%8D%95"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 交互式菜单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%AC%AC%E4%B8%80%E6%9D%A1%E5%AF%B9%E8%AF%9D"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 第一条对话</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%BA%91%E7%AB%AF%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 云端模型（可选）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%9D%9E%E4%BA%A4%E4%BA%92%E4%B8%80%E6%AC%A1%E6%80%A7%E6%8F%90%E9%97%AE"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 非交互一次性提问</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text">四、模型管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%8B%89%E5%8F%96-%E5%88%A0%E9%99%A4-%E5%88%97%E8%A1%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 拉取 &#x2F; 删除 &#x2F; 列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 查看已加载模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%A8%A1%E5%9E%8B%E5%AD%98%E5%82%A8%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 模型存储位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%B8%B8%E7%94%A8%E6%A8%A1%E5%9E%8B%E9%80%89%E5%9E%8B%EF%BC%88%E7%A4%BA%E4%BE%8B%EF%BC%89"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4 常用模型选型（示例）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81CLI-%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">1.6.</span> <span class="toc-text">五、CLI 命令速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%AF%B9%E8%AF%9D%E6%8A%80%E5%B7%A7"><span class="toc-number">1.7.</span> <span class="toc-text">六、交互式对话技巧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81REST-API"><span class="toc-number">1.8.</span> <span class="toc-text">七、REST API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90-api-generate"><span class="toc-number">1.8.1.</span> <span class="toc-text">7.1 文本生成 &#x2F;api&#x2F;generate</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%AF%B9%E8%AF%9D-api-chat"><span class="toc-number">1.8.2.</span> <span class="toc-text">7.2 对话 &#x2F;api&#x2F;chat</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%88%97%E5%87%BA%E6%A8%A1%E5%9E%8B-%E6%9F%A5%E7%9C%8B%E8%AF%A6%E6%83%85"><span class="toc-number">1.8.3.</span> <span class="toc-text">7.3 列出模型 &#x2F; 查看详情</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E9%A2%84%E5%8A%A0%E8%BD%BD%E4%B8%8E%E4%BF%9D%E6%B4%BB"><span class="toc-number">1.8.4.</span> <span class="toc-text">7.4 预加载与保活</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-OpenAI-%E5%85%BC%E5%AE%B9%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.8.5.</span> <span class="toc-text">7.5 OpenAI 兼容接口</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81Python-JavaScript-SDK"><span class="toc-number">1.9.</span> <span class="toc-text">八、Python &#x2F; JavaScript SDK</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-Python"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 Python</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-JavaScript-Node-js"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 JavaScript &#x2F; Node.js</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81Modelfile-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.10.</span> <span class="toc-text">九、Modelfile 自定义模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%9C%80%E5%B0%8F%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 最小示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 常用指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%B8%B8%E7%94%A8-PARAMETER"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 常用 PARAMETER</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E4%B8%8E%E6%9C%8D%E5%8A%A1%E9%85%8D%E7%BD%AE"><span class="toc-number">1.11.</span> <span class="toc-text">十、环境变量与服务配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E9%AB%98%E9%A2%91%E5%8F%98%E9%87%8F"><span class="toc-number">1.11.1.</span> <span class="toc-text">10.1 高频变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%90%84%E5%B9%B3%E5%8F%B0%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.11.2.</span> <span class="toc-text">10.2 各平台如何设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%B1%80%E5%9F%9F%E7%BD%91%E6%9A%B4%E9%9C%B2%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="toc-number">1.11.3.</span> <span class="toc-text">10.3 局域网暴露注意点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81Docker-%E9%83%A8%E7%BD%B2"><span class="toc-number">1.12.</span> <span class="toc-text">十一、Docker 部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E4%B8%8E%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7%E9%9B%86%E6%88%90"><span class="toc-number">1.13.</span> <span class="toc-text">十二、与开发工具集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-ollama-launch"><span class="toc-number">1.13.1.</span> <span class="toc-text">12.1 ollama launch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%80%9A%E7%94%A8%E6%8E%A5%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">1.13.2.</span> <span class="toc-text">12.2 通用接入方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%B5%8C%E5%85%A5%E4%B8%8E-RAG"><span class="toc-number">1.13.3.</span> <span class="toc-text">12.3 嵌入与 RAG</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E7%A1%AC%E4%BB%B6%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.14.</span> <span class="toc-text">十三、硬件与选型建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-GPU-%E6%98%AF%E5%90%A6%E7%94%9F%E6%95%88"><span class="toc-number">1.14.1.</span> <span class="toc-text">13.1 GPU 是否生效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E6%98%BE%E5%AD%98"><span class="toc-number">1.14.2.</span> <span class="toc-text">13.2 上下文与显存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E9%80%89%E5%9E%8B%E5%8F%A3%E8%AF%80"><span class="toc-number">1.14.3.</span> <span class="toc-text">13.3 选型口诀</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5"><span class="toc-number">1.15.</span> <span class="toc-text">十四、常见问题排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E6%9C%8D%E5%8A%A1%E6%B2%A1%E8%B5%B7%E6%9D%A5"><span class="toc-number">1.15.1.</span> <span class="toc-text">14.1 服务没起来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E6%8B%89%E5%8F%96%E6%A8%A1%E5%9E%8B%E5%A4%B1%E8%B4%A5-%E5%BE%88%E6%85%A2"><span class="toc-number">1.15.2.</span> <span class="toc-text">14.2 拉取模型失败 &#x2F; 很慢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E5%9B%9E%E7%AD%94%E5%BE%88%E6%85%A2%E6%88%96%E5%8D%A0%E6%BB%A1%E5%86%85%E5%AD%98"><span class="toc-number">1.15.3.</span> <span class="toc-text">14.3 回答很慢或占满内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-4-%E6%B5%8F%E8%A7%88%E5%99%A8-%E6%8F%92%E4%BB%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E8%B4%A5"><span class="toc-number">1.15.4.</span> <span class="toc-text">14.4 浏览器 &#x2F; 插件跨域失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-5-%E5%85%B3%E9%97%AD%E4%BA%91%E5%8A%9F%E8%83%BD%EF%BC%88%E7%BA%AF%E6%9C%AC%E5%9C%B0%EF%BC%89"><span class="toc-number">1.15.5.</span> <span class="toc-text">14.5 关闭云功能（纯本地）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-6-%E5%8D%87%E7%BA%A7"><span class="toc-number">1.15.6.</span> <span class="toc-text">14.6 升级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-7-%E9%9A%90%E7%A7%81%E8%BE%B9%E7%95%8C"><span class="toc-number">1.15.7.</span> <span class="toc-text">14.7 隐私边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-8-%E5%BC%80%E6%9C%BA%E8%87%AA%E5%90%AF%E5%85%B3%E9%97%AD"><span class="toc-number">1.15.8.</span> <span class="toc-text">14.8 开机自启关闭</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E6%9C%80%E5%B0%8F%E5%AE%9E%E6%88%98%E6%B8%85%E5%8D%95"><span class="toc-number">1.16.</span> <span class="toc-text">附录：最小实战清单</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="Ollama 本地大模型使用教程">Ollama 本地大模型使用教程</a><time datetime="2026-08-01T02:22:00.000Z" title="发表于 2026-08-01 10:22:00">2026-08-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/19/Spring-AI-Tool%E4%B8%8EPreAuthorize%E5%86%B2%E7%AA%81%E6%8E%92%E6%9F%A5/" title="Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效">Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效</a><time datetime="2026-07-19T01:30:00.000Z" title="发表于 2026-07-19 09:30:00">2026-07-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/30/Kafka%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E8%AF%84%E4%BC%B0/" title="Kafka 集群资源评估">Kafka 集群资源评估</a><time datetime="2026-06-30T15:40:00.000Z" title="发表于 2026-06-30 23:40:00">2026-06-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/29/MySQL%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="MySQL 性能优化实战指南">MySQL 性能优化实战指南</a><time datetime="2026-06-29T08:00:00.000Z" title="发表于 2026-06-29 16:00:00">2026-06-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/03/05/%E4%B8%80%E7%9C%BC%E7%9C%8B%E7%A9%BFEXPLAIN%E7%9A%845%E7%A7%92%E9%9D%A2%E8%AF%95%E6%B3%95%E5%88%99/" title="一眼看穿EXPLAIN的5秒面试法则">一眼看穿EXPLAIN的5秒面试法则</a><time datetime="2026-03-05T13:31:19.000Z" title="发表于 2026-03-05 21:31:19">2026-03-05</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
