@@ -1,0 +1,485 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python 启航：环境搭建与第一个程序 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Python 启航：环境搭建与第一个程序目录 1. 认识 Python 2. 准备 Python 运行环境 3. 编写并运行第一个 Python 程序 4. 理解 PATH 环境变量 5. 使用 PyCharm 开发 Python 6. 认识 PyCharm 项目目录 7. Python 注释 8. 综合练习：六行输出一首诗 9. 入门常见问题速查   本章从“编程语言是什么”出发，完成 Pyth">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 启航：环境搭建与第一个程序">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/09/python-start-environment-first-program/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Python 启航：环境搭建与第一个程序目录 1. 认识 Python 2. 准备 Python 运行环境 3. 编写并运行第一个 Python 程序 4. 理解 PATH 环境变量 5. 使用 PyCharm 开发 Python 6. 认识 PyCharm 项目目录 7. Python 注释 8. 综合练习：六行输出一首诗 9. 入门常见问题速查   本章从“编程语言是什么”出发，完成 Pyth">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-08T16:06:00.000Z">
+<meta property="article:modified_time" content="2026-08-08T16:07:52.341Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Python 入门">
+<meta property="article:tag" content="PyCharm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/09/python-start-environment-first-program/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python 启航：环境搭建与第一个程序',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">42</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">19</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Python 启航：环境搭建与第一个程序</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Python 启航：环境搭建与第一个程序</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-08T16:06:00.000Z" title="发表于 2026-08-09 00:06:00">2026-08-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-08T16:07:52.341Z" title="更新于 2026-08-09 00:07:52">2026-08-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python-%E5%AD%A6%E4%B9%A0/">Python 学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Python-启航：环境搭建与第一个程序"><a href="#Python-启航：环境搭建与第一个程序" class="headerlink" title="Python 启航：环境搭建与第一个程序"></a>Python 启航：环境搭建与第一个程序</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E8%AE%A4%E8%AF%86-python">1. 认识 Python</a></li>
+<li><a href="#2-%E5%87%86%E5%A4%87-python-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83">2. 准备 Python 运行环境</a></li>
+<li><a href="#3-%E7%BC%96%E5%86%99%E5%B9%B6%E8%BF%90%E8%A1%8C%E7%AC%AC%E4%B8%80%E4%B8%AA-python-%E7%A8%8B%E5%BA%8F">3. 编写并运行第一个 Python 程序</a></li>
+<li><a href="#4-%E7%90%86%E8%A7%A3-path-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">4. 理解 PATH 环境变量</a></li>
+<li><a href="#5-%E4%BD%BF%E7%94%A8-pycharm-%E5%BC%80%E5%8F%91-python">5. 使用 PyCharm 开发 Python</a></li>
+<li><a href="#6-%E8%AE%A4%E8%AF%86-pycharm-%E9%A1%B9%E7%9B%AE%E7%9B%AE%E5%BD%95">6. 认识 PyCharm 项目目录</a></li>
+<li><a href="#7-python-%E6%B3%A8%E9%87%8A">7. Python 注释</a></li>
+<li><a href="#8-%E7%BB%BC%E5%90%88%E7%BB%83%E4%B9%A0%E5%85%AD%E8%A1%8C%E8%BE%93%E5%87%BA%E4%B8%80%E9%A6%96%E8%AF%97">8. 综合练习：六行输出一首诗</a></li>
+<li><a href="#9-%E5%85%A5%E9%97%A8%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E9%80%9F%E6%9F%A5">9. 入门常见问题速查</a></li>
+</ul>
+<hr>
+<p>本章从“编程语言是什么”出发，完成 Python 解释器和 PyCharm 的安装与配置，并分别通过交互式解释器、命令行脚本和 IDE 运行第一个 Python 3 程序。最后将进一步认识项目目录、注释规则，并通过一个完整练习巩固输出语句。</p>
+<h2 id="1-认识-Python"><a href="#1-认识-Python" class="headerlink" title="1. 认识 Python"></a>1. 认识 Python</h2><h3 id="1-1-编程语言是什么"><a href="#1-1-编程语言是什么" class="headerlink" title="1.1 编程语言是什么"></a>1.1 编程语言是什么</h3><p>自然语言帮助人与人交流，<strong>编程语言</strong>则是一套让人向计算机描述数据和操作的形式化规则。计算机底层只能直接处理二进制指令，人编写的 Python 源代码不能被 CPU 直接执行，需要由 Python 解释器读取并执行。</p>
+<p>可以把这一过程理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">开发者编写 Python 源代码</span><br><span class="line">          ↓</span><br><span class="line">Python 解释器分析并执行</span><br><span class="line">          ↓</span><br><span class="line">操作系统和计算机完成具体任务</span><br></pre></td></tr></table></figure>
+
+<p>因此，学习 Python 不只是记忆语法，还要准备两个基本工具：</p>
+<ul>
+<li><strong>Python 解释器</strong>：负责执行 Python 代码，是运行程序的必要条件。</li>
+<li><strong>代码编辑器或 IDE</strong>：负责高效编写和管理代码，例如 PyCharm、Visual Studio Code。</li>
+</ul>
+<h3 id="1-2-Python-的由来与特点"><a href="#1-2-Python-的由来与特点" class="headerlink" title="1.2 Python 的由来与特点"></a>1.2 Python 的由来与特点</h3><p>Python 由荷兰计算机科学家 <strong>Guido van Rossum（吉多·范罗苏姆）</strong>设计，首个公开版本发布于 1991 年。它是一门高级、通用、跨平台的编程语言，主要特点包括：</p>
+<ul>
+<li><strong>语法简洁</strong>：代码可读性强，适合初学者快速入门。</li>
+<li><strong>生态丰富</strong>：拥有大量成熟的第三方库和开发工具。</li>
+<li><strong>应用广泛</strong>：可用于 Web 开发、数据分析、人工智能、自动化运维、测试、爬虫和桌面工具等领域。</li>
+<li><strong>跨平台</strong>：同一份代码通常可以在 Windows、macOS 和 Linux 上运行。</li>
+<li><strong>解释执行</strong>：通常由解释器在运行时执行代码，便于调试和快速迭代。</li>
+</ul>
+<p>“解释型语言”是对典型使用方式的概括，并不表示 Python 完全不编译。以常用的 CPython 为例，源代码通常会先转换为字节码，再由 Python 虚拟机执行。</p>
+<h2 id="2-准备-Python-运行环境"><a href="#2-准备-Python-运行环境" class="headerlink" title="2. 准备 Python 运行环境"></a>2. 准备 Python 运行环境</h2><h3 id="2-1-下载-Python"><a href="#2-1-下载-Python" class="headerlink" title="2.1 下载 Python"></a>2.1 下载 Python</h3><p>建议从 Python 官方网站下载当前仍受支持的 Python 3 稳定版本：</p>
+<ul>
+<li>官方网站：<a target="_blank" rel="noopener" href="https://www.python.org/">https://www.python.org/</a></li>
+<li>下载页面：<a target="_blank" rel="noopener" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a></li>
+</ul>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/python-download-windows.png" alt="从 Python 官网下载 Windows 安装包"></p>
+<p>本文所有示例均面向现代 Python 3。不要再安装已经停止维护的 Python 2。</p>
+<p>在 Windows 安装向导中，建议：</p>
+<ol>
+<li>勾选 <strong>Add Python to PATH</strong>，让终端能够直接找到 <code>python</code> 命令。</li>
+<li>选择适合自己的安装位置。</li>
+<li>完成安装后重新打开终端，避免旧终端未读取新的环境变量。</li>
+</ol>
+<p>开发工具和项目路径最好简短、清晰。某些旧工具对中文或空格路径支持不佳，因此在 Windows 上可使用类似 <code>D:\develop\Python</code> 和 <code>D:\Python-Project</code> 的目录。现代 Python 本身支持 Unicode 路径，但避免复杂路径仍能减少第三方工具的兼容性问题。</p>
+<p>macOS 可从官网下载 <code>.pkg</code> 安装包，也可通过 Homebrew 安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install python</span><br></pre></td></tr></table></figure>
+
+<p>常见 Linux 发行版通常已提供 Python 3。以 Ubuntu&#x2F;Debian 为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install python3 python3-venv</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-验证安装"><a href="#2-2-验证安装" class="headerlink" title="2.2 验证安装"></a>2.2 验证安装</h3><p>在 Windows 中可按 <code>Win + R</code>，输入 <code>cmd</code> 后回车打开命令提示符；macOS 和 Linux 则打开“终端”。执行版本检查命令：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>部分 Windows 电脑需要使用 Python 启动器：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">py <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>macOS 或 Linux 通常使用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 --version</span><br></pre></td></tr></table></figure>
+
+<p>只要输出类似 <code>Python 3.x.x</code>，就说明解释器已经可以使用。</p>
+<p>直接执行 <code>python</code>、<code>py</code> 或 <code>python3</code> 会进入交互式解释器，提示符通常为 <code>&gt;&gt;&gt;</code>：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/python-interactive-shell-windows.png" alt="在 Windows 命令提示符中进入 Python 交互式解释器"></p>
+<p>输入下面的代码并回车：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Hello, Python!&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>解释器会立即输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hello, Python!</span><br></pre></td></tr></table></figure>
+
+<p>可通过以下代码退出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exit()</span><br></pre></td></tr></table></figure>
+
+<p>也可以在 Windows 中按 <code>Ctrl + Z</code> 后回车，或在 macOS&#x2F;Linux 中按 <code>Ctrl + D</code>。</p>
+<h3 id="2-3-解释器与交互模式"><a href="#2-3-解释器与交互模式" class="headerlink" title="2.3 解释器与交互模式"></a>2.3 解释器与交互模式</h3><p>Python 交互模式适合快速验证一两行代码：输入一条语句，解释器就执行一条语句。它的优点是反馈及时，但输入历史不适合作为正式项目保存。</p>
+<p>需要反复运行或一次执行多行代码时，应把代码保存到扩展名为 <code>.py</code> 的文本文件中，再让解释器执行该文件。两种方式使用的是同一种 Python 语法，区别主要在于代码是否被持久保存。</p>
+<h2 id="3-编写并运行第一个-Python-程序"><a href="#3-编写并运行第一个-Python-程序" class="headerlink" title="3. 编写并运行第一个 Python 程序"></a>3. 编写并运行第一个 Python 程序</h2><h3 id="3-1-创建-hello-py"><a href="#3-1-创建-hello-py" class="headerlink" title="3.1 创建 hello.py"></a>3.1 创建 <code>hello.py</code></h3><p>新建一个纯文本文件 <code>hello.py</code>，写入以下完整代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>() -&gt; <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#&quot;</span> * <span class="number">24</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;###### Hello Python ######&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#&quot;</span> * <span class="number">24</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p>这个示例包含三个核心知识点：</p>
+<ul>
+<li><code>.py</code> 是 Python 源文件的标准扩展名。</li>
+<li><code>print()</code> 用于向控制台输出内容。</li>
+<li><code>&quot;#&quot; * 24</code> 会把字符串 <code>&quot;#&quot;</code> 重复 24 次。</li>
+</ul>
+<p>其中 <code>main()</code> 和 <code>if __name__ == &quot;__main__&quot;:</code> 不是最简单程序的必需写法，但它们能让代码入口更清晰，也便于以后将文件作为模块复用。最精简的入门程序只需要：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Hello, Python!&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-从命令行运行脚本"><a href="#3-2-从命令行运行脚本" class="headerlink" title="3.2 从命令行运行脚本"></a>3.2 从命令行运行脚本</h3><p>先使用 <code>cd</code> 切换到 <code>hello.py</code> 所在目录，再执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python hello.py</span><br></pre></td></tr></table></figure>
+
+<p>如果 Windows 中 <code>python</code> 命令不可用但已安装 Python 启动器，可执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">py hello.py</span><br></pre></td></tr></table></figure>
+
+<p>macOS 或 Linux 通常执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 hello.py</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/run-python-script-command-line.png" alt="通过 python 命令运行 hello.py"></p>
+<p>命令中的文件名可以是相对路径或绝对路径。如果终端当前目录与脚本目录不同，又只写了 <code>hello.py</code>，就会出现“找不到文件”的错误。</p>
+<h3 id="3-3-编写代码时的符号与换行"><a href="#3-3-编写代码时的符号与换行" class="headerlink" title="3.3 编写代码时的符号与换行"></a>3.3 编写代码时的符号与换行</h3><p>Python 代码中的关键符号应使用英文半角字符，例如：</p>
+<ul>
+<li>英文括号：<code>()</code></li>
+<li>英文引号：<code>&quot;&quot;</code> 或 <code>&#39;&#39;</code></li>
+<li>英文冒号：<code>:</code></li>
+<li>英文逗号：<code>,</code></li>
+</ul>
+<p>以下代码使用了中文全角括号和引号，无法正常解析：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">print（“Hello, Python!”）</span><br></pre></td></tr></table></figure>
+
+<p>正确写法是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Hello, Python!&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Python 通常以<strong>换行</strong>分隔简单语句。分号 <code>;</code> 可以在同一行分隔多条简单语句，但会降低可读性，不推荐在常规代码中使用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;第一行&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;第二行&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>不要写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;第一行&quot;</span>); <span class="built_in">print</span>(<span class="string">&quot;第二行&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-理解-PATH-环境变量"><a href="#4-理解-PATH-环境变量" class="headerlink" title="4. 理解 PATH 环境变量"></a>4. 理解 PATH 环境变量</h2><h3 id="4-1-PATH-的作用"><a href="#4-1-PATH-的作用" class="headerlink" title="4.1 PATH 的作用"></a>4.1 PATH 的作用</h3><p><strong>环境变量</strong>是操作系统为进程提供的一组配置值，例如临时目录、用户目录和可执行程序的搜索路径。<code>PATH</code> 是其中最常用的一项，它保存了一组目录。</p>
+<p>在终端输入 <code>python</code> 时，操作系统大致按以下顺序处理：</p>
+<ol>
+<li>判断它是否为终端自身支持的命令。</li>
+<li>在当前规则允许的位置以及 <code>PATH</code> 列出的目录中查找对应的可执行文件。</li>
+<li>找到后启动程序；找不到则报告命令不存在。</li>
+</ol>
+<p>因此，配置 PATH 的目的不是“安装 Python”，而是让操作系统知道应该去哪里查找 Python 可执行文件。</p>
+<p>Windows 中常见的 Python PATH 项包括 Python 安装目录和它的 <code>Scripts</code> 子目录，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">D:\develop\Python\</span><br><span class="line">D:\develop\Python\Scripts\</span><br></pre></td></tr></table></figure>
+
+<p><code>Python\</code> 目录使 <code>python</code> 命令可用，<code>Scripts\</code> 目录则通常包含 <code>pip</code> 等命令。</p>
+<h3 id="4-2-Windows-手动配置-PATH"><a href="#4-2-Windows-手动配置-PATH" class="headerlink" title="4.2 Windows 手动配置 PATH"></a>4.2 Windows 手动配置 PATH</h3><p>如果安装时没有勾选添加 PATH，可按以下步骤补充：</p>
+<ol>
+<li>确认 Python 的实际安装目录，不要直接照抄示例路径。</li>
+<li>打开“设置 → 系统 → 系统信息 → 高级系统设置”。</li>
+<li>进入“环境变量”。</li>
+<li>在当前用户的变量或系统变量中选择 <code>Path</code>，点击“编辑”。</li>
+<li>分别新增 Python 安装目录和 <code>Scripts</code> 目录。</li>
+<li>保存后关闭并重新打开命令提示符。</li>
+<li>再次执行 <code>python --version</code> 验证。</li>
+</ol>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/windows-path-python.png" alt="Windows Path 环境变量中的 Python 目录"></p>
+<p>“用户变量”只影响当前用户，通常权限要求更低；“系统变量”影响所有用户，修改时一般需要管理员权限。个人开发电脑优先配置用户级 <code>Path</code> 即可。</p>
+<h3 id="4-3-PATH-常见问题"><a href="#4-3-PATH-常见问题" class="headerlink" title="4.3 PATH 常见问题"></a>4.3 PATH 常见问题</h3><p><strong>问题一：提示“python 不是内部或外部命令”</strong></p>
+<p>可能原因：</p>
+<ul>
+<li>Python 尚未安装。</li>
+<li>Python 安装目录没有加入 <code>PATH</code>。</li>
+<li>配置后没有重新打开终端。</li>
+<li>PATH 中填写了错误目录。</li>
+</ul>
+<p>可先使用 Windows Python 启动器检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">py <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>py</code> 可用，可以先用 <code>py</code> 运行程序，也可以再修复 PATH。</p>
+<p><strong>问题二：执行 <code>python</code> 打开 Microsoft Store</strong></p>
+<p>Windows 的“应用执行别名”可能拦截了 <code>python</code> 命令。可以在系统设置中搜索“应用执行别名”，关闭与 Microsoft Store 相关的 <code>python.exe</code>、<code>python3.exe</code> 别名，然后重新打开终端验证。</p>
+<p><strong>问题三：终端使用了错误的 Python 版本</strong></p>
+<p>系统可能安装了多个解释器。Windows 可执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">where</span> python</span><br><span class="line">py <span class="literal">-0p</span></span><br></pre></td></tr></table></figure>
+
+<p>macOS&#x2F;Linux 可执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> -a python3</span><br></pre></td></tr></table></figure>
+
+<p>这些命令可以帮助确认当前实际调用的是哪个解释器。调整 PATH 前应先查清冲突来源，不要随意删除系统自带 Python。</p>
+<p><strong>问题四：提示无法打开脚本文件</strong></p>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python: can&#x27;t open file &#x27;hello.py&#x27;: [Errno 2] No such file or directory</span><br></pre></td></tr></table></figure>
+
+<p>这通常不是 PATH 问题，而是当前目录中不存在该文件。先查看当前目录和文件列表，或直接传入脚本的完整路径。</p>
+<h2 id="5-使用-PyCharm-开发-Python"><a href="#5-使用-PyCharm-开发-Python" class="headerlink" title="5. 使用 PyCharm 开发 Python"></a>5. 使用 PyCharm 开发 Python</h2><h3 id="5-1-为什么使用-IDE"><a href="#5-1-为什么使用-IDE" class="headerlink" title="5.1 为什么使用 IDE"></a>5.1 为什么使用 IDE</h3><p>只用普通文本编辑器也能编写 Python，但随着代码增多，会缺少语法提示、错误检查、项目管理和调试支持。<strong>IDE（集成开发环境）</strong>把编辑器、解释器配置、运行器、调试器和版本控制等能力集成在一起，可以减少低级错误并提升开发效率。</p>
+<p>常见 Python 开发工具包括 Visual Studio Code 和 PyCharm。PyCharm 是 JetBrains 推出的 Python IDE，对项目管理、代码补全、虚拟环境和调试提供了完整支持。</p>
+<h3 id="5-2-下载并安装-PyCharm"><a href="#5-2-下载并安装-PyCharm" class="headerlink" title="5.2 下载并安装 PyCharm"></a>5.2 下载并安装 PyCharm</h3><p>下载地址：<a target="_blank" rel="noopener" href="https://www.jetbrains.com/pycharm/download/">https://www.jetbrains.com/pycharm/download/</a></p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/pycharm-download-page.png" alt="PyCharm 官方下载页面"></p>
+<p>安装完成后首次启动，PyCharm 会显示欢迎界面。不同版本的界面文字和布局可能略有差异，但核心操作一致。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/pycharm-welcome-screen.png" alt="PyCharm 欢迎界面"></p>
+<h3 id="5-3-创建项目并选择解释器"><a href="#5-3-创建项目并选择解释器" class="headerlink" title="5.3 创建项目并选择解释器"></a>5.3 创建项目并选择解释器</h3><p>在欢迎界面选择“新建项目”，然后完成以下配置：</p>
+<ol>
+<li>设置项目名称和存储位置，例如 <code>D:\Python-Project\python_start</code>。</li>
+<li>选择解释器环境。初学阶段建议为每个项目创建独立的 <code>.venv</code> 虚拟环境。</li>
+<li>选择虚拟环境所基于的 Python 3 解释器。</li>
+<li>点击“创建”。</li>
+</ol>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/pycharm-project-interpreter.png" alt="在 PyCharm 中配置项目位置和 Python 解释器"></p>
+<p>虚拟环境会为项目隔离第三方依赖，避免不同项目要求的包版本互相冲突。它不会复制一整套操作系统，只保存项目所需的 Python 环境和已安装软件包。</p>
+<p>如果 PyCharm 提示“未配置 Python 解释器”，可打开设置，进入“Project → Python Interpreter”，选择已有解释器或创建新的虚拟环境。运行按钮不可用、导入包全部标红，也常与解释器未正确配置有关。</p>
+<h3 id="5-4-新建并运行-Python-文件"><a href="#5-4-新建并运行-Python-文件" class="headerlink" title="5.4 新建并运行 Python 文件"></a>5.4 新建并运行 Python 文件</h3><p>在项目根目录上单击右键，选择“New → Python File”，输入文件名。推荐使用语义清晰、便于跨平台处理的英文名，例如 <code>quick_start.py</code>。输入 <code>.py</code> 通常不是必需的，PyCharm 会自动补全扩展名。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/pycharm-create-python-file.png" alt="在 PyCharm 项目中创建 Python 文件"></p>
+<p>写入代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Hello, Python!&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>运行方式包括：</p>
+<ul>
+<li>在编辑器中单击右键，选择“Run ‘quick_start’”。</li>
+<li>单击代码左侧或窗口右上角的绿色运行按钮。</li>
+<li>使用 PyCharm 当前键位映射中显示的运行快捷键。</li>
+</ul>
+<p>程序输出会显示在下方的 Run 工具窗口中。若 IDE 中运行成功、系统终端中却提示找不到 <code>python</code>，通常是因为 PyCharm 已直接绑定解释器，而系统 PATH 尚未配置正确。</p>
+<h3 id="5-5-PyCharm-外观与字体配置"><a href="#5-5-PyCharm-外观与字体配置" class="headerlink" title="5.5 PyCharm 外观与字体配置"></a>5.5 PyCharm 外观与字体配置</h3><p>打开“Settings&#x2F;Preferences”，可根据需要调整：</p>
+<ul>
+<li><strong>主题颜色</strong>：进入“Appearance &amp; Behavior → Appearance”选择亮色或深色主题。</li>
+<li><strong>编辑器字体</strong>：进入“Editor → Font”调整字体、字号和行高。</li>
+<li><strong>界面字体</strong>：在外观设置中调整菜单和工具窗口的字体。</li>
+</ul>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/pycharm-font-settings.png" alt="PyCharm 外观与界面字体设置"></p>
+<p>配置应以清晰、易读为目标。字号过小容易疲劳，行高过窄会降低代码的可扫描性；初学时不必安装大量插件。</p>
+<h2 id="6-认识-PyCharm-项目目录"><a href="#6-认识-PyCharm-项目目录" class="headerlink" title="6. 认识 PyCharm 项目目录"></a>6. 认识 PyCharm 项目目录</h2><p>一个刚创建的项目可能包含以下内容：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">python_start/</span><br><span class="line">├── .idea/</span><br><span class="line">├── .venv/</span><br><span class="line">└── quick_start.py</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>python_start/</code>：项目根目录，集中保存本项目的代码和配置。</li>
+<li><code>quick_start.py</code>：开发者编写的 Python 源文件。</li>
+<li><code>.idea/</code>：PyCharm 生成的项目配置目录，保存解释器、运行配置和界面状态等信息。</li>
+<li><code>.venv/</code>：项目虚拟环境目录，包含隔离的解释器入口和第三方包。</li>
+</ul>
+<p>PyCharm 项目窗口中还可能出现：</p>
+<ul>
+<li><strong>External Libraries</strong>：当前解释器可访问的标准库与第三方库视图，不是项目源码目录。</li>
+<li><strong>Scratches and Consoles</strong>：用于临时实验的草稿和控制台内容。</li>
+</ul>
+<p><code>.idea</code> 和 <code>.venv</code> 通常不应手动修改。项目使用 Git 时，<code>.venv/</code> 一般不提交，因为它体积较大且可根据依赖清单重建；<code>.idea/</code> 是否提交取决于团队约定。</p>
+<p>更完整的入门项目可以组织为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">python_start/</span><br><span class="line">├── .venv/</span><br><span class="line">├── src/</span><br><span class="line">│   └── main.py</span><br><span class="line">├── tests/</span><br><span class="line">│   └── test_main.py</span><br><span class="line">├── .gitignore</span><br><span class="line">└── README.md</span><br></pre></td></tr></table></figure>
+
+<p>小型练习无需一开始就创建所有目录，但要养成“一个项目一个根目录、代码文件命名清晰”的习惯。</p>
+<h2 id="7-Python-注释"><a href="#7-Python-注释" class="headerlink" title="7. Python 注释"></a>7. Python 注释</h2><h3 id="7-1-注释的作用"><a href="#7-1-注释的作用" class="headerlink" title="7.1 注释的作用"></a>7.1 注释的作用</h3><p>注释是写给开发者阅读的说明，用于解释代码意图、关键约束或不容易理解的原因。执行程序时，普通注释不会作为语句运行。</p>
+<p>好的注释应说明“为什么这样做”，而不是机械重复“代码做了什么”。变量和函数命名足够清楚时，不必为每一行都添加注释。</p>
+<h3 id="7-2-单行注释与块状说明"><a href="#7-2-单行注释与块状说明" class="headerlink" title="7.2 单行注释与块状说明"></a>7.2 单行注释与块状说明</h3><p>Python 使用 <code>#</code> 编写单行注释：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 输出欢迎信息</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;欢迎学习 Python&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>也可以把短注释放在语句后，但应与代码保持适当间隔：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">port = <span class="number">8000</span>  <span class="comment"># 本地开发服务器端口</span></span><br></pre></td></tr></table></figure>
+
+<p>需要写多行说明时，可以连续使用 <code>#</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这里暂时使用固定用户名。</span></span><br><span class="line"><span class="comment"># 后续章节会将它替换为用户输入。</span></span><br><span class="line">username = <span class="string">&quot;Alice&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>三引号创建的是<strong>多行字符串</strong>，并不是专门的多行注释语法。位于模块、类或函数开头的三引号字符串会成为文档字符串：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">greet</span>(<span class="params">name: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;返回包含用户名的问候语。&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">f&quot;你好，<span class="subst">&#123;name&#125;</span>！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>文档字符串可被 <code>help()</code> 等工具读取；普通说明优先使用 <code>#</code> 注释。</p>
+<h3 id="7-3-注释快捷键"><a href="#7-3-注释快捷键" class="headerlink" title="7.3 注释快捷键"></a>7.3 注释快捷键</h3><p>在 PyCharm 中，可先选中一行或多行，再切换行注释：</p>
+<ul>
+<li>Windows&#x2F;Linux：<code>Ctrl + /</code></li>
+<li>macOS：<code>Command + /</code></li>
+</ul>
+<p>再次按同一快捷键即可取消注释。若快捷键无效，应检查当前键位映射、输入法以及快捷键是否被操作系统或其他软件占用。</p>
+<h2 id="8-综合练习：六行输出一首诗"><a href="#8-综合练习：六行输出一首诗" class="headerlink" title="8. 综合练习：六行输出一首诗"></a>8. 综合练习：六行输出一首诗</h2><h3 id="8-1-需求"><a href="#8-1-需求" class="headerlink" title="8.1 需求"></a>8.1 需求</h3><p>在控制台分六行输出以下内容：第一行和最后一行是边框，中间四行是诗句。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-start/poetry-output-result.png" alt="六行古诗输出效果"></p>
+<p>预期输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># # # # # # # # # #</span><br><span class="line">#   白 日 依 山 尽   #</span><br><span class="line">#   黄 河 入 海 流   #</span><br><span class="line">#   欲 穷 千 里 目   #</span><br><span class="line">#   更 上 一 层 楼   #</span><br><span class="line"># # # # # # # # # #</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-完整可运行答案"><a href="#8-2-完整可运行答案" class="headerlink" title="8.2 完整可运行答案"></a>8.2 完整可运行答案</h3><p>最直接的做法是调用六次 <code>print()</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>() -&gt; <span class="literal">None</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;# # # # # # # # # #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#   白 日 依 山 尽   #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#   黄 河 入 海 流   #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#   欲 穷 千 里 目   #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;#   更 上 一 层 楼   #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;# # # # # # # # # #&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p>将代码保存为 <code>poem.py</code>，再执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python poem.py</span><br></pre></td></tr></table></figure>
+
+<p>如果当前平台使用 <code>python3</code> 或 Windows <code>py</code> 启动器，应相应替换命令。</p>
+<p>这个练习主要考查：</p>
+<ul>
+<li>能否正确创建和运行 <code>.py</code> 文件。</li>
+<li>能否使用 <code>print()</code> 分行输出。</li>
+<li>能否正确使用英文括号和引号。</li>
+<li>能否区分代码中的引号与最终输出内容。</li>
+</ul>
+<h3 id="8-3-使用数据与循环改进"><a href="#8-3-使用数据与循环改进" class="headerlink" title="8.3 使用数据与循环改进"></a>8.3 使用数据与循环改进</h3><p>掌握列表和循环后，可以把诗句与输出逻辑分开：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>() -&gt; <span class="literal">None</span>:</span><br><span class="line">    lines = [</span><br><span class="line">        <span class="string">&quot;白 日 依 山 尽&quot;</span>,</span><br><span class="line">        <span class="string">&quot;黄 河 入 海 流&quot;</span>,</span><br><span class="line">        <span class="string">&quot;欲 穷 千 里 目&quot;</span>,</span><br><span class="line">        <span class="string">&quot;更 上 一 层 楼&quot;</span>,</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    border = <span class="string">&quot;# # # # # # # # # #&quot;</span></span><br><span class="line">    <span class="built_in">print</span>(border)</span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> lines:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;#   <span class="subst">&#123;line&#125;</span>   #&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(border)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p>当诗句内容发生变化时，只需要修改 <code>lines</code>，不用重复调整多条输出语句。这体现了程序设计中“数据与处理逻辑分离”的基本思想。</p>
+<h2 id="9-入门常见问题速查"><a href="#9-入门常见问题速查" class="headerlink" title="9. 入门常见问题速查"></a>9. 入门常见问题速查</h2><h3 id="9-1-SyntaxError-语法错误"><a href="#9-1-SyntaxError-语法错误" class="headerlink" title="9.1 SyntaxError 语法错误"></a>9.1 <code>SyntaxError</code> 语法错误</h3><p>常见原因包括使用中文标点、引号没有成对、括号没有闭合或冒号缺失。根据错误信息中的文件名和行号定位代码，并重点检查报错位置及其上一行。</p>
+<h3 id="9-2-IndentationError-缩进错误"><a href="#9-2-IndentationError-缩进错误" class="headerlink" title="9.2 IndentationError 缩进错误"></a>9.2 <code>IndentationError</code> 缩进错误</h3><p>Python 使用缩进表示代码块。同一代码块的缩进必须一致，建议每一级使用 4 个空格，不要混用 Tab 和空格：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;缩进正确&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-中文输出乱码"><a href="#9-3-中文输出乱码" class="headerlink" title="9.3 中文输出乱码"></a>9.3 中文输出乱码</h3><p>现代 Python 3 默认使用 Unicode，源文件建议保存为 UTF-8。若 Windows 旧版终端仍显示异常，可换用 Windows Terminal 或 PyCharm 终端，并确认编辑器文件编码和终端编码均为 UTF-8。不要为了绕过乱码而把中文改成拼音。</p>
+<h3 id="9-4-ModuleNotFoundError"><a href="#9-4-ModuleNotFoundError" class="headerlink" title="9.4 ModuleNotFoundError"></a>9.4 <code>ModuleNotFoundError</code></h3><p>这表示当前解释器环境中没有找到要导入的模块。初学阶段最常见的原因是 PyCharm 选择的解释器与安装依赖时使用的解释器不是同一个。应先确认解释器路径，再通过对应解释器安装依赖：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m pip install 包名</span><br></pre></td></tr></table></figure>
+
+<p>不要把示例中的“包名”原样执行，应替换为实际需要的包。</p>
+<h3 id="9-5-文件名导致导入冲突"><a href="#9-5-文件名导致导入冲突" class="headerlink" title="9.5 文件名导致导入冲突"></a>9.5 文件名导致导入冲突</h3><p>不要把练习文件命名为 <code>random.py</code>、<code>json.py</code>、<code>typing.py</code> 等标准库模块名，也不要命名为 <code>python.py</code>。否则导入标准库时，解释器可能优先加载当前目录下的同名文件，造成难以理解的导入错误。</p>
+<p>完成本章后，应能够解释 Python 代码为何需要解释器，独立安装并验证 Python 3，理解 PATH 的作用，在命令行和 PyCharm 中运行 <code>.py</code> 文件，并正确使用项目目录、英文符号和注释。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/09/python-start-environment-first-program/">https://qijianyeah.github.io/2026/08/09/python-start-environment-first-program/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/Python-%E5%85%A5%E9%97%A8/">Python 入门</a><a class="post-meta__tags" href="/tags/PyCharm/">PyCharm</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/05/Dubbo%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="Dubbo 重试机制完全指南：从原理到实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Dubbo 重试机制完全指南：从原理到实战</div></div><div class="info-2"><div class="info-item-1">Dubbo 重试机制完全指南：从原理到实战 目录 一、重试机制概览 二、Failover 集群详解 三、核心工作流程 四、什么时候会触发重试 五、多种容错模式 六、如何配置重试 七、进阶：按返回值重试 7.1 Consumer 手动循环重试 7.2 自定义 Filter 7.3 Provider 抛异常为何通常不重试   八、源码解析：FailoverClusterInvoker 九、最佳实践与避坑 十、总结   一、重试机制概览Dubbo 的重试机制是集群容错能力的核心：当一次 RPC 因网络抖动、节点临时不可用等原因失败时，自动换节点再试，提升最终调用成功率。 它是一把双刃剑——用得好提升可用性，用不好会造成重复写入、重复扣款等脏数据。 1.1 关键概念   概念 说明    默认策略 failover（失败自动切换），默认 retries=2，共最多调用 3 次   触发条件 Consumer 端 invoke 抛出非业务 RpcException &#x2F; 其它 Throwable（超时、网络等）   不触发条件 正常返回 Result（含业务错误码、null、甚至...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">42</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">25</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">19</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Python-%E5%90%AF%E8%88%AA%EF%BC%9A%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E4%B8%8E%E7%AC%AC%E4%B8%80%E4%B8%AA%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.</span> <span class="toc-text">Python 启航：环境搭建与第一个程序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%AE%A4%E8%AF%86-Python"><span class="toc-number">1.2.</span> <span class="toc-text">1. 认识 Python</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 编程语言是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Python-%E7%9A%84%E7%94%B1%E6%9D%A5%E4%B8%8E%E7%89%B9%E7%82%B9"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 Python 的由来与特点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%87%86%E5%A4%87-Python-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">1.3.</span> <span class="toc-text">2. 准备 Python 运行环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%8B%E8%BD%BD-Python"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 下载 Python</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 验证安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%A7%A3%E9%87%8A%E5%99%A8%E4%B8%8E%E4%BA%A4%E4%BA%92%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 解释器与交互模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%BC%96%E5%86%99%E5%B9%B6%E8%BF%90%E8%A1%8C%E7%AC%AC%E4%B8%80%E4%B8%AA-Python-%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.4.</span> <span class="toc-text">3. 编写并运行第一个 Python 程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%9B%E5%BB%BA-hello-py"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 创建 hello.py</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BB%8E%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%90%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 从命令行运行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E5%86%99%E4%BB%A3%E7%A0%81%E6%97%B6%E7%9A%84%E7%AC%A6%E5%8F%B7%E4%B8%8E%E6%8D%A2%E8%A1%8C"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 编写代码时的符号与换行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%90%86%E8%A7%A3-PATH-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.5.</span> <span class="toc-text">4. 理解 PATH 环境变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-PATH-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 PATH 的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Windows-%E6%89%8B%E5%8A%A8%E9%85%8D%E7%BD%AE-PATH"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 Windows 手动配置 PATH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-PATH-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 PATH 常见问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%BD%BF%E7%94%A8-PyCharm-%E5%BC%80%E5%8F%91-Python"><span class="toc-number">1.6.</span> <span class="toc-text">5. 使用 PyCharm 开发 Python</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8-IDE"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 为什么使用 IDE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%8B%E8%BD%BD%E5%B9%B6%E5%AE%89%E8%A3%85-PyCharm"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 下载并安装 PyCharm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE%E5%B9%B6%E9%80%89%E6%8B%A9%E8%A7%A3%E9%87%8A%E5%99%A8"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 创建项目并选择解释器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%96%B0%E5%BB%BA%E5%B9%B6%E8%BF%90%E8%A1%8C-Python-%E6%96%87%E4%BB%B6"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.4 新建并运行 Python 文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-PyCharm-%E5%A4%96%E8%A7%82%E4%B8%8E%E5%AD%97%E4%BD%93%E9%85%8D%E7%BD%AE"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.5 PyCharm 外观与字体配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%AE%A4%E8%AF%86-PyCharm-%E9%A1%B9%E7%9B%AE%E7%9B%AE%E5%BD%95"><span class="toc-number">1.7.</span> <span class="toc-text">6. 认识 PyCharm 项目目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-Python-%E6%B3%A8%E9%87%8A"><span class="toc-number">1.8.</span> <span class="toc-text">7. Python 注释</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%B3%A8%E9%87%8A%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.8.1.</span> <span class="toc-text">7.1 注释的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%8D%95%E8%A1%8C%E6%B3%A8%E9%87%8A%E4%B8%8E%E5%9D%97%E7%8A%B6%E8%AF%B4%E6%98%8E"><span class="toc-number">1.8.2.</span> <span class="toc-text">7.2 单行注释与块状说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%B3%A8%E9%87%8A%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="toc-number">1.8.3.</span> <span class="toc-text">7.3 注释快捷键</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E7%BB%BC%E5%90%88%E7%BB%83%E4%B9%A0%EF%BC%9A%E5%85%AD%E8%A1%8C%E8%BE%93%E5%87%BA%E4%B8%80%E9%A6%96%E8%AF%97"><span class="toc-number">1.9.</span> <span class="toc-text">8. 综合练习：六行输出一首诗</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E9%9C%80%E6%B1%82"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 需求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E5%8F%AF%E8%BF%90%E8%A1%8C%E7%AD%94%E6%A1%88"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 完整可运行答案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E4%B8%8E%E5%BE%AA%E7%8E%AF%E6%94%B9%E8%BF%9B"><span class="toc-number">1.9.3.</span> <span class="toc-text">8.3 使用数据与循环改进</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%85%A5%E9%97%A8%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E9%80%9F%E6%9F%A5"><span class="toc-number">1.10.</span> <span class="toc-text">9. 入门常见问题速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-SyntaxError-%E8%AF%AD%E6%B3%95%E9%94%99%E8%AF%AF"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 SyntaxError 语法错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-IndentationError-%E7%BC%A9%E8%BF%9B%E9%94%99%E8%AF%AF"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 IndentationError 缩进错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%B8%AD%E6%96%87%E8%BE%93%E5%87%BA%E4%B9%B1%E7%A0%81"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 中文输出乱码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-ModuleNotFoundError"><span class="toc-number">1.10.4.</span> <span class="toc-text">9.4 ModuleNotFoundError</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-%E6%96%87%E4%BB%B6%E5%90%8D%E5%AF%BC%E8%87%B4%E5%AF%BC%E5%85%A5%E5%86%B2%E7%AA%81"><span class="toc-number">1.10.5.</span> <span class="toc-text">9.5 文件名导致导入冲突</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/09/python-start-environment-first-program/" title="Python 启航：环境搭建与第一个程序">Python 启航：环境搭建与第一个程序</a><time datetime="2026-08-08T16:06:00.000Z" title="发表于 2026-08-09 00:06:00">2026-08-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/05/Dubbo%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="Dubbo 重试机制完全指南：从原理到实战">Dubbo 重试机制完全指南：从原理到实战</a><time datetime="2026-08-05T12:41:00.000Z" title="发表于 2026-08-05 20:41:00">2026-08-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/03/%E6%8F%90%E7%A4%BA%E8%AF%8D%E7%BC%96%E5%86%99%E6%95%99%E7%A8%8B/" title="提示词编写教程：从六大原则到 Spring AI 实战">提示词编写教程：从六大原则到 Spring AI 实战</a><time datetime="2026-08-02T18:04:00.000Z" title="发表于 2026-08-03 02:04:00">2026-08-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="Ollama 本地大模型使用教程">Ollama 本地大模型使用教程</a><time datetime="2026-08-01T02:22:00.000Z" title="发表于 2026-08-01 10:22:00">2026-08-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/19/Spring-AI-Tool%E4%B8%8EPreAuthorize%E5%86%B2%E7%AA%81%E6%8E%92%E6%9F%A5/" title="Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效">Spring AI：@Tool 与 @PreAuthorize 同方法并存导致工具不生效</a><time datetime="2026-07-19T01:30:00.000Z" title="发表于 2026-07-19 09:30:00">2026-07-19</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
