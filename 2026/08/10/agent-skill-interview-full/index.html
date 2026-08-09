@@ -1,0 +1,366 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>面试回答准备：什么是 Skill？如何创建 Skill（完整版） | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="面试回答准备：什么是 Skill？如何创建 Skill（完整版） 本文用于技术面试回答准备，适合在面试官要求深入说明 Skill 的概念、组成、创建流程和安全边界时使用。 如果面试时间有限，可阅读：《面试回答准备：什么是 Skill？如何创建 Skill（精简版）》。  一、什么是 Skill？Skill 是面向 AI Agent 的一种可复用能力包，用于封装某一类任务所需的专业知识、触发条件、执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="面试回答准备：什么是 Skill？如何创建 Skill（完整版）">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/10/agent-skill-interview-full/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="面试回答准备：什么是 Skill？如何创建 Skill（完整版） 本文用于技术面试回答准备，适合在面试官要求深入说明 Skill 的概念、组成、创建流程和安全边界时使用。 如果面试时间有限，可阅读：《面试回答准备：什么是 Skill？如何创建 Skill（精简版）》。  一、什么是 Skill？Skill 是面向 AI Agent 的一种可复用能力包，用于封装某一类任务所需的专业知识、触发条件、执">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-09T19:02:00.000Z">
+<meta property="article:modified_time" content="2026-08-09T19:02:39.750Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Cursor">
+<meta property="article:tag" content="Agent Skill">
+<meta property="article:tag" content="面试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/10/agent-skill-interview-full/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '面试回答准备：什么是 Skill？如何创建 Skill（完整版）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">31</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">面试回答准备：什么是 Skill？如何创建 Skill（完整版）</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">面试回答准备：什么是 Skill？如何创建 Skill（完整版）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-09T19:02:00.000Z" title="发表于 2026-08-10 03:02:00">2026-08-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-09T19:02:39.750Z" title="更新于 2026-08-10 03:02:39">2026-08-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E9%9D%A2%E8%AF%95/">AI 面试</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="面试回答准备：什么是-Skill？如何创建-Skill（完整版）"><a href="#面试回答准备：什么是-Skill？如何创建-Skill（完整版）" class="headerlink" title="面试回答准备：什么是 Skill？如何创建 Skill（完整版）"></a>面试回答准备：什么是 Skill？如何创建 Skill（完整版）</h1><blockquote>
+<p>本文用于技术面试回答准备，适合在面试官要求深入说明 Skill 的概念、组成、创建流程和安全边界时使用。</p>
+<p>如果面试时间有限，可阅读：<a href="/2026/08/10/agent-skill-interview-concise/">《面试回答准备：什么是 Skill？如何创建 Skill（精简版）》</a>。</p>
+</blockquote>
+<h2 id="一、什么是-Skill？"><a href="#一、什么是-Skill？" class="headerlink" title="一、什么是 Skill？"></a>一、什么是 Skill？</h2><p>Skill 是面向 AI Agent 的一种<strong>可复用能力包</strong>，用于封装某一类任务所需的专业知识、触发条件、执行流程、安全边界和完成标准。</p>
+<p>它不只是一段更长的提示词，而是一套可被 Agent 发现、加载和执行的能力模块。典型结构如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">my-skill/</span><br><span class="line">├── SKILL.md</span><br><span class="line">├── scripts/</span><br><span class="line">├── references/</span><br><span class="line">└── assets/</span><br></pre></td></tr></table></figure>
+
+<p>各部分职责分别是：</p>
+<ul>
+<li><code>SKILL.md</code>：定义触发条件、核心流程、安全边界和完成标准；</li>
+<li><code>scripts/</code>：存放可重复执行的确定性脚本；</li>
+<li><code>references/</code>：存放 API 文档、技术规范和故障排查资料；</li>
+<li><code>assets/</code>：存放模板、配置样例和静态资源。</li>
+</ul>
+<p>Cursor 通常先根据 <code>SKILL.md</code> 中的 <code>name</code> 和 <code>description</code> 判断当前任务是否需要该 Skill；任务匹配后，再读取完整流程，并按需加载脚本、参考资料和模板。</p>
+<p>因此，一个设计良好的 Skill 需要解决三个核心问题：</p>
+<ol>
+<li><strong>什么时候使用</strong>：触发条件必须准确，避免该触发时不触发，或者无关任务频繁误触发；</li>
+<li><strong>如何稳定完成任务</strong>：需要有明确流程、校验步骤和完成标准；</li>
+<li><strong>权限边界在哪里</strong>：部署、发布、删除、发消息等高风险操作，必须在用户明确授权后执行。</li>
+</ol>
+<p>从 Java 工程化角度理解，Skill 可以类比为一个面向 Agent 的能力模块：</p>
+<ul>
+<li><code>description</code> 类似能力发现和任务路由条件；</li>
+<li><code>SKILL.md</code> 类似流程编排与接口契约；</li>
+<li><code>scripts/</code> 类似稳定、可测试的基础设施实现；</li>
+<li><code>references/</code> 类似开发规范和 API 文档；</li>
+<li>安全规则类似权限控制与事务边界。</li>
+</ul>
+<p>不过，这只是帮助理解的类比。Skill 的本质仍是 Agent 的能力封装机制，而不是 Java 类库或传统插件。</p>
+<h2 id="二、什么场景适合创建-Skill？"><a href="#二、什么场景适合创建-Skill？" class="headerlink" title="二、什么场景适合创建 Skill？"></a>二、什么场景适合创建 Skill？</h2><p>适合创建 Skill 的任务通常具有以下特点：</p>
+<ul>
+<li>会重复发生；</li>
+<li>有相对稳定的处理流程；</li>
+<li>需要专业知识或固定规范；</li>
+<li>仅靠临时提示词容易遗漏步骤；</li>
+<li>可能需要配套脚本、模板或参考资料。</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>按团队规范审查 Java 代码；</li>
+<li>将 Word、PDF 或课件整理成技术博客；</li>
+<li>发布 Hexo 文章；</li>
+<li>生成服务容量评估报告；</li>
+<li>将文章安全推送到公众号草稿箱。</li>
+</ul>
+<p>以下场景通常不必创建 Skill：</p>
+<ul>
+<li>只执行一次的临时任务；</li>
+<li>一两句话就能说清楚的个人偏好；</li>
+<li>必须始终生效的简单项目约束；</li>
+<li>单纯的定时任务；</li>
+<li>只有外部服务连接，没有稳定业务流程的能力。</li>
+</ul>
+<p>例如，统一缩进更适合项目规则，定时检查更适合自动化任务，连接外部数据库则通常需要 MCP 或专用工具。</p>
+<h2 id="三、如何创建-Skill？"><a href="#三、如何创建-Skill？" class="headerlink" title="三、如何创建 Skill？"></a>三、如何创建 Skill？</h2><h3 id="1-明确能力范围和任务终点"><a href="#1-明确能力范围和任务终点" class="headerlink" title="1. 明确能力范围和任务终点"></a>1. 明确能力范围和任务终点</h3><p>首先需要回答：</p>
+<ul>
+<li>这个 Skill 解决什么问题？</li>
+<li>哪些请求应该触发它？</li>
+<li>哪些请求不属于它？</li>
+<li>执行到什么状态才算完成？</li>
+</ul>
+<p>例如，“发布一篇文章”可能仅表示生成 Markdown，也可能包括本地构建、推送远程仓库以及验证线上页面。不同终点对应不同权限和风险，因此必须提前定义。</p>
+<p>完成标准可以写成：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 完成标准</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 文章已写入指定目录；</span><br><span class="line"><span class="bullet">-</span> front matter 完整；</span><br><span class="line"><span class="bullet">-</span> 本地构建通过；</span><br><span class="line"><span class="bullet">-</span> 配图链接可以访问；</span><br><span class="line"><span class="bullet">-</span> 只有用户明确要求上线时才执行远程部署；</span><br><span class="line"><span class="bullet">-</span> 部署后验证公开页面可以访问。</span><br></pre></td></tr></table></figure>
+
+<p>终点明确后，再反推执行流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">识别需求</span><br><span class="line">→ 收集输入</span><br><span class="line">→ 生成内容</span><br><span class="line">→ 本地校验</span><br><span class="line">→ 展示结果</span><br><span class="line">→ 获取外部操作确认</span><br><span class="line">→ 执行并验证</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-创建目录和-SKILL-md"><a href="#2-创建目录和-SKILL-md" class="headerlink" title="2. 创建目录和 SKILL.md"></a>2. 创建目录和 <code>SKILL.md</code></h3><p>项目级 Skill 可以采用以下结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.cursor/</span><br><span class="line">└── skills/</span><br><span class="line">    └── secure-deploy/</span><br><span class="line">        └── SKILL.md</span><br></pre></td></tr></table></figure>
+
+<p>最小的 <code>SKILL.md</code> 示例：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: secure-deploy</span><br><span class="line"><span class="section">description: 安全地部署应用。当用户提到部署、发布、上线或环境切换时使用。</span></span><br><span class="line"><span class="section">---</span></span><br><span class="line"></span><br><span class="line"><span class="section"># 安全部署</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 工作流程</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> 确认目标环境。</span><br><span class="line"><span class="bullet">2.</span> 执行部署前检查。</span><br><span class="line"><span class="bullet">3.</span> 展示变更和风险。</span><br><span class="line"><span class="bullet">4.</span> 获取用户确认。</span><br><span class="line"><span class="bullet">5.</span> 执行部署并验证结果。</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-设计-name-和-description"><a href="#3-设计-name-和-description" class="headerlink" title="3. 设计 name 和 description"></a>3. 设计 <code>name</code> 和 <code>description</code></h3><p><code>name</code> 是 Skill 的稳定标识，建议：</p>
+<ul>
+<li>使用小写字母、数字和连字符；</li>
+<li>不以连字符开头或结尾；</li>
+<li>与 Skill 所在目录名称一致；</li>
+<li>名称简短、明确并且长期稳定。</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java-code-review</span><br><span class="line">tech-blog-markdown</span><br><span class="line">service-capacity-planning</span><br><span class="line">wechat-article-publisher</span><br></pre></td></tr></table></figure>
+
+<p><code>description</code> 决定 Skill 能否被准确发现和触发，需要同时回答：</p>
+<ol>
+<li>这个 Skill 能做什么？</li>
+<li>用户在什么场景下需要它？</li>
+</ol>
+<p>不推荐：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">description:</span> <span class="string">帮助处理文章。</span></span><br></pre></td></tr></table></figure>
+
+<p>推荐：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">description:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">  将 Word、PDF、Markdown 和零散技术资料整理为可发布的中文技术博客。</span></span><br><span class="line"><span class="string">  当用户要求整理成博客、生成 Markdown 文章或处理技术课件时使用。</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-使用渐进式加载拆分内容"><a href="#4-使用渐进式加载拆分内容" class="headerlink" title="4. 使用渐进式加载拆分内容"></a>4. 使用渐进式加载拆分内容</h3><p>不要把全部知识、示例和脚本都塞进 <code>SKILL.md</code>。更合理的方式是：</p>
+<ul>
+<li>核心流程放入 <code>SKILL.md</code>；</li>
+<li>确定性操作放入 <code>scripts/</code>；</li>
+<li>长篇规范放入 <code>references/</code>；</li>
+<li>模板和静态资源放入 <code>assets/</code>。</li>
+</ul>
+<p>Agent 启动时主要使用名称和描述发现 Skill，匹配任务后读取完整 <code>SKILL.md</code>，真正需要时再读取其他资源。这种渐进式加载方式可以降低上下文成本。</p>
+<p>主 <code>SKILL.md</code> 应保持精炼。开放 Agent Skills 规范建议将其控制在 500 行以内，详细资料按需拆分。</p>
+<h3 id="5-将确定性操作脚本化"><a href="#5-将确定性操作脚本化" class="headerlink" title="5. 将确定性操作脚本化"></a>5. 将确定性操作脚本化</h3><p>Skill 适合负责判断、规划和流程编排；脚本更适合完成稳定、可重复的操作，例如：</p>
+<ul>
+<li>校验标题长度；</li>
+<li>检查参数格式和取值范围；</li>
+<li>转换文件格式；</li>
+<li>检查图片尺寸；</li>
+<li>调用稳定 API；</li>
+<li>验证配置文件；</li>
+<li>执行构建和测试。</li>
+</ul>
+<p>脚本至少应该具备：</p>
+<ul>
+<li>参数类型、格式和范围校验；</li>
+<li>正确处理包含空格的文件路径；</li>
+<li>执行失败时返回非零退出码；</li>
+<li>提供可以指导排查的错误信息；</li>
+<li>不在日志中泄露令牌、密码等敏感信息。</li>
+</ul>
+<h3 id="6-设置安全边界"><a href="#6-设置安全边界" class="headerlink" title="6. 设置安全边界"></a>6. 设置安全边界</h3><p>以下操作通常需要用户明确确认：</p>
+<ul>
+<li>部署生产环境；</li>
+<li>推送远程仓库；</li>
+<li>发布或群发内容；</li>
+<li>删除数据；</li>
+<li>修改权限；</li>
+<li>发送外部消息；</li>
+<li>执行可能产生费用的操作。</li>
+</ul>
+<p>同时还应避免：</p>
+<ul>
+<li>将密钥写入 <code>SKILL.md</code> 或代码仓库；</li>
+<li>关闭 TLS 证书校验；</li>
+<li>将未经校验的用户输入直接拼接成系统命令；</li>
+<li>默认执行不可逆操作；</li>
+<li>把“生成内容”错误理解成“授权发布”。</li>
+</ul>
+<h3 id="7-测试与验收"><a href="#7-测试与验收" class="headerlink" title="7. 测试与验收"></a>7. 测试与验收</h3><p>创建完成后，至少测试以下场景：</p>
+<ol>
+<li>应该触发时是否能够触发；</li>
+<li>不应该触发时是否保持静默；</li>
+<li>输入缺失时是否会提出必要问题；</li>
+<li>脚本失败时是否会停止后续流程；</li>
+<li>高风险操作前是否会请求确认；</li>
+<li>执行结果是否满足预先定义的完成标准。</li>
+</ol>
+<h2 id="四、面试总结"><a href="#四、面试总结" class="headerlink" title="四、面试总结"></a>四、面试总结</h2><p>Skill 的核心不是把提示词写得更长，而是将可复用任务沉淀为一个<strong>触发准确、执行稳定、边界清晰</strong>的 Agent 能力模块。</p>
+<p>创建 Skill 时，应先明确适用场景和任务终点，再设计 <code>name</code>、<code>description</code> 与执行流程；复杂内容通过 <code>scripts/</code>、<code>references/</code> 和 <code>assets/</code> 拆分；最后补充安全控制和测试验收。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="/2026/08/10/create-agent-skill-efficiently-safely/">如何高效、安全地创建一个好用的 Skill</a></li>
+<li><a target="_blank" rel="noopener" href="https://cursor.com/docs/skills.md">Cursor Skills 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://agentskills.io/specification">Agent Skills 开放规范</a></li>
+<li><a target="_blank" rel="noopener" href="https://owasp.org/www-project-agentic-skills-top-10/skill-development-guide.html">OWASP Agentic Skills 安全开发指南</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/10/agent-skill-interview-full/">https://qijianyeah.github.io/2026/08/10/agent-skill-interview-full/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Cursor/">Cursor</a><a class="post-meta__tags" href="/tags/Agent-Skill/">Agent Skill</a><a class="post-meta__tags" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/08/10/agent-skill-interview-concise/" title="面试回答准备：什么是 Skill？如何创建 Skill（精简版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">面试回答准备：什么是 Skill？如何创建 Skill（精简版）</div></div><div class="info-2"><div class="info-item-1">面试回答准备：什么是 Skill？如何创建 Skill（精简版） 本文用于技术面试快速回答准备，建议将回答控制在 2～3 分钟。 如果面试官要求继续展开，可阅读：《面试回答准备：什么是 Skill？如何创建 Skill（完整版）》。  一、什么是 Skill？Skill 是给 AI Agent 使用的可复用能力包，用于封装某类任务的专业知识、触发条件、执行流程和安全边界。 它以 SKILL.md 为核心，还可以包含：  scripts/：确定性操作脚本； references/：规范和参考资料； assets/：模板及静态资源。  它不是简单的长提示词，而是让 Agent 明确：  什么时候使用； 如何稳定完成任务； 哪些高风险操作必须经过用户确认。  二、如何创建 Skill？主要分为五步： 1. 明确适用场景优先选择可重复、有稳定流程、需要专业知识或固定规范的任务。 2. 创建 SKILL.md配置 name 和 description。其中 description 要同时说明“能做什么”和“什么时候触发”。 3....</div></div></div></a><a class="pagination-related" href="/2026/08/10/create-agent-skill-efficiently-safely/" title="如何高效、安全地创建一个好用的 Skill"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">如何高效、安全地创建一个好用的 Skill</div></div><div class="info-2"><div class="info-item-1">如何高效、安全地创建一个好用的 Skill很多人第一次接触 Agent Skill，会把它理解成“一段更长的提示词”。 于是打开 SKILL.md，把背景、规则、流程、示例、工具说明一股脑塞进去。文件写了几百行，看起来很专业，实际使用时却经常出现三个问题：  该触发时没有触发； 不该触发时频繁打扰； 真正执行任务时，步骤不稳定，甚至越过安全边界。  一个好用的 Skill，不是信息越多越好，而是要做到三件事：  让 Agent 准确判断什么时候使用； 让任务按照可靠流程完成； 让高风险操作始终停在明确的权限边界前。  本文从结构、效率和安全三个维度，讲清楚如何创建一个真正能长期使用的 Skill。 一、先判断：这个需求真的适合做 Skill 吗？创建 Skill 之前，先不要急着写文件。 你需要判断，这个需求究竟属于哪一种能力。 1. 适合做 Skill 的场景Skill 适合封装可复用的专业知识和工作流，例如：  按团队规范审查 Java 代码； 把技术资料整理成博客； 发布 Hexo...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/10/agent-skill-interview-concise/" title="面试回答准备：什么是 Skill？如何创建 Skill（精简版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-10</div><div class="info-item-2">面试回答准备：什么是 Skill？如何创建 Skill（精简版）</div></div><div class="info-2"><div class="info-item-1">面试回答准备：什么是 Skill？如何创建 Skill（精简版） 本文用于技术面试快速回答准备，建议将回答控制在 2～3 分钟。 如果面试官要求继续展开，可阅读：《面试回答准备：什么是 Skill？如何创建 Skill（完整版）》。  一、什么是 Skill？Skill 是给 AI Agent 使用的可复用能力包，用于封装某类任务的专业知识、触发条件、执行流程和安全边界。 它以 SKILL.md 为核心，还可以包含：  scripts/：确定性操作脚本； references/：规范和参考资料； assets/：模板及静态资源。  它不是简单的长提示词，而是让 Agent 明确：  什么时候使用； 如何稳定完成任务； 哪些高风险操作必须经过用户确认。  二、如何创建 Skill？主要分为五步： 1. 明确适用场景优先选择可重复、有稳定流程、需要专业知识或固定规范的任务。 2. 创建 SKILL.md配置 name 和 description。其中 description 要同时说明“能做什么”和“什么时候触发”。 3....</div></div></div></a><a class="pagination-related" href="/2026/08/10/create-agent-skill-efficiently-safely/" title="如何高效、安全地创建一个好用的 Skill"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-10</div><div class="info-item-2">如何高效、安全地创建一个好用的 Skill</div></div><div class="info-2"><div class="info-item-1">如何高效、安全地创建一个好用的 Skill很多人第一次接触 Agent Skill，会把它理解成“一段更长的提示词”。 于是打开 SKILL.md，把背景、规则、流程、示例、工具说明一股脑塞进去。文件写了几百行，看起来很专业，实际使用时却经常出现三个问题：  该触发时没有触发； 不该触发时频繁打扰； 真正执行任务时，步骤不稳定，甚至越过安全边界。  一个好用的 Skill，不是信息越多越好，而是要做到三件事：  让 Agent 准确判断什么时候使用； 让任务按照可靠流程完成； 让高风险操作始终停在明确的权限边界前。  本文从结构、效率和安全三个维度，讲清楚如何创建一个真正能长期使用的 Skill。 一、先判断：这个需求真的适合做 Skill 吗？创建 Skill 之前，先不要急着写文件。 你需要判断，这个需求究竟属于哪一种能力。 1. 适合做 Skill 的场景Skill 适合封装可复用的专业知识和工作流，例如：  按团队规范审查 Java 代码； 把技术资料整理成博客； 发布 Hexo...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">31</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%A2%E8%AF%95%E5%9B%9E%E7%AD%94%E5%87%86%E5%A4%87%EF%BC%9A%E4%BB%80%E4%B9%88%E6%98%AF-Skill%EF%BC%9F%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BA-Skill%EF%BC%88%E5%AE%8C%E6%95%B4%E7%89%88%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">面试回答准备：什么是 Skill？如何创建 Skill（完整版）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-Skill%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">一、什么是 Skill？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E9%80%82%E5%90%88%E5%88%9B%E5%BB%BA-Skill%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">二、什么场景适合创建 Skill？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BA-Skill%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">三、如何创建 Skill？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%98%8E%E7%A1%AE%E8%83%BD%E5%8A%9B%E8%8C%83%E5%9B%B4%E5%92%8C%E4%BB%BB%E5%8A%A1%E7%BB%88%E7%82%B9"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 明确能力范围和任务终点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%9B%E5%BB%BA%E7%9B%AE%E5%BD%95%E5%92%8C-SKILL-md"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. 创建目录和 SKILL.md</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%AE%BE%E8%AE%A1-name-%E5%92%8C-description"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. 设计 name 和 description</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8%E6%B8%90%E8%BF%9B%E5%BC%8F%E5%8A%A0%E8%BD%BD%E6%8B%86%E5%88%86%E5%86%85%E5%AE%B9"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. 使用渐进式加载拆分内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%B0%86%E7%A1%AE%E5%AE%9A%E6%80%A7%E6%93%8D%E4%BD%9C%E8%84%9A%E6%9C%AC%E5%8C%96"><span class="toc-number">1.3.5.</span> <span class="toc-text">5. 将确定性操作脚本化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E8%AE%BE%E7%BD%AE%E5%AE%89%E5%85%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">1.3.6.</span> <span class="toc-text">6. 设置安全边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E6%B5%8B%E8%AF%95%E4%B8%8E%E9%AA%8C%E6%94%B6"><span class="toc-number">1.3.7.</span> <span class="toc-text">7. 测试与验收</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">四、面试总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">1.5.</span> <span class="toc-text">参考资料</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/agent-skill-interview-concise/" title="面试回答准备：什么是 Skill？如何创建 Skill（精简版）">面试回答准备：什么是 Skill？如何创建 Skill（精简版）</a><time datetime="2026-08-09T19:03:00.000Z" title="发表于 2026-08-10 03:03:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/agent-skill-interview-full/" title="面试回答准备：什么是 Skill？如何创建 Skill（完整版）">面试回答准备：什么是 Skill？如何创建 Skill（完整版）</a><time datetime="2026-08-09T19:02:00.000Z" title="发表于 2026-08-10 03:02:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/create-agent-skill-efficiently-safely/" title="如何高效、安全地创建一个好用的 Skill">如何高效、安全地创建一个好用的 Skill</a><time datetime="2026-08-09T18:40:00.000Z" title="发表于 2026-08-10 02:40:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/09/python-core-syntax-data-to-oop/" title="Python 核心语法：从数据运算到面向对象">Python 核心语法：从数据运算到面向对象</a><time datetime="2026-08-08T19:44:00.000Z" title="发表于 2026-08-09 03:44:00">2026-08-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/09/python-start-environment-first-program/" title="Python 启航：环境搭建与第一个程序">Python 启航：环境搭建与第一个程序</a><time datetime="2026-08-08T16:06:00.000Z" title="发表于 2026-08-09 00:06:00">2026-08-09</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
