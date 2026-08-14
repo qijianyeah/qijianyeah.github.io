@@ -1,0 +1,913 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>大模型破冰之旅 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="大模型破冰之旅从人工智能、机器学习、深度学习，一路走到大语言模型：先把概念地图立住，再谈选型、微调和落地。  目录 1. 学习路线 2. 学习方法 3. 硬件准备 4. 语言准备 5. AI 必备概念 5.1 从人工智能到大模型 5.2 机器学习 5.3 深度学习 5.4 神经网络 5.5 大语言模型   6. 常见大模型介绍 7. 大模型选型 8. 通用基础大模型 vs 行业垂直大模型 9. 大">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大模型破冰之旅">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/15/llm-icebreaking/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="大模型破冰之旅从人工智能、机器学习、深度学习，一路走到大语言模型：先把概念地图立住，再谈选型、微调和落地。  目录 1. 学习路线 2. 学习方法 3. 硬件准备 4. 语言准备 5. AI 必备概念 5.1 从人工智能到大模型 5.2 机器学习 5.3 深度学习 5.4 神经网络 5.5 大语言模型   6. 常见大模型介绍 7. 大模型选型 8. 通用基础大模型 vs 行业垂直大模型 9. 大">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-14T16:27:29.000Z">
+<meta property="article:modified_time" content="2026-08-14T16:29:03.373Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="大模型">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/15/llm-icebreaking/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '大模型破冰之旅',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">大模型破冰之旅</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">大模型破冰之旅</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-14T16:27:29.000Z" title="发表于 2026-08-15 00:27:29">2026-08-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-14T16:29:03.373Z" title="更新于 2026-08-15 00:29:03">2026-08-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">AI 工程实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="大模型破冰之旅"><a href="#大模型破冰之旅" class="headerlink" title="大模型破冰之旅"></a>大模型破冰之旅</h1><p>从人工智能、机器学习、深度学习，一路走到大语言模型：先把概念地图立住，再谈选型、微调和落地。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF">1. 学习路线</a></li>
+<li><a href="#2-%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95">2. 学习方法</a></li>
+<li><a href="#3-%E7%A1%AC%E4%BB%B6%E5%87%86%E5%A4%87">3. 硬件准备</a></li>
+<li><a href="#4-%E8%AF%AD%E8%A8%80%E5%87%86%E5%A4%87">4. 语言准备</a></li>
+<li><a href="#5-ai-%E5%BF%85%E5%A4%87%E6%A6%82%E5%BF%B5">5. AI 必备概念</a><ul>
+<li><a href="#51-%E4%BB%8E%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%88%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B">5.1 从人工智能到大模型</a></li>
+<li><a href="#52-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0">5.2 机器学习</a></li>
+<li><a href="#53-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0">5.3 深度学习</a></li>
+<li><a href="#54-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">5.4 神经网络</a></li>
+<li><a href="#55-%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B">5.5 大语言模型</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%B8%B8%E8%A7%81%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BB%8B%E7%BB%8D">6. 常见大模型介绍</a></li>
+<li><a href="#7-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E5%9E%8B">7. 大模型选型</a></li>
+<li><a href="#8-%E9%80%9A%E7%94%A8%E5%9F%BA%E7%A1%80%E5%A4%A7%E6%A8%A1%E5%9E%8B-vs-%E8%A1%8C%E4%B8%9A%E5%9E%82%E7%9B%B4%E5%A4%A7%E6%A8%A1%E5%9E%8B">8. 通用基础大模型 vs 行业垂直大模型</a></li>
+<li><a href="#9-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83">9. 大模型微调</a></li>
+<li><a href="#10-%E8%A1%8C%E4%B8%9A%E5%BA%94%E7%94%A8%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%8C%91%E6%88%98">10. 行业应用、趋势与挑战</a></li>
+</ul>
+<hr>
+<h2 id="1-学习路线"><a href="#1-学习路线" class="headerlink" title="1. 学习路线"></a>1. 学习路线</h2><p>大模型学习没有唯一正确顺序，但有一条不容易走弯路的主线：<strong>先会用，再理解，最后才定制</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>目标</th>
+<th>建议投入</th>
+<th>产出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>概念破冰</td>
+<td>搞清 AI &#x2F; ML &#x2F; DL &#x2F; LLM 的包含关系</td>
+<td>1～2 天</td>
+<td>能用自己的话讲清「大模型是什么」</td>
+</tr>
+<tr>
+<td>上手调用</td>
+<td>用 API 或本地 Ollama 跑通一轮对话</td>
+<td>2～3 天</td>
+<td>一个能聊天的 Demo</td>
+</tr>
+<tr>
+<td>提示词与应用</td>
+<td>Prompt、RAG、工作流、Agent</td>
+<td>1～2 周</td>
+<td>知识问答 &#x2F; 客服 &#x2F; 办公助手</td>
+</tr>
+<tr>
+<td>私有化部署</td>
+<td>Ollama、vLLM、量化、显存估算</td>
+<td>3～5 天</td>
+<td>本机或内网可调用的模型服务</td>
+</tr>
+<tr>
+<td>模型定制</td>
+<td>数据清洗、LoRA &#x2F; PEFT、评测</td>
+<td>按项目</td>
+<td>领域更准、幻觉更少的专用模型</td>
+</tr>
+<tr>
+<td>工程落地</td>
+<td>鉴权、成本、监控、安全、评测集</td>
+<td>持续</td>
+<td>可上线的业务系统</td>
+</tr>
+</tbody></table>
+<p>入门阶段优先走「调用现成模型」：先把 DeepSeek、通义千问、ChatGPT 这类接口跑通，再考虑本地部署。微调是后半程的事——没有高质量数据和评测，微调往往不如 RAG。</p>
+<p>一条可执行的最小路径：</p>
+<ol>
+<li>读完本文的概念部分，画出「AI ⊃ 机器学习 ⊃ 深度学习 ⊃ 大模型」这张图。</li>
+<li>用 Python 调一次兼容 OpenAI 协议的 API，完成一轮问答。</li>
+<li>用 Ollama 在本机拉起一个 7B 量化模型，对比云端 API 的效果与延迟。</li>
+<li>做一个最小 RAG：本地文档 → 切片 → 向量检索 → 拼进 Prompt。</li>
+<li>有真实业务数据后，再评估要不要微调。</li>
+</ol>
+<hr>
+<h2 id="2-学习方法"><a href="#2-学习方法" class="headerlink" title="2. 学习方法"></a>2. 学习方法</h2><p>基础不同，切入点不同。同一套资料，零基础硬啃微调和有工程经验的人直接上 RAG，效率差一个数量级。</p>
+<table>
+<thead>
+<tr>
+<th>背景</th>
+<th>先学什么</th>
+<th>刻意避开什么</th>
+<th>检验标准</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>零基础</td>
+<td>Python 基础、命令行、Git；再用网页版大模型建立体感</td>
+<td>一上来推公式、从零实现 Transformer</td>
+<td>能独立安装环境，并能讲清「输入 → 模型 → 输出」</td>
+</tr>
+<tr>
+<td>有编程基础</td>
+<td>API 调用、Prompt、RAG、LangChain &#x2F; Dify</td>
+<td>过早陷入论文细节</td>
+<td>一周内做出一个带检索的问答 Demo</td>
+</tr>
+<tr>
+<td>有工作经验</td>
+<td>选型、成本、私有化、安全合规、评测与监控</td>
+<td>只玩 Demo、不谈上线约束</td>
+<td>能给出「开源 &#x2F; 闭源、云端 &#x2F; 本地」的决策表</td>
+</tr>
+</tbody></table>
+<p>三条通用方法：</p>
+<ul>
+<li><strong>用任务驱动</strong>：不要「先学完再做」。目标写成「本周做一个合同摘要助手」，缺什么补什么。</li>
+<li><strong>先黑盒后白盒</strong>：先当用户把模型用熟，再回头看 Tokenizer、注意力、KV Cache。</li>
+<li><strong>建立自己的评测集</strong>：准备 20～50 条真实业务题，每次换模型、换 Prompt、换 RAG 都用同一套题对比，避免凭感觉选模型。</li>
+</ul>
+<hr>
+<h2 id="3-硬件准备"><a href="#3-硬件准备" class="headerlink" title="3. 硬件准备"></a>3. 硬件准备</h2><p>入门门槛比想象中低：<strong>内存 ≥ 16GB 就可以开始</strong>。没有独立显卡也能学完整条应用开发链路。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>最低配置</th>
+<th>更舒服的配置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只调云端 API</td>
+<td>8GB 内存笔记本即可</td>
+<td>任意现代电脑</td>
+<td>算力在服务商侧，本机几乎无压力</td>
+</tr>
+<tr>
+<td>本机跑 7B～8B 量化模型</td>
+<td>16GB 内存</td>
+<td>32GB 内存 + 苹果芯片 &#x2F; 8GB 显存</td>
+<td>Ollama + Q4 量化是常见组合</td>
+</tr>
+<tr>
+<td>本机跑 14B 及以上</td>
+<td>32GB 内存</td>
+<td>24GB 以上显存</td>
+<td>速度和并发都会明显下降</td>
+</tr>
+<tr>
+<td>微调 7B LoRA</td>
+<td>至少 16GB 显存</td>
+<td>24GB &#x2F; A10 &#x2F; 4090</td>
+<td>显存不够就租云 GPU，不必先买卡</td>
+</tr>
+</tbody></table>
+<p>没有显卡时的策略：</p>
+<ul>
+<li>日常对话、Prompt、RAG、Agent、Dify 全部走 API。</li>
+<li>真正要微调时，按小时租一张 4090 &#x2F; A10 &#x2F; A100，训完即释放。</li>
+<li>Mac（Apple Silicon）对 Ollama 比较友好，适合本地体验，不适合当作大规模训练机。</li>
+</ul>
+<p>先把「能跑起来」放在「能训起来」前面。硬件是瓶颈时，优先减小模型或改用 API，而不是停在环境上。</p>
+<hr>
+<h2 id="4-语言准备"><a href="#4-语言准备" class="headerlink" title="4. 语言准备"></a>4. 语言准备</h2><p>大模型这条线上，<strong>Python 是默认工作语言</strong>，但不要求把主语言换成 Python。</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>角色</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Python</td>
+<td>必学</td>
+<td>调 API、数据处理、LangChain、微调脚本、评测</td>
+</tr>
+<tr>
+<td>Java &#x2F; Go &#x2F; C++ 等</td>
+<td>可继续作为主语言</td>
+<td>业务系统、网关、高并发服务里调用模型 HTTP 接口</td>
+</tr>
+<tr>
+<td>JavaScript &#x2F; TypeScript</td>
+<td>加分</td>
+<td>前端对话界面、Node 服务、部分 Agent 工具链</td>
+</tr>
+<tr>
+<td>SQL</td>
+<td>经常用到</td>
+<td>日志分析、评测结果统计、业务数据抽样</td>
+</tr>
+</tbody></table>
+<p>Java 工程师常见路径：业务服务仍用 Spring，模型调用走 HTTP &#x2F; SDK；数据处理和微调脚本用 Python。两套语言并存是常态，不是缺陷。</p>
+<p>最小 Python 示例（OpenAI 兼容协议，DeepSeek &#x2F; 通义 &#x2F; 本地 vLLM 都按这个结构）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI</span><br><span class="line"></span><br><span class="line">client = OpenAI(</span><br><span class="line">    api_key=<span class="string">&quot;your-api-key&quot;</span>,</span><br><span class="line">    base_url=<span class="string">&quot;https://api.deepseek.com&quot;</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">resp = client.chat.completions.create(</span><br><span class="line">    model=<span class="string">&quot;deepseek-chat&quot;</span>,</span><br><span class="line">    messages=[</span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;你是简洁的技术助手。&quot;</span>&#125;,</span><br><span class="line">        &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;用一句话解释什么是大语言模型。&quot;</span>&#125;,</span><br><span class="line">    ],</span><br><span class="line">    temperature=<span class="number">0.3</span>,</span><br><span class="line">)</span><br><span class="line"><span class="built_in">print</span>(resp.choices[<span class="number">0</span>].message.content)</span><br></pre></td></tr></table></figure>
+
+<p>先把这一段跑通，再谈框架。框架是对「发消息、拼上下文、解析返回」的封装，底层仍是这一次 HTTP 调用。</p>
+<hr>
+<h2 id="5-AI-必备概念"><a href="#5-AI-必备概念" class="headerlink" title="5. AI 必备概念"></a>5. AI 必备概念</h2><h3 id="5-1-从人工智能到大模型"><a href="#5-1-从人工智能到大模型" class="headerlink" title="5.1 从人工智能到大模型"></a>5.1 从人工智能到大模型</h3><p>大模型不是突然出现的新学科，而是套在已有技术栈里的一层。包含关系从外到内是：</p>
+<p><strong>人工智能 ⊃ 机器学习 ⊃ 深度学习 ⊃ 大模型</strong></p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-001-ai-four-waves.png" alt="从人工智能到大模型的演进"></p>
+<p>时间线上可以记住四个锚点：</p>
+<table>
+<thead>
+<tr>
+<th>年代</th>
+<th>阶段</th>
+<th>典型特征</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1950 年代起</td>
+<td>人工智能</td>
+<td>符号推理、专家系统、让机器「像人一样解决问题」</td>
+</tr>
+<tr>
+<td>1980 年代起</td>
+<td>机器学习</td>
+<td>从数据里学规律，不再把全部规则手写死</td>
+</tr>
+<tr>
+<td>2010 年代起</td>
+<td>深度学习</td>
+<td>多层神经网络自动提取特征，ImageNet 之后全面爆发</td>
+</tr>
+<tr>
+<td>2020 年代起</td>
+<td>大模型</td>
+<td>Transformer + 海量数据 + 大规模算力，泛化能力显著跃升</td>
+</tr>
+</tbody></table>
+<p>后一层是前一层的实现路径，不是替代关系。今天做大模型应用，仍然在用机器学习的训练&#x2F;评测思路，仍然在用深度学习的网络结构。</p>
+<h3 id="5-2-机器学习"><a href="#5-2-机器学习" class="headerlink" title="5.2 机器学习"></a>5.2 机器学习</h3><p>机器学习是实现人工智能的一条主路径：<strong>从数据中找出规律，再用这条规律对未知样本做预测、分类或决策</strong>。样本越多、特征越有效、算法越匹配任务，结果通常越准。</p>
+<p>以「自动识别汽车」为例，传统机器学习大致四步：</p>
+<ol>
+<li><strong>准备样本</strong>：收集大量汽车 &#x2F; 非汽车图片或结构化记录。</li>
+<li><strong>提取特征</strong>：高度、颜色、车轮、车身轮廓等。这一步过去高度依赖人工经验。</li>
+<li><strong>选择并训练算法</strong>：把特征喂给模型（一套可学习的数学公式），让它在标注数据上调整参数。</li>
+<li><strong>推理</strong>：把未知样本的特征送进训练好的模型，得到「是不是汽车」的结论。</li>
+</ol>
+<p>抽象成一条流水线：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-002-ml-pipeline.jpg" alt="机器学习输入-算法-输出流程"></p>
+<ul>
+<li><strong>输入</strong>：数据集，也就是准备好的样本。</li>
+<li><strong>算法 &#x2F; 模型 &#x2F; 数学公式</strong>：对数据做训练的那套可学习结构。业务方通常不从零发明算法，而是选用已有结构（逻辑回归、树模型、CNN 等），再在自己的数据上训练。</li>
+<li><strong>输出</strong>：类别、分数、决策结果。</li>
+</ul>
+<p>这里有三个容易混的动作，必须分开：</p>
+<table>
+<thead>
+<tr>
+<th>动作</th>
+<th>谁来做</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>创建算法</td>
+<td>研究者 &#x2F; 算法工程师</td>
+<td>发明 CNN、Transformer 这类结构</td>
+</tr>
+<tr>
+<td>使用算法</td>
+<td>你</td>
+<td>在 PyTorch &#x2F; TensorFlow 里调用现成结构</td>
+</tr>
+<tr>
+<td>训练模型</td>
+<td>你</td>
+<td>用自己的数据更新参数，得到专用权重</td>
+</tr>
+</tbody></table>
+<p>继续用汽车识别拆开：</p>
+<ol>
+<li><strong>用算法</strong>：不必从零推导 CNN。打开工具包，调用 <code>torchvision.models.resnet50()</code>，这一刻是在使用现成结构。</li>
+<li><strong>训练模型</strong>：准备例如 10 万张标注图片，喂给 ResNet50。数百万内部参数会按数据自动调整；学习率、训练轮数等超参数由你控制。训完后，通用的 ResNet50 变成「专门认车」的模型，保存为 <code>my_car_detector.pth</code>。</li>
+<li><strong>上线推理</strong>：加载这份权重，对新图片输出「这是汽车，置信度 97%」。</li>
+</ol>
+<p>一句话：<strong>用的是别人的结构，训出的是自己的参数。</strong></p>
+<h3 id="5-3-深度学习"><a href="#5-3-深度学习" class="headerlink" title="5.3 深度学习"></a>5.3 深度学习</h3><p>深度学习是机器学习的一个子集，核心差异在<strong>特征还要不要人来设计</strong>。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-003-ml-vs-dl.png" alt="机器学习与深度学习的特征工程差异"></p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>传统机器学习</th>
+<th>深度学习</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>特征</td>
+<td>人工设计，依赖领域经验</td>
+<td>多层网络从原始数据里自动学习</td>
+</tr>
+<tr>
+<td>数据量</td>
+<td>中小规模也能工作</td>
+<td>通常更吃数据</td>
+</tr>
+<tr>
+<td>可解释性</td>
+<td>相对更好讲清</td>
+<td>内部表示更黑盒</td>
+</tr>
+<tr>
+<td>典型任务</td>
+<td>表格预测、经典分类</td>
+<td>图像、语音、自然语言</td>
+</tr>
+</tbody></table>
+<p>深度学习把更简单的变换一层层叠起来：数据从输入层进入，经过多个隐藏层，到达输出层。每一层都在组合上一层的表示，从而形成更复杂的概念——边缘、零件、物体，或词、句、语义。</p>
+<p>常见应用：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>图像</td>
+<td>物体识别、场景识别、车型识别、人脸检测与认证</td>
+</tr>
+<tr>
+<td>自然语言</td>
+<td>机器翻译、文本分类、对话生成</td>
+</tr>
+<tr>
+<td>语音</td>
+<td>语音识别、语音合成</td>
+</tr>
+</tbody></table>
+<p>大语言模型走的就是深度学习这条路，只是网络更深、数据更广、参数更大，任务从「分类 &#x2F; 识别」扩到了「生成」。</p>
+<h3 id="5-4-神经网络"><a href="#5-4-神经网络" class="headerlink" title="5.4 神经网络"></a>5.4 神经网络</h3><p>神经网络（Artificial Neural Network，ANN）是深度学习的代表算法之一，广泛用于图像分类与检测、文本分类与对话等任务。它是一种<strong>模仿生物神经系统结构与功能的计算模型</strong>。</p>
+<p>人脑由大量神经元连接而成：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-004-human-brain.png" alt="人脑神经网络示意"></p>
+<p>单个生物神经元的结构可以记四个部件：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-005-neuron.png" alt="神经元结构"></p>
+<table>
+<thead>
+<tr>
+<th>生物结构</th>
+<th>作用</th>
+<th>人工神经元里的对应物</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>树突</td>
+<td>接收其他神经元传来的信号</td>
+<td>输入 <code>x_i</code> 与权重 <code>w_i</code></td>
+</tr>
+<tr>
+<td>细胞核 &#x2F; 胞体</td>
+<td>汇总并处理信号</td>
+<td>加权求和 + 激活函数</td>
+</tr>
+<tr>
+<td>轴突</td>
+<td>把处理结果传出去</td>
+<td>输出 <code>y</code></td>
+</tr>
+<tr>
+<td>轴突末梢 &#x2F; 突触</td>
+<td>接到下一颗神经元的树突</td>
+<td>层与层之间的连接</td>
+</tr>
+</tbody></table>
+<p>人工神经网络把大量这样的计算单元按层排列：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-006-simple-nn.png" alt="最简单的多层神经网络"></p>
+<ul>
+<li><strong>输入层</strong>：接收原始数据（像素、词向量、表格字段等）。</li>
+<li><strong>隐藏层</strong>：一层或多层都可以；层数和每层神经元个数是结构超参数。</li>
+<li><strong>输出层</strong>：给出分类分数、生成下一个 token 的概率等。</li>
+</ul>
+<p>层与层之间的连线就是可学习的权重。训练的本质，是根据预测误差反复调整这些权重。</p>
+<p>想直观感受「加一层、改几个神经元、决策边界如何变」，可以用 TensorFlow Playground：<a target="_blank" rel="noopener" href="https://playground.tensorflow.org/">https://playground.tensorflow.org/</a></p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-007-tf-playground.png" alt="TensorFlow Playground 神经网络可视化"></p>
+<p>在这个页面里可以看到：</p>
+<ul>
+<li>左侧选择输入特征（如 <code>X1</code>、<code>X2</code>）。</li>
+<li>中间隐藏层的每个神经元学到一块局部判别图案。</li>
+<li>右侧输出层画出分类边界，并显示训练损失 &#x2F; 测试损失。</li>
+<li>连线粗细表示权重大小，颜色表示正负。</li>
+</ul>
+<p>它解决的是二维点分类，和 GPT 不是同一个模型，但「输入 → 隐藏层变换 → 输出」这条骨架是一样的。大模型只是把层数、宽度、数据模态和训练规模全部放大，并把核心结构换成了 Transformer。</p>
+<h3 id="5-5-大语言模型"><a href="#5-5-大语言模型" class="headerlink" title="5.5 大语言模型"></a>5.5 大语言模型</h3><p>大语言模型（Large Language Model，<strong>LLM</strong>）是面向自然语言处理设计的深度神经网络。它仍然是「输入 → 深层网络 → 输出」，只是输入输出都是 token（子词），训练目标通常是<strong>根据上文预测下一个 token</strong>。</p>
+<p>大模型的「大」，至少有四层含义：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>训练数据大</td>
+<td>网页、书籍、代码、对话等海量文本，部分语料规模达到 TB &#x2F; PB 量级</td>
+</tr>
+<tr>
+<td>参数规模大</td>
+<td>从数十亿到数千亿参数，决定模型能记住和组合多少模式</td>
+</tr>
+<tr>
+<td>算力大</td>
+<td>依赖 GPU &#x2F; TPU 集群和分布式训练框架</td>
+</tr>
+<tr>
+<td>泛化能力强</td>
+<td>预训练后，只需少量提示或少量样本，就能覆盖问答、翻译、摘要、代码等多种任务</td>
+</tr>
+</tbody></table>
+<h4 id="为什么近几年才爆发"><a href="#为什么近几年才爆发" class="headerlink" title="为什么近几年才爆发"></a>为什么近几年才爆发</h4><p>技术储备早就有了，真正把规模推上去的是四件事同时成熟：</p>
+<ul>
+<li><strong>硬件</strong>：GPU、TPU 让千亿参数训练从「理论上可行」变成「工程上可做」。</li>
+<li><strong>算法</strong>：Transformer（2017）用自注意力处理长距离依赖，比 RNN 更适合并行训练。</li>
+<li><strong>数据</strong>：互联网文本、代码、多模态数据爆炸，预训练有了燃料。</li>
+<li><strong>工程</strong>：PyTorch、Megatron、DeepSpeed 等分布式框架让万卡训练可落地。</li>
+</ul>
+<p>ChatGPT 让「对话式通用接口」被大众看见，但底座是上面这条链路，不是某一个产品名。</p>
+<hr>
+<h2 id="6-常见大模型介绍"><a href="#6-常见大模型介绍" class="headerlink" title="6. 常见大模型介绍"></a>6. 常见大模型介绍</h2><p>选型时先分清三件事：<strong>谁训练的、开不开源、擅长什么</strong>。同一家公司往往同时提供对话产品和可部署的基座模型，不要把「网页 Chat」和「可微调的权重」当成同一个东西。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>发布方</th>
+<th>开源情况</th>
+<th>主要特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DeepSeek</td>
+<td>深度求索</td>
+<td>权重开源</td>
+<td>推理与 Agent 能力突出，性价比高</td>
+</tr>
+<tr>
+<td>通义千问</td>
+<td>阿里巴巴</td>
+<td>开源</td>
+<td>编程与中文能力强，上下文长，部署生态完整</td>
+</tr>
+<tr>
+<td>文心 4.5 系列</td>
+<td>百度</td>
+<td>开源</td>
+<td>多模态 MoE，覆盖理解与生成</td>
+</tr>
+<tr>
+<td>豆包大模型</td>
+<td>字节跳动</td>
+<td>部分开源</td>
+<td>偏商业落地，强调速度与性价比</td>
+</tr>
+<tr>
+<td>腾讯混元</td>
+<td>腾讯</td>
+<td>部分开源</td>
+<td>多模态与 3D 生成有特色</td>
+</tr>
+<tr>
+<td>Kimi &#x2F; K2</td>
+<td>月之暗面</td>
+<td>部分开源</td>
+<td>长上下文、复杂任务与浏览式研究</td>
+</tr>
+<tr>
+<td>GPT 系列</td>
+<td>OpenAI</td>
+<td>主力闭源，另有开源线</td>
+<td>综合能力标杆，工具调用与智能体成熟</td>
+</tr>
+<tr>
+<td>Claude 系列</td>
+<td>Anthropic</td>
+<td>闭源</td>
+<td>安全对齐、长上下文、代码与文档能力强</td>
+</tr>
+<tr>
+<td>Llama 系列</td>
+<td>Meta</td>
+<td>开源（有许可约束）</td>
+<td>全球最主流的开源基座之一</td>
+</tr>
+<tr>
+<td>Gemini 系列</td>
+<td>Google</td>
+<td>主力闭源</td>
+<td>原生多模态，和搜索 &#x2F; 工具生态结合紧</td>
+</tr>
+</tbody></table>
+<p>开源不等于「训练数据与完整流程全部公开」，多数情况下公开的是<strong>模型权重与推理代码</strong>。闭源也不等于不能用，只是你只能走 API，改不了结构和参数。</p>
+<hr>
+<h2 id="7-大模型选型"><a href="#7-大模型选型" class="headerlink" title="7. 大模型选型"></a>7. 大模型选型</h2><p>先决定「开源还是闭源」，再决定「哪一家、哪一档尺寸」。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>开源大模型</th>
+<th>闭源大模型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可审查性</td>
+<td>权重可下载、行为可复现、便于安全审计</td>
+<td>黑盒，内部数据与对齐过程不可见</td>
+</tr>
+<tr>
+<td>定制能力</td>
+<td>可微调、可改解码、可做领域适配</td>
+<td>通常只能调 Prompt &#x2F; 工具，改不了底层参数</td>
+</tr>
+<tr>
+<td>成本结构</td>
+<td>前期硬件和工程投入高，后期边际成本低</td>
+<td>按 Token 计费，流量一大账单上升很快</td>
+</tr>
+<tr>
+<td>效果上限</td>
+<td>中小规模场景已很好；头部闭源在综合能力上仍常领先</td>
+<td>综合推理、多模态、工具生态往往更完整</td>
+</tr>
+<tr>
+<td>运维</td>
+<td>自己负责部署、升级、扩容、安全补丁</td>
+<td>供应商运维，业务侧接入快</td>
+</tr>
+<tr>
+<td>数据主权</td>
+<td>可完全本地化，适合强合规</td>
+<td>数据要出域，需评估脱敏和合同条款</td>
+</tr>
+</tbody></table>
+<p>经验上的默认策略：</p>
+<ul>
+<li><strong>要快上线、要最强推理、数据可以出域</strong>：闭源 API。</li>
+<li><strong>要私有化、要可控成本、要领域微调</strong>：开源权重 + 本地 &#x2F; 专有云部署。</li>
+<li><strong>多数企业会两头都用</strong>：办公助手走 API，核心业务走私有化。</li>
+</ul>
+<p>即使选定同一系列，型号不同，能力也完全不同。以通义千问为例，控制台里同时存在视觉理解、语音识别、语音合成等不同产品：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-008-qwen-product-line.png" alt="通义千问不同型号对应不同能力"></p>
+<p>选型时不要只写「用千问 &#x2F; 用 GPT」，要写到具体型号，并确认：</p>
+<ol>
+<li><strong>模态</strong>：纯文本，还是视觉、语音、视频。</li>
+<li><strong>上下文长度</strong>：长文档、多轮工具调用能不能塞进去。</li>
+<li><strong>延迟与价格</strong>：Flash &#x2F; Mini 类适合高并发；Max &#x2F; 思考模型适合难题。</li>
+<li><strong>部署形态</strong>：公有云 API、专有云，还是开源权重本地推理。</li>
+<li><strong>许可</strong>：开源权重是否允许商用、是否限制用户规模。</li>
+</ol>
+<hr>
+<h2 id="8-通用基础大模型-vs-行业垂直大模型"><a href="#8-通用基础大模型-vs-行业垂直大模型" class="headerlink" title="8. 通用基础大模型 vs 行业垂直大模型"></a>8. 通用基础大模型 vs 行业垂直大模型</h2><p><strong>通用基础大模型</strong>在海量通用语料上预训练，目标是「什么都能聊一点」。ChatGPT、DeepSeek、Kimi、豆包、通义千问都属于这一层的代表产品：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-009-foundation-model.png" alt="通用基础大模型代表"></p>
+<p><strong>行业垂直大模型</strong>则是在通用能力之上，用专业数据继续训练或对齐，让模型在医疗、金融、法律、工业等场景里更懂术语、更守规范、更少胡编。</p>
+<p>从行业落地路径看，相当比例的企业并不是直接把通用 Chat 塞进生产，而是走垂类模型或「通用模型 + 领域数据」的组合。下图中，垂类路径约占六成：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/llm-icebreak/llm-icebreak-010-vertical-model.png" alt="行业垂直大模型与通用大模型占比"></p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>优势</th>
+<th>代价</th>
+<th>更适合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通用基础模型</td>
+<td>能力面宽，生态新、迭代快</td>
+<td>领域术语弱，容易幻觉</td>
+<td>办公、编程、通用问答、原型</td>
+</tr>
+<tr>
+<td>行业垂直模型</td>
+<td>术语、流程、合规更贴业务</td>
+<td>数据建设成本高，要持续更新</td>
+<td>医疗、金融、法律、政务、工业质检</td>
+</tr>
+</tbody></table>
+<p>垂类不等于必须从零预训练。更常见的三层做法是：</p>
+<ol>
+<li><strong>Prompt + 规范</strong>：把行业话术、禁止事项写进系统提示。</li>
+<li><strong>RAG</strong>：把制度、病历规范、产品手册检索进上下文。</li>
+<li><strong>微调</strong>：在前两步仍不够稳时，再用领域数据改模型行为。</li>
+</ol>
+<p>多数业务在 1 和 2 就能上线，3 是增强项。</p>
+<hr>
+<h2 id="9-大模型微调"><a href="#9-大模型微调" class="headerlink" title="9. 大模型微调"></a>9. 大模型微调</h2><p>通用模型在专业领域会表现出「看起来很懂、细节经常错」——也就是幻觉。把高质量的领域数据交给模型做继续训练，就是微调。目标不是让模型变得更大，而是让它在你的任务分布上变得更准。</p>
+<p>一个常用工具链是 <a target="_blank" rel="noopener" href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a>，把数据格式、LoRA、训练脚本和导出流程收在一起。完整过程可以记成四步：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">下载预训练模型</span><br><span class="line">    → 准备并清洗训练数据</span><br><span class="line">        → 用 LLaMA-Factory（或其他 PEFT 框架）训练</span><br><span class="line">            → 用固定评测集测试，达标后再导出部署</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>关键点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>选基座</td>
+<td>中文任务优先选中文表现好的开源模型；尺寸按显存来，7B &#x2F; 14B 最常见</td>
+</tr>
+<tr>
+<td>准备数据</td>
+<td>指令格式（instruction &#x2F; input &#x2F; output），宁缺毋滥，先保证正确再追求量</td>
+</tr>
+<tr>
+<td>选择算法</td>
+<td>入门用 LoRA &#x2F; QLoRA，少改原权重、显存占用低</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>盯 loss、学坏了的样本、过拟合；保存多个 checkpoint</td>
+</tr>
+<tr>
+<td>评测</td>
+<td>用训练时没见过的真实题目，对比「原模型 vs 微调模型 vs RAG」</td>
+</tr>
+<tr>
+<td>发布</td>
+<td>合并 LoRA 或保持适配器分发；用 vLLM &#x2F; Ollama 对外提供服务</td>
+</tr>
+</tbody></table>
+<p>微调解决的是「风格、格式、领域口径」，RAG 解决的是「事实和最新知识」。制度每月都变，优先 RAG；希望模型稳定按某种 JSON 或公文格式说话，优先微调。两者经常一起用。</p>
+<hr>
+<h2 id="10-行业应用、趋势与挑战"><a href="#10-行业应用、趋势与挑战" class="headerlink" title="10. 行业应用、趋势与挑战"></a>10. 行业应用、趋势与挑战</h2><h3 id="10-1-已经铺开的行业与场景"><a href="#10-1-已经铺开的行业与场景" class="headerlink" title="10.1 已经铺开的行业与场景"></a>10.1 已经铺开的行业与场景</h3><p>金融、医疗、工业、教育、科研、媒体、通信、政务、营销、交通、文娱、城市治理、法律、汽车、运维等行业都已经有可落地的切口。相对成熟的场景包括：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>对话与办公</td>
+<td>智能客服、智能问答、公文写作、会议纪要、智慧办公</td>
+</tr>
+<tr>
+<td>检索与决策</td>
+<td>智能搜索、知识库问答、舆情监控、智能风控</td>
+</tr>
+<tr>
+<td>研发与运维</td>
+<td>代码助手、日志分析、故障辅助定位</td>
+</tr>
+<tr>
+<td>业务办理</td>
+<td>政务咨询、业务预审、合同校对</td>
+</tr>
+<tr>
+<td>行业知识</td>
+<td>诊疗知识库、投研助手、法规检索</td>
+</tr>
+<tr>
+<td>交互形态</td>
+<td>虚拟数字人、多模态质检、语音坐席</td>
+</tr>
+</tbody></table>
+<p>判断一个场景值不值得做，看三件事：<strong>有没有稳定的知识来源、容不容错、能不能评测</strong>。客服和知识问答容易起步；直接让模型做不可逆的金融或医疗决策，必须加人工审核。</p>
+<h3 id="10-2-趋势"><a href="#10-2-趋势" class="headerlink" title="10.2 趋势"></a>10.2 趋势</h3><p>技术侧：</p>
+<ul>
+<li>模型继续变强，但也会更强调<strong>效率</strong>：同样效果，更小的模型和更快的推理更受欢迎。</li>
+<li><strong>多模态</strong>成为默认能力：文本、图像、语音、视频不再分家。</li>
+<li><strong>可解释性与可控性</strong>会被产品化：引用出处、拒绝回答、权限隔离不再是论文话题。</li>
+</ul>
+<p>应用侧：</p>
+<ul>
+<li><strong>垂直化</strong>：行业模型和领域 Agent 会比「全能聊天」增长更快。</li>
+<li><strong>端侧部署</strong>：手机、PC、工控机上的小模型会分担一部分云端调用。</li>
+<li><strong>UGC + AIGC</strong>：用户内容与模型生成内容会混在同一条生产链路里，版权和审核会同步变严。</li>
+</ul>
+<h3 id="10-3-挑战"><a href="#10-3-挑战" class="headerlink" title="10.3 挑战"></a>10.3 挑战</h3><table>
+<thead>
+<tr>
+<th>类别</th>
+<th>具体问题</th>
+<th>工程上的应对</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安全与伦理</td>
+<td>偏见、越狱、有害内容、深度伪造</td>
+<td>系统提示、安全护栏、输出过滤、人工复核</td>
+</tr>
+<tr>
+<td>数据与模型治理</td>
+<td>训练数据版权、日志留存、模型版本混乱</td>
+<td>数据分级、提示词与权重的版本管理</td>
+</tr>
+<tr>
+<td>人机协作</td>
+<td>全自动不可靠，全人工又浪费</td>
+<td>人机回路：模型起草，人确认关键步骤</td>
+</tr>
+<tr>
+<td>幻觉</td>
+<td>编造法规条文、伪造引用</td>
+<td>RAG 强制引用、拒绝无依据回答、评测集回归</td>
+</tr>
+<tr>
+<td>资源与环境</td>
+<td>训练和推理耗电、显卡昂贵</td>
+<td>量化、缓存、小模型路由、按需扩容</td>
+</tr>
+<tr>
+<td>普及不均衡</td>
+<td>中小团队缺算力、缺数据、缺评测</td>
+<td>先 API 后私有化，先 RAG 后微调</td>
+</tr>
+</tbody></table>
+<p>破冰阶段最有用的心态是：<strong>先做出一个可评测的小闭环，再决定要不要更大的模型、更多的卡、更重的微调。</strong> 概念地图清楚之后，其余都是工程问题。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/15/llm-icebreaking/">https://qijianyeah.github.io/2026/08/15/llm-icebreaking/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">大模型</a><a class="post-meta__tags" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a><a class="post-meta__tags" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/10/agent-skill-interview-concise/" title="面试回答准备：什么是 Skill？如何创建 Skill（精简版）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">面试回答准备：什么是 Skill？如何创建 Skill（精简版）</div></div><div class="info-2"><div class="info-item-1">面试回答准备：什么是 Skill？如何创建 Skill（精简版） 本文用于技术面试快速回答准备，建议将回答控制在 2～3 分钟。 如果面试官要求继续展开，可阅读：《面试回答准备：什么是 Skill？如何创建 Skill（完整版）》。  一、什么是 Skill？Skill 是给 AI Agent 使用的可复用能力包，用于封装某类任务的专业知识、触发条件、执行流程和安全边界。 它以 SKILL.md 为核心，还可以包含：  scripts/：确定性操作脚本； references/：规范和参考资料； assets/：模板及静态资源。  它不是简单的长提示词，而是让 Agent 明确：  什么时候使用； 如何稳定完成任务； 哪些高风险操作必须经过用户确认。  二、如何创建 Skill？主要分为五步： 1. 明确适用场景优先选择可重复、有稳定流程、需要专业知识或固定规范的任务。 2. 创建 SKILL.md配置 name 和 description。其中 description 要同时说明“能做什么”和“什么时候触发”。 3....</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="Ollama 本地大模型使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-01</div><div class="info-item-2">Ollama 本地大模型使用教程</div></div><div class="info-2"><div class="info-item-1">Ollama 本地大模型使用教程 目录 一、Ollama 是什么 二、安装与验证 三、快速上手 四、模型管理 五、CLI 命令速查 六、交互式对话技巧 七、REST API 八、Python &#x2F; JavaScript SDK 九、Modelfile 自定义模型 十、环境变量与服务配置 十一、Docker 部署 十二、与开发工具集成 十三、硬件与选型建议 十四、常见问题排查   一、Ollama 是什么Ollama 是一款本地大模型运行时，把「下载模型 → 加载推理 → 提供 API」做成一条命令即可完成的体验，常被比作 「大模型界的 Docker」。    能力 说明    本地运行 模型在本机推理，默认不上传提示词与对话内容   一条命令开聊 ollama run &lt;模型名&gt; 自动拉取并进入对话   内置 HTTP API 默认 http://localhost:11434，便于接入应用   官方 SDK 提供 Python、JavaScript 库   可定制 通过 Modelfile 改系统提示、参数、导入 GGUF   生态集成 可对接...</div></div></div></a><a class="pagination-related" href="/2026/08/03/%E6%8F%90%E7%A4%BA%E8%AF%8D%E7%BC%96%E5%86%99%E6%95%99%E7%A8%8B/" title="提示词编写教程：从六大原则到 Spring AI 实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-03</div><div class="info-item-2">提示词编写教程：从六大原则到 Spring AI 实战</div></div><div class="info-2"><div class="info-item-1">提示词编写教程一、什么是提示词工程提示词（Prompt）：发送给大模型的指令。 提示词工程（Prompt Engineering）：通过优化提示词，使大模型生成尽可能理想的内容。 常用做法包括：  清晰明确的指令 使用分隔符标记输入 按步骤拆解复杂任务 提供输入输出示例 明确要求输出格式 给模型设定一个角色  很多简单的 AI 应用，仅靠一段足够好的 System Prompt 就能跑起来（纯 Prompt 模式）。本文以「哄哄模拟器」提示词为例，说明如何系统化编写提示词。  二、提示词角色与大模型对话时，消息通常包含三种角色：    角色 作用 示例    system 设定身份、规则、输出格式，优先级最高 你只能以女友身份回答……   user 用户本轮输入 在我心里你永远是最美的！   assistant 模型历史回复，用于会话记忆 (微笑)哼，我怎么知道……   业务规则应写在 System Prompt 中，不要依赖用户自觉遵守。 在 Spring AI 中，可在创建 ChatClient 时通过 .defaultSystem(...)...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A0%B4%E5%86%B0%E4%B9%8B%E6%97%85"><span class="toc-number">1.</span> <span class="toc-text">大模型破冰之旅</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.2.</span> <span class="toc-text">1. 学习路线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95"><span class="toc-number">1.3.</span> <span class="toc-text">2. 学习方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%A1%AC%E4%BB%B6%E5%87%86%E5%A4%87"><span class="toc-number">1.4.</span> <span class="toc-text">3. 硬件准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%AF%AD%E8%A8%80%E5%87%86%E5%A4%87"><span class="toc-number">1.5.</span> <span class="toc-text">4. 语言准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-AI-%E5%BF%85%E5%A4%87%E6%A6%82%E5%BF%B5"><span class="toc-number">1.6.</span> <span class="toc-text">5. AI 必备概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BB%8E%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%88%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 从人工智能到大模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 机器学习</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 深度学习</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.4 神经网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.5 大语言模型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%91%E5%87%A0%E5%B9%B4%E6%89%8D%E7%88%86%E5%8F%91"><span class="toc-number">1.6.5.1.</span> <span class="toc-text">为什么近几年才爆发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.7.</span> <span class="toc-text">6. 常见大模型介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E5%9E%8B"><span class="toc-number">1.8.</span> <span class="toc-text">7. 大模型选型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E9%80%9A%E7%94%A8%E5%9F%BA%E7%A1%80%E5%A4%A7%E6%A8%A1%E5%9E%8B-vs-%E8%A1%8C%E4%B8%9A%E5%9E%82%E7%9B%B4%E5%A4%A7%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.9.</span> <span class="toc-text">8. 通用基础大模型 vs 行业垂直大模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83"><span class="toc-number">1.10.</span> <span class="toc-text">9. 大模型微调</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E8%A1%8C%E4%B8%9A%E5%BA%94%E7%94%A8%E3%80%81%E8%B6%8B%E5%8A%BF%E4%B8%8E%E6%8C%91%E6%88%98"><span class="toc-number">1.11.</span> <span class="toc-text">10. 行业应用、趋势与挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%B7%B2%E7%BB%8F%E9%93%BA%E5%BC%80%E7%9A%84%E8%A1%8C%E4%B8%9A%E4%B8%8E%E5%9C%BA%E6%99%AF"><span class="toc-number">1.11.1.</span> <span class="toc-text">10.1 已经铺开的行业与场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%B6%8B%E5%8A%BF"><span class="toc-number">1.11.2.</span> <span class="toc-text">10.2 趋势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%8C%91%E6%88%98"><span class="toc-number">1.11.3.</span> <span class="toc-text">10.3 挑战</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/15/llm-icebreaking/" title="大模型破冰之旅">大模型破冰之旅</a><time datetime="2026-08-14T16:27:29.000Z" title="发表于 2026-08-15 00:27:29">2026-08-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/agent-skill-interview-concise/" title="面试回答准备：什么是 Skill？如何创建 Skill（精简版）">面试回答准备：什么是 Skill？如何创建 Skill（精简版）</a><time datetime="2026-08-09T19:03:00.000Z" title="发表于 2026-08-10 03:03:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/agent-skill-interview-full/" title="面试回答准备：什么是 Skill？如何创建 Skill（完整版）">面试回答准备：什么是 Skill？如何创建 Skill（完整版）</a><time datetime="2026-08-09T19:02:00.000Z" title="发表于 2026-08-10 03:02:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/create-agent-skill-efficiently-safely/" title="如何高效、安全地创建一个好用的 Skill">如何高效、安全地创建一个好用的 Skill</a><time datetime="2026-08-09T18:40:00.000Z" title="发表于 2026-08-10 02:40:00">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/09/python-core-syntax-data-to-oop/" title="Python 核心语法：从数据运算到面向对象">Python 核心语法：从数据运算到面向对象</a><time datetime="2026-08-08T19:44:00.000Z" title="发表于 2026-08-09 03:44:00">2026-08-09</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
