@@ -1,0 +1,442 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 map &#x2F; reduce &#x2F; filter &#x2F; sorted 这组常用高阶函数。  目录 1. 递归 2. 函数也是对象：一等公民 3. 匿名函数 lambda 4. 什么是高阶函数 5.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/16/python-functions-advanced-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 map &#x2F; reduce &#x2F; filter &#x2F; sorted 这组常用高阶函数。  目录 1. 递归 2. 函数也是对象：一等公民 3. 匿名函数 lambda 4. 什么是高阶函数 5.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-16T15:21:00.000Z">
+<meta property="article:modified_time" content="2026-08-16T15:21:29.999Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="递归">
+<meta property="article:tag" content="lambda">
+<meta property="article:tag" content="高阶函数">
+<meta property="article:tag" content="Python 函数">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/16/python-functions-advanced-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">43</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-16T15:21:29.999Z" title="更新于 2026-08-16 23:21:29">2026-08-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python-%E5%AD%A6%E4%B9%A0/">Python 学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Python-函数进阶完全指南：递归、一等公民、lambda-与内置高阶函数"><a href="#Python-函数进阶完全指南：递归、一等公民、lambda-与内置高阶函数" class="headerlink" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数"></a>Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</h1><p>学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 <code>map</code> &#x2F; <code>reduce</code> &#x2F; <code>filter</code> &#x2F; <code>sorted</code> 这组常用高阶函数。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E9%80%92%E5%BD%92">1. 递归</a></li>
+<li><a href="#2-%E5%87%BD%E6%95%B0%E4%B9%9F%E6%98%AF%E5%AF%B9%E8%B1%A1%E4%B8%80%E7%AD%89%E5%85%AC%E6%B0%91">2. 函数也是对象：一等公民</a></li>
+<li><a href="#3-%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0-lambda">3. 匿名函数 lambda</a></li>
+<li><a href="#4-%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0">4. 什么是高阶函数</a></li>
+<li><a href="#5-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-map">5. 内置高阶函数 map</a></li>
+<li><a href="#6-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-reduce">6. 内置高阶函数 reduce</a></li>
+<li><a href="#7-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-filter">7. 内置高阶函数 filter</a></li>
+<li><a href="#8-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-sorted">8. 内置高阶函数 sorted</a></li>
+<li><a href="#9-%E5%AD%A6%E4%B9%A0%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE">9. 学习小结与实践建议</a></li>
+</ul>
+<hr>
+<h2 id="1-递归"><a href="#1-递归" class="headerlink" title="1. 递归"></a>1. 递归</h2><h3 id="1-1-什么是递归"><a href="#1-1-什么是递归" class="headerlink" title="1.1 什么是递归"></a>1.1 什么是递归</h3><p>程序在定义中<strong>直接或间接调用自身</strong>的技巧，称为递归。</p>
+<p>下面这个例子能说明“自己调用自己”，但<strong>缺少结束条件</strong>，实际运行会不断压栈，最终触发 <code>RecursionError</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hello</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;欢迎光临&quot;</span>)</span><br><span class="line">    hello()  <span class="comment"># 缺少结束条件，会递归溢出</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># hello()  # 演示用，请勿直接运行</span></span><br></pre></td></tr></table></figure>
+
+<p>正确的递归通常包含两件事：</p>
+<ol>
+<li><strong>递归体</strong>：如何把问题缩小后再次调用自己</li>
+<li><strong>结束条件（基准情形）</strong>：什么时候不再调用自己</li>
+</ol>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-func-advanced/python-func-advanced-001-recursion-call-stack.png" alt="递归调用栈示意"></p>
+<h3 id="1-2-求阶乘：循环-vs-递归"><a href="#1-2-求阶乘：循环-vs-递归" class="headerlink" title="1.2 求阶乘：循环 vs 递归"></a>1.2 求阶乘：循环 vs 递归</h3><p>计算 <code>6! = 6 * 5 * 4 * 3 * 2 * 1</code>。</p>
+<p>方式一：循环</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">result = <span class="number">1</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>, <span class="number">0</span>, -<span class="number">1</span>):</span><br><span class="line">    result *= i</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;阶乘为：&quot;</span>, result)  <span class="comment"># 720</span></span><br></pre></td></tr></table></figure>
+
+<p>方式二：递归</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">factorial</span>(<span class="params">n</span>):</span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">1</span>:          <span class="comment"># 结束条件</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> n * factorial(n - <span class="number">1</span>)  <span class="comment"># 递归体</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;阶乘为：&quot;</span>, factorial(<span class="number">6</span>))  <span class="comment"># 720</span></span><br></pre></td></tr></table></figure>
+
+<p>展开过程可以理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">factorial(6)</span><br><span class="line">= 6 * factorial(5)</span><br><span class="line">= 6 * 5 * factorial(4)</span><br><span class="line">= ...</span><br><span class="line">= 6 * 5 * 4 * 3 * 2 * factorial(1)</span><br><span class="line">= 6 * 5 * 4 * 3 * 2 * 1</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-func-advanced/python-func-advanced-002-factorial-recursion-tree.png" alt="阶乘递归展开过程"></p>
+<h3 id="1-3-递归问题的特征"><a href="#1-3-递归问题的特征" class="headerlink" title="1.3 递归问题的特征"></a>1.3 递归问题的特征</h3><p>适合递归的问题通常具备：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可分解</td>
+<td>大问题能拆成若干更简单的同构子问题</td>
+</tr>
+<tr>
+<td>方案一致</td>
+<td>子问题与原问题用同一套解法</td>
+</tr>
+<tr>
+<td>依赖子问题</td>
+<td>外层结果依赖内层结果</td>
+</tr>
+</tbody></table>
+<p>结构上必须同时有：</p>
+<ul>
+<li><strong>结束条件</strong>：否则会无限递归</li>
+<li><strong>递归体</strong>：负责缩小问题规模并调用自身</li>
+</ul>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-func-advanced/python-func-advanced-003-recursion-structure.png" alt="递归结束条件与递归体"></p>
+<h3 id="1-4-优缺点与使用场合"><a href="#1-4-优缺点与使用场合" class="headerlink" title="1.4 优缺点与使用场合"></a>1.4 优缺点与使用场合</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>优点</td>
+<td>代码往往更短，更贴近问题本身</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>调用层次深时栈开销大，通常比等价循环更慢、更耗内存</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>问题天然递归、可读性优先、规模可控</td>
+</tr>
+<tr>
+<td>慎用</td>
+<td>高性能、深度很大、可用简单迭代清晰表达时</td>
+</tr>
+</tbody></table>
+<p>经验原则：能递归解决的问题通常也能用迭代解决。当递归更自然、更容易调试，且不强调极致性能时，可以优先递归；否则优先循环或显式栈。</p>
+<hr>
+<h2 id="2-函数也是对象：一等公民"><a href="#2-函数也是对象：一等公民" class="headerlink" title="2. 函数也是对象：一等公民"></a>2. 函数也是对象：一等公民</h2><p>在 Python 中，函数是一等公民：可以查看身份与类型，可以挂属性，可以赋值给变量，也可以作为参数或返回值。</p>
+<h3 id="2-1-函数是对象"><a href="#2-1-函数是对象" class="headerlink" title="2.1 函数是对象"></a>2.1 函数是对象</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">18</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(num), <span class="built_in">type</span>(num), num)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hello</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;你好函数&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(hello), <span class="built_in">type</span>(hello), hello)</span><br><span class="line">hello()</span><br></pre></td></tr></table></figure>
+
+<p><code>hello</code> 本身是 <code>function</code> 类的对象；<code>hello()</code> 才是调用。</p>
+<h3 id="2-2-动态添加属性"><a href="#2-2-动态添加属性" class="headerlink" title="2.2 动态添加属性"></a>2.2 动态添加属性</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">my_func</span>():</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;我是一个函数&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">my_func.author = <span class="string">&quot;张三&quot;</span></span><br><span class="line">my_func.version = <span class="number">1.0</span></span><br><span class="line">my_func.description = <span class="string">&quot;这是一个测试函数&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(my_func.author, my_func.version, my_func.description)</span><br><span class="line"><span class="built_in">print</span>(my_func())</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-赋值给变量"><a href="#2-3-赋值给变量" class="headerlink" title="2.3 赋值给变量"></a>2.3 赋值给变量</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hello</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;hello world&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">func = hello  <span class="comment"># 注意：不加括号，绑定的是函数对象本身</span></span><br><span class="line">hello()</span><br><span class="line">func()</span><br><span class="line"><span class="built_in">print</span>(hello <span class="keyword">is</span> func)  <span class="comment"># True，指向同一对象</span></span><br></pre></td></tr></table></figure>
+
+<p><code>is</code> 判断的是身份，不是值相等。</p>
+<h3 id="2-4-作为参数传入"><a href="#2-4-作为参数传入" class="headerlink" title="2.4 作为参数传入"></a>2.4 作为参数传入</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">x, y</span>):</span><br><span class="line">    <span class="keyword">return</span> x + y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">sub</span>(<span class="params">x, y</span>):</span><br><span class="line">    <span class="keyword">return</span> x - y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">calc</span>(<span class="params">func, a, b</span>):</span><br><span class="line">    <span class="keyword">return</span> func(a, b)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(calc(add, <span class="number">10</span>, <span class="number">3</span>))  <span class="comment"># 13</span></span><br><span class="line"><span class="built_in">print</span>(calc(sub, <span class="number">10</span>, <span class="number">3</span>))  <span class="comment"># 7</span></span><br></pre></td></tr></table></figure>
+
+<p>当参数是函数时，<code>calc</code> 就是高阶函数。</p>
+<h3 id="2-5-作为返回值"><a href="#2-5-作为返回值" class="headerlink" title="2.5 作为返回值"></a>2.5 作为返回值</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">outer</span>():</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">inner</span>():</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;我是被返回的函数&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> inner</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">func = outer()  <span class="comment"># 得到的是函数对象</span></span><br><span class="line">func()          <span class="comment"># 再调用</span></span><br></pre></td></tr></table></figure>
+
+<p>当返回值是函数时，<code>outer</code> 也是高阶函数。这为闭包、装饰器等进阶主题打下基础。</p>
+<hr>
+<h2 id="3-匿名函数-lambda"><a href="#3-匿名函数-lambda" class="headerlink" title="3. 匿名函数 lambda"></a>3. 匿名函数 lambda</h2><p>匿名函数是没有名字的临时函数，用 <code>lambda</code> 定义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">lambda</span> 参数列表: 表达式</span><br></pre></td></tr></table></figure>
+
+<p>约束：</p>
+<ul>
+<li>参数可有可无</li>
+<li>只能写一行表达式，不能写多语句函数体</li>
+<li>冒号右侧必须是表达式，其结果自动作为返回值</li>
+<li>直接打印 <code>lambda ...</code> 会看到函数对象，不会自动执行</li>
+</ul>
+<h3 id="3-1-无参与有参"><a href="#3-1-无参与有参" class="headerlink" title="3.1 无参与有参"></a>3.1 无参与有参</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">func1 = <span class="keyword">lambda</span>: <span class="string">&quot;你好 a 函数&quot;</span></span><br><span class="line"><span class="built_in">print</span>(func1())</span><br><span class="line"></span><br><span class="line">func2 = <span class="keyword">lambda</span> x, y: x + y</span><br><span class="line"><span class="built_in">print</span>(func2(<span class="number">10</span>, <span class="number">20</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-结合三元表达式"><a href="#3-2-结合三元表达式" class="headerlink" title="3.2 结合三元表达式"></a>3.2 结合三元表达式</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fn1 = <span class="keyword">lambda</span> a, b: a <span class="keyword">if</span> a &gt; b <span class="keyword">else</span> b</span><br><span class="line"><span class="built_in">print</span>(fn1(<span class="number">1000</span>, <span class="number">500</span>))  <span class="comment"># 1000</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-作为高阶函数实参"><a href="#3-3-作为高阶函数实参" class="headerlink" title="3.3 作为高阶函数实参"></a>3.3 作为高阶函数实参</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">calc</span>(<span class="params">func, a, b</span>):</span><br><span class="line">    <span class="keyword">return</span> func(a, b)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(calc(<span class="keyword">lambda</span> x, y: x + y, <span class="number">10</span>, <span class="number">3</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-与-sort-sorted-配合"><a href="#3-4-与-sort-sorted-配合" class="headerlink" title="3.4 与 sort &#x2F; sorted 配合"></a>3.4 与 sort &#x2F; sorted 配合</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">lst = [</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;张三&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">34</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;李四&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">16</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;王五&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">41</span>&#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">lst.sort(key=<span class="keyword">lambda</span> item: item[<span class="string">&quot;age&quot;</span>], reverse=<span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(lst)</span><br></pre></td></tr></table></figure>
+
+<p><code>lambda</code> 适合短小、一次性的回调；逻辑一复杂，仍应写成普通 <code>def</code>，便于命名、测试和复用。</p>
+<hr>
+<h2 id="4-什么是高阶函数"><a href="#4-什么是高阶函数" class="headerlink" title="4. 什么是高阶函数"></a>4. 什么是高阶函数</h2><p>把函数作为参数传入，或返回另一个函数，这样的函数称为<strong>高阶函数</strong>。它是函数式编程思想的重要体现：把“做什么操作”抽成可组合的小函数，减少重复循环骨架。</p>
+<p>Python 同时支持：</p>
+<ul>
+<li><strong>面向对象</strong>：类、对象、继承、封装</li>
+<li><strong>函数式风格</strong>：高阶函数、<code>lambda</code>、递归等</li>
+</ul>
+<p>二者并不互斥。数据处理、转换流水线等场景，函数式写法往往更紧凑。</p>
+<hr>
+<h2 id="5-内置高阶函数-map"><a href="#5-内置高阶函数-map" class="headerlink" title="5. 内置高阶函数 map"></a>5. 内置高阶函数 map</h2><p><code>map</code> 对序列中每个元素统一施加某个操作，返回<strong>迭代器</strong>。</p>
+<p>语法：<code>map(操作函数, 序列)</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">list1 = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">square</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> x ** <span class="number">2</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">result = <span class="built_in">map</span>(square, list1)</span><br><span class="line"><span class="built_in">print</span>(result)            <span class="comment"># &lt;map object ...&gt;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(result))      <span class="comment"># [1, 4, 9, 16, 25]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> n: n ** <span class="number">2</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>])))</span><br></pre></td></tr></table></figure>
+
+<p>对比“不用函数时的重复循环”与“用 map 抽离操作”：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">numbers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重复写三遍循环骨架</span></span><br><span class="line">add1, multi2, square = [], [], []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(numbers)):</span><br><span class="line">    add1.append(numbers[i] + <span class="number">1</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(numbers)):</span><br><span class="line">    multi2.append(numbers[i] * <span class="number">2</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(numbers)):</span><br><span class="line">    square.append(numbers[i] * numbers[i])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用 map：循环骨架只写一次，业务逻辑独立</span></span><br><span class="line">result1 = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: x + <span class="number">1</span>, numbers))</span><br><span class="line">result2 = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: x * <span class="number">2</span>, numbers))</span><br><span class="line">result3 = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: x * x, numbers))</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-内置高阶函数-reduce"><a href="#6-内置高阶函数-reduce" class="headerlink" title="6. 内置高阶函数 reduce"></a>6. 内置高阶函数 reduce</h2><p><code>reduce</code> 把序列不断“合并”为一个结果，常用于累加、累乘。它不在内置命名空间，需要从 <code>functools</code> 导入。</p>
+<p>语法：<code>reduce(操作函数, 序列[, 初始值])</code></p>
+<p>操作函数必须接收两个参数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> reduce</span><br><span class="line"></span><br><span class="line">lst = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">x, y</span>):</span><br><span class="line">    <span class="built_in">print</span>(x, y)  <span class="comment"># 观察合并过程</span></span><br><span class="line">    <span class="keyword">return</span> x + y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(reduce(add, lst))  <span class="comment"># 15</span></span><br><span class="line"><span class="built_in">print</span>(reduce(<span class="keyword">lambda</span> x, y: x + y, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]))</span><br><span class="line"><span class="built_in">print</span>(reduce(<span class="keyword">lambda</span> x, y: x + y, [<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>], <span class="number">10</span>))  <span class="comment"># 初始值为 10</span></span><br></pre></td></tr></table></figure>
+
+<p>无初始值时的合并过程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1, 2 -&gt; 3</span><br><span class="line">3, 3 -&gt; 6</span><br><span class="line">6, 4 -&gt; 10</span><br><span class="line">10, 5 -&gt; 15</span><br></pre></td></tr></table></figure>
+
+<p>有初始值时，第一次会把初始值当作 <code>x</code>，再与序列首元素合并。</p>
+<hr>
+<h2 id="7-内置高阶函数-filter"><a href="#7-内置高阶函数-filter" class="headerlink" title="7. 内置高阶函数 filter"></a>7. 内置高阶函数 filter</h2><p><code>filter</code> 用布尔函数筛选序列元素，返回迭代器。函数返回 <code>True</code> 则保留，返回 <code>False</code> 则丢弃。</p>
+<p>语法：<code>filter(操作函数, 序列)</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">is_even</span>(<span class="params">num</span>):</span><br><span class="line">    <span class="keyword">return</span> num % <span class="number">2</span> == <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(<span class="built_in">filter</span>(is_even, <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">11</span>))))  <span class="comment"># [2, 4, 6, 8, 10]</span></span><br><span class="line"></span><br><span class="line">persons = [</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;张三&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">12</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;男&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;李四&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">14</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;王五&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">22</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;男&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;李华&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">25</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;赵六&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">17</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;孙七&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">30</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;男&quot;</span>&#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">adults = <span class="built_in">list</span>(<span class="built_in">filter</span>(<span class="keyword">lambda</span> p: p[<span class="string">&quot;age&quot;</span>] &gt;= <span class="number">18</span>, persons))</span><br><span class="line"><span class="built_in">print</span>(adults)</span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>filter</code> &#x2F; <code>map</code> 返回的是惰性迭代器，需要 <code>list(...)</code> 才能立刻看到全部结果；同一迭代器只能完整消费一次。</p>
+<hr>
+<h2 id="8-内置高阶函数-sorted"><a href="#8-内置高阶函数-sorted" class="headerlink" title="8. 内置高阶函数 sorted"></a>8. 内置高阶函数 sorted</h2><p><code>sorted</code> 返回排序后的<strong>新序列</strong>，不修改原序列。</p>
+<p>语法：<code>sorted(序列[, key=..., reverse=...])</code></p>
+<ul>
+<li><code>reverse=False</code>：升序（默认）</li>
+<li><code>reverse=True</code>：降序</li>
+<li><code>key</code>：传入“如何从元素提取排序依据”的函数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>([<span class="number">36</span>, <span class="number">5</span>, -<span class="number">12</span>, <span class="number">9</span>, -<span class="number">21</span>]))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>([<span class="number">36</span>, <span class="number">5</span>, -<span class="number">12</span>, <span class="number">9</span>, -<span class="number">21</span>], reverse=<span class="literal">True</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>([<span class="string">&quot;banana&quot;</span>, <span class="string">&quot;apple&quot;</span>, <span class="string">&quot;cucumber&quot;</span>]))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 忽略大小写</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>([<span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;apple&quot;</span>, <span class="string">&quot;Zoo&quot;</span>, <span class="string">&quot;bob&quot;</span>, <span class="string">&quot;cucumber&quot;</span>], key=<span class="built_in">str</span>.lower))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按字符串长度</span></span><br><span class="line">names = [<span class="string">&quot;aaaaaaaa&quot;</span>, <span class="string">&quot;aaaa&quot;</span>, <span class="string">&quot;aaaaa&quot;</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>(names, key=<span class="built_in">len</span>, reverse=<span class="literal">True</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按字典字段</span></span><br><span class="line">persons = [</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;lili&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">10</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;feifei&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">30</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;lulu&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">18</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;男&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;nana&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">21</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;xiaoming&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">6</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;男&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;xiaohong&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">17</span>, <span class="string">&quot;gender&quot;</span>: <span class="string">&quot;女&quot;</span>&#125;,</span><br><span class="line">]</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>(persons, key=<span class="keyword">lambda</span> p: p[<span class="string">&quot;age&quot;</span>], reverse=<span class="literal">True</span>))</span><br></pre></td></tr></table></figure>
+
+<p>与列表原地排序 <code>list.sort(...)</code> 的区别：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>是否改原列表</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sorted(seq, ...)</code></td>
+<td>否</td>
+<td>新列表</td>
+</tr>
+<tr>
+<td><code>seq.sort(...)</code></td>
+<td>是</td>
+<td><code>None</code></td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">lst = [</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;张三&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">34</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;李四&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">16</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;王五&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">41</span>&#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">sorted</span>(lst, key=<span class="keyword">lambda</span> item: item[<span class="string">&quot;age&quot;</span>], reverse=<span class="literal">True</span>))  <span class="comment"># 新列表</span></span><br><span class="line">lst.sort(key=<span class="keyword">lambda</span> item: item[<span class="string">&quot;age&quot;</span>], reverse=<span class="literal">True</span>)            <span class="comment"># 原地修改</span></span><br><span class="line"><span class="built_in">print</span>(lst)</span><br></pre></td></tr></table></figure>
+
+<p><code>key</code> 只需要函数对象本身（如 <code>len</code>、<code>str.lower</code>），不需要写成 <code>len(x)</code> 这种“已经调用”的形式。</p>
+<hr>
+<h2 id="9-学习小结与实践建议"><a href="#9-学习小结与实践建议" class="headerlink" title="9. 学习小结与实践建议"></a>9. 学习小结与实践建议</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>递归</td>
+<td>必须有结束条件；适合同构子问题；注意栈深度</td>
+</tr>
+<tr>
+<td>函数对象</td>
+<td>可赋值、可传参、可返回、可挂属性</td>
+</tr>
+<tr>
+<td>lambda</td>
+<td>适合短回调；复杂逻辑改用 <code>def</code></td>
+</tr>
+<tr>
+<td>map</td>
+<td>一一变换，返回迭代器</td>
+</tr>
+<tr>
+<td>reduce</td>
+<td>折叠合并，需从 <code>functools</code> 导入</td>
+</tr>
+<tr>
+<td>filter</td>
+<td>按布尔条件筛选</td>
+</tr>
+<tr>
+<td>sorted</td>
+<td>生成新序列；用 <code>key</code> 指定排序依据</td>
+</tr>
+</tbody></table>
+<p>实践建议：</p>
+<ol>
+<li>先写清楚普通 <code>def</code>，再考虑是否值得抽成 <code>lambda</code> &#x2F; 高阶函数。</li>
+<li>递归写完后，优先检查结束条件与问题规模是否在缩小。</li>
+<li><code>map</code> &#x2F; <code>filter</code> 记得消费迭代器；需要多次遍历时先转成 <code>list</code>。</li>
+<li>排序优先考虑 <code>key=</code>，少写复杂的比较函数。</li>
+</ol>
+<p>把“函数当作值来传递”，是从基础语法走向函数式数据处理的关键一步。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/16/python-functions-advanced-guide/">https://qijianyeah.github.io/2026/08/16/python-functions-advanced-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E9%80%92%E5%BD%92/">递归</a><a class="post-meta__tags" href="/tags/lambda/">lambda</a><a class="post-meta__tags" href="/tags/%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0/">高阶函数</a><a class="post-meta__tags" href="/tags/Python-%E5%87%BD%E6%95%B0/">Python 函数</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</div></div><div class="info-2"><div class="info-item-1">Python 内存分析完全指南：不可变对象、可变对象与自定义实例理解 Python 的内存模型，比死记“传值还是传引用”更有用。变量名保存在栈侧，真正的对象在堆上；赋值改的是“指向谁”，就地修改改的是“对象内部”。  目录 1. 先建立心智模型 2. 不可变对象的内存行为 3. 可变对象的内存行为 4. 经典易错题：函数参数里的赋值与原地修改 5. 自定义对象的内存布局 6. 学习小结与实践建议   1. 先建立心智模型Python 中几乎一切都是对象。观察一个对象，通常看三件事：    维度 含义 常用查看方式    身份 identity 对象在一次运行中的唯一标识 id(obj)   类型 type 对象支持哪些操作 type(obj)   值 value 对象表达的数据内容 直接打印或访问属性   教学图里常把内存画成：  栈：保存变量名，以及它当前指向的对象标识 堆：保存真正的对象（类型、值、内部引用）  变量更像标签，不是“装满数据的盒子”。a = b 的含义是：让 a 与 b 指向同一个对象，而不是复制一份新的内容。 注意：id()...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/15/python-functions-complete-guide/" title="Python 函数完全指南：从参数传递到作用域与常见陷阱"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-15</div><div class="info-item-2">Python 函数完全指南：从参数传递到作用域与常见陷阱</div></div><div class="info-2"><div class="info-item-1">Python 函数完全指南：从参数传递到作用域与常见陷阱函数是组织良好、可以重复调用、用于完成特定功能的代码块。使用函数可以减少重复代码，让程序结构更清晰，也更便于测试和维护。  目录 1. 函数的定义与调用 2. 为什么要使用函数 3. 函数的分类 4. 形参与实参 5. 参数的传递方式 6. 可变参数 7. 参数的打包与解包 8. 函数的返回值 9. 类型注解与文档字符串 10. 局部变量与全局变量 11. 函数之间的调用 12. 默认参数的常见陷阱 13. 本章总结   1. 函数的定义与调用1.1 定义函数Python 使用 def 关键字定义函数： 12def 函数名(参数列表):    函数体  例如： 12def greet(name):   ...</div></div></div></a><a class="pagination-related" href="/2026/08/09/python-start-environment-first-program/" title="Python 启航：环境搭建与第一个程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">Python 启航：环境搭建与第一个程序</div></div><div class="info-2"><div class="info-item-1">Python 启航：环境搭建与第一个程序目录 1. 认识 Python 2. 准备 Python 运行环境 3. 编写并运行第一个 Python 程序 4. 理解 PATH 环境变量 5. 使用 PyCharm 开发 Python 6. 认识 PyCharm 项目目录 7. Python 注释 8. 综合练习：六行输出一首诗 9. 入门常见问题速查   本章从“编程语言是什么”出发，完成 Python 解释器和 PyCharm 的安装与配置，并分别通过交互式解释器、命令行脚本和 IDE 运行第一个 Python 3 程序。最后将进一步认识项目目录、注释规则，并通过一个完整练习巩固输出语句。 1. 认识 Python1.1 编程语言是什么自然语言帮助人与人交流，编程语言则是一套让人向计算机描述数据和操作的形式化规则。计算机底层只能直接处理二进制指令，人编写的 Python 源代码不能被 CPU 直接执行，需要由 Python 解释器读取并执行。 可以把这一过程理解为： 12345开发者编写 Python 源代码          ↓Python 解释器分析并执行         ...</div></div></div></a><a class="pagination-related" href="/2026/08/09/python-core-syntax-data-to-oop/" title="Python 核心语法：从数据运算到面向对象"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">Python 核心语法：从数据运算到面向对象</div></div><div class="info-2"><div class="info-item-1">Python 核心语法：从数据运算到面向对象目录 1. 数据、变量与运算符 2. 流程控制：条件、模式匹配与循环 3. Python 数据容器 4. 函数：封装、参数、作用域与类型注解 5. 模块与包 6. 面向对象基础与异常处理   1. 数据、变量与运算符程序的基本工作可以概括为：接收数据、保存数据、处理数据并输出结果。本章从 Python 的字面量与变量出发，逐步掌握数据类型、字符串、输入输出、类型转换以及四类常用运算符，并通过一组完整案例把这些知识串联起来。 1.1 字面量：直接写在代码中的值字面量（literal） 是直接写在程序中的固定值。例如，下面每一项都是字面量： 12345618-58.5&quot;Hello,...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</div></div><div class="info-2"><div class="info-item-1">Python 内存分析完全指南：不可变对象、可变对象与自定义实例理解 Python 的内存模型，比死记“传值还是传引用”更有用。变量名保存在栈侧，真正的对象在堆上；赋值改的是“指向谁”，就地修改改的是“对象内部”。  目录 1. 先建立心智模型 2. 不可变对象的内存行为 3. 可变对象的内存行为 4. 经典易错题：函数参数里的赋值与原地修改 5. 自定义对象的内存布局 6. 学习小结与实践建议   1. 先建立心智模型Python 中几乎一切都是对象。观察一个对象，通常看三件事：    维度 含义 常用查看方式    身份 identity 对象在一次运行中的唯一标识 id(obj)   类型 type 对象支持哪些操作 type(obj)   值 value 对象表达的数据内容 直接打印或访问属性   教学图里常把内存画成：  栈：保存变量名，以及它当前指向的对象标识 堆：保存真正的对象（类型、值、内部引用）  变量更像标签，不是“装满数据的盒子”。a = b 的含义是：让 a 与 b 指向同一个对象，而不是复制一份新的内容。 注意：id()...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 面向对象完全指南：从类与对象到封装、继承和多态</div></div><div class="info-2"><div class="info-item-1">Python 面向对象完全指南：从类与对象到封装、继承和多态目录 1. 从编程思维说起：面向过程与面向对象 2. 类、对象与“一切皆对象” 3. 定义类与创建对象 4. 属性：类共享的数据与实例自己的状态 5. 方法：实例方法、类方法与静态方法 6. 动态绑定 7. 封装与名称改写 8. 继承、重写与方法解析顺序 9. 多态与鸭子类型 10. 常用魔术属性与魔术方法 11. 抽象类：用接口约束实现 12. 学习总结与实践建议  1. 从编程思维说起：面向过程与面向对象面向过程和面向对象不是互相排斥的两种语言特性，而是组织程序的两种思维方式。  面向过程关注“完成任务需要哪些步骤”，适合流程清楚、规模较小的问题。 面向对象关注“系统中有哪些角色，各自保存什么状态、承担什么职责”，适合状态丰富、角色较多、需要持续扩展的系统。  以制作一道菜为例，面向过程可以把任务拆成连续的函数： 1234567891011121314def prepare_ingredients():    return &quot;准备好的鸡蛋和西红柿&quot;def cook(ingredients):  ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">51</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">43</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Python-%E5%87%BD%E6%95%B0%E8%BF%9B%E9%98%B6%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97%EF%BC%9A%E9%80%92%E5%BD%92%E3%80%81%E4%B8%80%E7%AD%89%E5%85%AC%E6%B0%91%E3%80%81lambda-%E4%B8%8E%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.</span> <span class="toc-text">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%80%92%E5%BD%92"><span class="toc-number">1.2.</span> <span class="toc-text">1. 递归</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E9%80%92%E5%BD%92"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 什么是递归</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%B1%82%E9%98%B6%E4%B9%98%EF%BC%9A%E5%BE%AA%E7%8E%AF-vs-%E9%80%92%E5%BD%92"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 求阶乘：循环 vs 递归</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E9%80%92%E5%BD%92%E9%97%AE%E9%A2%98%E7%9A%84%E7%89%B9%E5%BE%81"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 递归问题的特征</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E4%BD%BF%E7%94%A8%E5%9C%BA%E5%90%88"><span class="toc-number">1.2.4.</span> <span class="toc-text">1.4 优缺点与使用场合</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%87%BD%E6%95%B0%E4%B9%9F%E6%98%AF%E5%AF%B9%E8%B1%A1%EF%BC%9A%E4%B8%80%E7%AD%89%E5%85%AC%E6%B0%91"><span class="toc-number">1.3.</span> <span class="toc-text">2. 函数也是对象：一等公民</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%87%BD%E6%95%B0%E6%98%AF%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 函数是对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8A%A8%E6%80%81%E6%B7%BB%E5%8A%A0%E5%B1%9E%E6%80%A7"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 动态添加属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%B5%8B%E5%80%BC%E7%BB%99%E5%8F%98%E9%87%8F"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 赋值给变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0%E4%BC%A0%E5%85%A5"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 作为参数传入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E4%BD%9C%E4%B8%BA%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="toc-number">1.3.5.</span> <span class="toc-text">2.5 作为返回值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%8C%BF%E5%90%8D%E5%87%BD%E6%95%B0-lambda"><span class="toc-number">1.4.</span> <span class="toc-text">3. 匿名函数 lambda</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%97%A0%E5%8F%82%E4%B8%8E%E6%9C%89%E5%8F%82"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 无参与有参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BB%93%E5%90%88%E4%B8%89%E5%85%83%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 结合三元表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%BD%9C%E4%B8%BA%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0%E5%AE%9E%E5%8F%82"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 作为高阶函数实参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%B8%8E-sort-sorted-%E9%85%8D%E5%90%88"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 与 sort &#x2F; sorted 配合</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BB%80%E4%B9%88%E6%98%AF%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.</span> <span class="toc-text">4. 什么是高阶函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-map"><span class="toc-number">1.6.</span> <span class="toc-text">5. 内置高阶函数 map</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-reduce"><span class="toc-number">1.7.</span> <span class="toc-text">6. 内置高阶函数 reduce</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-filter"><span class="toc-number">1.8.</span> <span class="toc-text">7. 内置高阶函数 filter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%86%85%E7%BD%AE%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0-sorted"><span class="toc-number">1.9.</span> <span class="toc-text">8. 内置高阶函数 sorted</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%AD%A6%E4%B9%A0%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.10.</span> <span class="toc-text">9. 学习小结与实践建议</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</a><time datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</a><time datetime="2026-08-15T17:19:00.000Z" title="发表于 2026-08-16 01:19:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态">Python 面向对象完全指南：从类与对象到封装、继承和多态</a><time datetime="2026-08-15T17:00:00.000Z" title="发表于 2026-08-16 01:00:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/15/python-functions-complete-guide/" title="Python 函数完全指南：从参数传递到作用域与常见陷阱">Python 函数完全指南：从参数传递到作用域与常见陷阱</a><time datetime="2026-08-15T02:22:58.000Z" title="发表于 2026-08-15 10:22:58">2026-08-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/15/llm-icebreaking/" title="大模型破冰之旅">大模型破冰之旅</a><time datetime="2026-08-14T16:27:29.000Z" title="发表于 2026-08-15 00:27:29">2026-08-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
