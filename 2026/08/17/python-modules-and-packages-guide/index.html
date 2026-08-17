@@ -1,0 +1,517 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境项目稍大一点，就不能把所有代码塞进一个文件。Python 用模块组织代码，用包管理模块，再用 pip 安装第三方库，用虚拟环境隔离依赖。本文按这条主线把概念一次讲清。  目录 1. 什么是模块 2. 为什么要使用模块 3. 模块的三种分类 4. 自定义模块 5. 模块导入方式 6. 模块搜索顺序 7. __all__ 控制星号导">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/17/python-modules-and-packages-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境项目稍大一点，就不能把所有代码塞进一个文件。Python 用模块组织代码，用包管理模块，再用 pip 安装第三方库，用虚拟环境隔离依赖。本文按这条主线把概念一次讲清。  目录 1. 什么是模块 2. 为什么要使用模块 3. 模块的三种分类 4. 自定义模块 5. 模块导入方式 6. 模块搜索顺序 7. __all__ 控制星号导">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-17T12:01:00.000Z">
+<meta property="article:modified_time" content="2026-08-17T12:01:44.921Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="模块">
+<meta property="article:tag" content="包">
+<meta property="article:tag" content="pip">
+<meta property="article:tag" content="虚拟环境">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/17/python-modules-and-packages-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-17T12:01:44.921Z" title="更新于 2026-08-17 20:01:44">2026-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python-%E5%AD%A6%E4%B9%A0/">Python 学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Python-模块与包完全指南：自定义模块、包结构、pip-与虚拟环境"><a href="#Python-模块与包完全指南：自定义模块、包结构、pip-与虚拟环境" class="headerlink" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境"></a>Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</h1><p>项目稍大一点，就不能把所有代码塞进一个文件。Python 用模块组织代码，用包管理模块，再用 pip 安装第三方库，用虚拟环境隔离依赖。本文按这条主线把概念一次讲清。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%A8%A1%E5%9D%97">1. 什么是模块</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%A8%A1%E5%9D%97">2. 为什么要使用模块</a></li>
+<li><a href="#3-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%89%E7%A7%8D%E5%88%86%E7%B1%BB">3. 模块的三种分类</a></li>
+<li><a href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9D%97">4. 自定义模块</a></li>
+<li><a href="#5-%E6%A8%A1%E5%9D%97%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F">5. 模块导入方式</a></li>
+<li><a href="#6-%E6%A8%A1%E5%9D%97%E6%90%9C%E7%B4%A2%E9%A1%BA%E5%BA%8F">6. 模块搜索顺序</a></li>
+<li><a href="#7-__all__-%E6%8E%A7%E5%88%B6%E6%98%9F%E5%8F%B7%E5%AF%BC%E5%85%A5">7. <code>__all__</code> 控制星号导入</a></li>
+<li><a href="#8-%E5%8C%85%E7%94%A8%E7%9B%AE%E5%BD%95%E7%BB%84%E7%BB%87%E6%A8%A1%E5%9D%97">8. 包：用目录组织模块</a></li>
+<li><a href="#9-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93pypi-%E4%B8%8E-pip">9. 第三方库、PyPI 与 pip</a></li>
+<li><a href="#10-%E5%85%A8%E5%B1%80%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83">10. 全局环境与虚拟环境</a></li>
+<li><a href="#11-%E5%AD%A6%E4%B9%A0%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE">11. 学习小结与实践建议</a></li>
+</ul>
+<hr>
+<h2 id="1-什么是模块"><a href="#1-什么是模块" class="headerlink" title="1. 什么是模块"></a>1. 什么是模块</h2><p>在 Python 中，一个 <code>.py</code> 文件通常就是一个<strong>模块（Module）</strong>。可以把模块理解成工具箱：把相关代码集中放在一起，需要时再导入使用。</p>
+<p>一个模块里可以放：</p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>变量</td>
+<td><code>num = 100</code></td>
+</tr>
+<tr>
+<td>函数</td>
+<td><code>def test(a, b): ...</code></td>
+</tr>
+<tr>
+<td>类</td>
+<td><code>class User: ...</code></td>
+</tr>
+<tr>
+<td>常量</td>
+<td><code>MAX_RETRY = 3</code></td>
+</tr>
+<tr>
+<td>可执行语句</td>
+<td>导入时会执行的初始化代码</td>
+</tr>
+</tbody></table>
+<p>目的只有一个：按功能拆分代码，统一管理。</p>
+<hr>
+<h2 id="2-为什么要使用模块"><a href="#2-为什么要使用模块" class="headerlink" title="2. 为什么要使用模块"></a>2. 为什么要使用模块</h2><p>如果所有逻辑都写在一个文件里，文件会越来越难读、难改、难协作。使用模块通常能带来：</p>
+<ol>
+<li>结构更清晰</li>
+<li>复用更容易（一次编写，多处导入）</li>
+<li>团队可并行开发不同模块</li>
+<li>维护成本更低</li>
+<li>降低不同功能区的命名冲突风险</li>
+</ol>
+<hr>
+<h2 id="3-模块的三种分类"><a href="#3-模块的三种分类" class="headerlink" title="3. 模块的三种分类"></a>3. 模块的三种分类</h2><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准库模块</td>
+<td>安装 Python 后即可使用</td>
+<td><code>random</code>、<code>os</code>、<code>json</code></td>
+</tr>
+<tr>
+<td>自定义模块</td>
+<td>自己编写的 <code>.py</code> 文件</td>
+<td><code>my_module1.py</code></td>
+</tr>
+<tr>
+<td>第三方模块</td>
+<td>他人发布，需额外安装</td>
+<td><code>requests</code>、<code>numpy</code></td>
+</tr>
+</tbody></table>
+<p>标准库示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="comment"># randint 包头也包尾</span></span><br><span class="line">number = random.randint(<span class="number">1</span>, <span class="number">9</span>)</span><br><span class="line"><span class="built_in">print</span>(number)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-自定义模块"><a href="#4-自定义模块" class="headerlink" title="4. 自定义模块"></a>4. 自定义模块</h2><p>每个 Python 文件都可作为模块，<strong>模块名通常就是去掉 <code>.py</code> 后的文件名</strong>。</p>
+<h3 id="4-1-命名规则"><a href="#4-1-命名规则" class="headerlink" title="4.1 命名规则"></a>4.1 命名规则</h3><ul>
+<li>符合标识符规则：字母、数字、下划线；不能以数字开头；不能是关键字；不能含空格</li>
+<li>见名知意，大小写敏感</li>
+<li>推荐小写加下划线，如 <code>add_num.py</code>、<code>login.py</code></li>
+<li><strong>不要与标准库同名</strong>，否则可能导入到错误模块</li>
+</ul>
+<h3 id="4-2-定义模块"><a href="#4-2-定义模块" class="headerlink" title="4.2 定义模块"></a>4.2 定义模块</h3><p>新建 <code>my_module1.py</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">100</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">a, b</span>):</span><br><span class="line">    <span class="built_in">print</span>(a + b)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-测试代码与-name"><a href="#4-3-测试代码与-name" class="headerlink" title="4.3 测试代码与 __name__"></a>4.3 测试代码与 <code>__name__</code></h3><p>开发模块时，常会在文件末尾写几行自测。如果直接调用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">100</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">a, b</span>):</span><br><span class="line">    <span class="built_in">print</span>(a + b)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">test(<span class="number">10</span>, <span class="number">20</span>)</span><br></pre></td></tr></table></figure>
+
+<p>那么<strong>只要这个模块被导入，测试代码也会执行</strong>，这通常不是你想要的。</p>
+<p>正确写法是用入口判断：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">100</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">a, b</span>):</span><br><span class="line">    <span class="built_in">print</span>(a + b)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    test(<span class="number">10</span>, <span class="number">20</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>__name__</code> 是每个模块的内置变量：</p>
+<table>
+<thead>
+<tr>
+<th>运行方式</th>
+<th><code>__name__</code> 的值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>直接运行该文件</td>
+<td><code>&quot;__main__&quot;</code></td>
+<td>当前文件是程序入口</td>
+</tr>
+<tr>
+<td>被其他文件 <code>import</code></td>
+<td>模块名，如 <code>&quot;my_module1&quot;</code></td>
+<td>当前文件作为库被导入</td>
+</tr>
+</tbody></table>
+<p>因此 <code>if __name__ == &quot;__main__&quot;:</code> 的含义是：只有直接运行本文件时，才执行测试或启动逻辑。</p>
+<hr>
+<h2 id="5-模块导入方式"><a href="#5-模块导入方式" class="headerlink" title="5. 模块导入方式"></a>5. 模块导入方式</h2><p>常见五种写法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 导入整个模块</span></span><br><span class="line"><span class="keyword">import</span> my_module1</span><br><span class="line"></span><br><span class="line">my_module1.test(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line"><span class="built_in">print</span>(my_module1.num)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 起别名</span></span><br><span class="line"><span class="keyword">import</span> my_module1 <span class="keyword">as</span> mm</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mm.num)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 导入指定名称</span></span><br><span class="line"><span class="keyword">from</span> my_module1 <span class="keyword">import</span> num</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(num)</span><br><span class="line"><span class="comment"># 注意：这里只导入了 num，不能写 my_module1.test(...)</span></span><br><span class="line"><span class="comment"># 若也要函数，应：from my_module1 import num, test</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 导入并起别名（解决同名冲突）</span></span><br><span class="line"><span class="keyword">from</span> my_module1 <span class="keyword">import</span> num <span class="keyword">as</span> n1</span><br><span class="line"><span class="keyword">from</span> my_module2 <span class="keyword">import</span> num <span class="keyword">as</span> n2</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(n1, n2)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 星号导入（不推荐）</span></span><br><span class="line"><span class="keyword">from</span> my_module1 <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> my_module2 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(num)</span><br><span class="line">test(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line"><span class="comment"># 后面导入的同名对象会覆盖前面的，容易踩坑</span></span><br></pre></td></tr></table></figure>
+
+<p>选型建议：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>import module</code></td>
+<td>默认首选，命名空间清晰</td>
+</tr>
+<tr>
+<td><code>import module as alias</code></td>
+<td>模块名较长时</td>
+</tr>
+<tr>
+<td><code>from module import name</code></td>
+<td>明确只要少数几个符号</td>
+</tr>
+<tr>
+<td><code>from module import name as alias</code></td>
+<td>跨模块同名冲突</td>
+</tr>
+<tr>
+<td><code>from module import *</code></td>
+<td>交互探索可偶尔用；正式项目尽量避免</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-模块搜索顺序"><a href="#6-模块搜索顺序" class="headerlink" title="6. 模块搜索顺序"></a>6. 模块搜索顺序</h2><p>执行 <code>import my_module1</code> 时，解释器会按顺序查找，找到即停止；找不到则抛出 <code>ModuleNotFoundError</code>。</p>
+<p>大致顺序：</p>
+<ol>
+<li><strong>当前工作目录 &#x2F; 脚本所在项目目录</strong></li>
+<li><strong><code>sys.path</code> 中的其余目录</strong>（标准库、site-packages、虚拟环境等）</li>
+</ol>
+<p>可查看搜索路径：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(sys.path)</span><br></pre></td></tr></table></figure>
+
+<p>示例目录结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">project/</span><br><span class="line">├── my_module1.py</span><br><span class="line">└── test.py</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>test.py</code> 中 <code>import my_module1</code> 时，会先在当前项目目录找到同级的 <code>my_module1.py</code>。</p>
+<hr>
+<h2 id="7-all-控制星号导入"><a href="#7-all-控制星号导入" class="headerlink" title="7. __all__ 控制星号导入"></a>7. <code>__all__</code> 控制星号导入</h2><p>在模块顶层定义 <code>__all__</code>（列表或元组，元素为字符串），可限制 <code>from module import *</code> 能导入哪些公共名称。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># my_module03.py</span></span><br><span class="line">__all__ = [<span class="string">&quot;testA&quot;</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">testA</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;testA&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">testB</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;testB&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> my_module03 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">testA()  <span class="comment"># 可以</span></span><br><span class="line"><span class="comment"># testB()  # 不可以：未包含在 __all__ 中</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：<code>__all__</code> <strong>只影响</strong> <code>from module import *</code>；<code>import module</code> 或 <code>from module import testB</code> 仍然可以显式导入。</p>
+<hr>
+<h2 id="8-包：用目录组织模块"><a href="#8-包：用目录组织模块" class="headerlink" title="8. 包：用目录组织模块"></a>8. 包：用目录组织模块</h2><h3 id="8-1-什么是包"><a href="#8-1-什么是包" class="headerlink" title="8.1 什么是包"></a>8.1 什么是包</h3><p>当模块越来越多时，用文件夹把它们组织起来。传统上，一个包含 <code>__init__.py</code> 的目录就是一个<strong>包（Package）</strong>。包里可以有多个模块，也可以有子包。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-modules-packages/python-modules-packages-001-package-structure.png" alt="包的目录结构示意"></p>
+<blockquote>
+<p>说明：Python 3.3 起也支持无 <code>__init__.py</code> 的命名空间包；入门阶段仍建议显式放置 <code>__init__.py</code>，语义更直观。</p>
+</blockquote>
+<h3 id="8-2-导入包中的模块"><a href="#8-2-导入包中的模块" class="headerlink" title="8.2 导入包中的模块"></a>8.2 导入包中的模块</h3><p>推荐从项目根目录写清完整路径：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> my_package.module_a</span><br><span class="line"><span class="keyword">from</span> my_package.module_b <span class="keyword">import</span> a</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(my_package.module_a.a)</span><br><span class="line"><span class="built_in">print</span>(a)</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-init-py-的作用"><a href="#8-3-init-py-的作用" class="headerlink" title="8.3 __init__.py 的作用"></a>8.3 <code>__init__.py</code> 的作用</h3><table>
+<thead>
+<tr>
+<th>作用</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标识包</td>
+<td>告诉解释器该目录按包处理（经典包模型）</td>
+</tr>
+<tr>
+<td>初始化</td>
+<td>包被导入时优先执行，适合放包级初始化代码</td>
+</tr>
+<tr>
+<td>控制导出</td>
+<td>通过 <code>__all__</code> 控制 <code>from package import *</code> 导入哪些模块</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># my_package/__init__.py</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;正在初始化 my_package&quot;</span>)</span><br><span class="line"></span><br><span class="line">__all__ = [<span class="string">&quot;module_a&quot;</span>]  <span class="comment"># 只允许星号导入 module_a</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> my_package <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(module_a.a)  <span class="comment"># 可以</span></span><br><span class="line"><span class="comment"># print(module_b.b)  # 不可以</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="9-第三方库、PyPI-与-pip"><a href="#9-第三方库、PyPI-与-pip" class="headerlink" title="9. 第三方库、PyPI 与 pip"></a>9. 第三方库、PyPI 与 pip</h2><h3 id="9-1-标准库与第三方库"><a href="#9-1-标准库与第三方库" class="headerlink" title="9.1 标准库与第三方库"></a>9.1 标准库与第三方库</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Python 库</span><br><span class="line">├── 标准库（官方自带）</span><br><span class="line">│   ├── 模块：random / os / time / math / json ...</span><br><span class="line">│   └── 包：email / urllib / tkinter / asyncio / http / xml ...</span><br><span class="line">└── 第三方库（需额外安装）</span><br><span class="line">    ├── 模块</span><br><span class="line">    └── 包</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-PyPI"><a href="#9-2-PyPI" class="headerlink" title="9.2 PyPI"></a>9.2 PyPI</h3><p><a target="_blank" rel="noopener" href="https://pypi.org/">PyPI</a> 是存放海量第三方包的在线仓库。执行 <code>pip install requests</code> 时，pip 默认从 PyPI 查找并下载安装。</p>
+<h3 id="9-3-常用-pip-命令"><a href="#9-3-常用-pip-命令" class="headerlink" title="9.3 常用 pip 命令"></a>9.3 常用 pip 命令</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pip install 包名</code></td>
+<td>安装指定包</td>
+</tr>
+<tr>
+<td><code>pip install -i 镜像地址 包名</code></td>
+<td>临时使用镜像源安装</td>
+</tr>
+<tr>
+<td><code>pip list</code></td>
+<td>列出当前环境已安装包</td>
+</tr>
+<tr>
+<td><code>pip uninstall 包名</code></td>
+<td>卸载指定包</td>
+</tr>
+</tbody></table>
+<p>国内常用镜像：</p>
+<ul>
+<li>清华大学：<code>https://pypi.tuna.tsinghua.edu.cn/simple/</code></li>
+<li>阿里云：<code>https://mirrors.aliyun.com/pypi/simple/</code></li>
+<li>中国科学技术大学：<code>https://pypi.mirrors.ustc.edu.cn/simple/</code></li>
+</ul>
+<p>示例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ requests</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-全局环境与虚拟环境"><a href="#10-全局环境与虚拟环境" class="headerlink" title="10. 全局环境与虚拟环境"></a>10. 全局环境与虚拟环境</h2><h3 id="10-1-全局环境"><a href="#10-1-全局环境" class="headerlink" title="10.1 全局环境"></a>10.1 全局环境</h3><p>安装 Python 时创建的默认运行环境。所有项目默认共用，刚学时 <code>pip install</code> 的包通常都装在这里。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-modules-packages/python-modules-packages-002-global-env.png" alt="全局 Python 环境示意"></p>
+<p>问题是：项目 A 需要 Django 2，项目 B 需要 Django 4，装在同一全局环境里很容易互相冲突。</p>
+<h3 id="10-2-虚拟环境"><a href="#10-2-虚拟环境" class="headerlink" title="10.2 虚拟环境"></a>10.2 虚拟环境</h3><p>虚拟环境是相对独立的 Python 运行环境，通常建在项目目录内，每个项目可拥有自己的一套依赖。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/python-modules-packages/python-modules-packages-003-venv-install.png" alt="在虚拟环境中安装第三方库"></p>
+<p>创建与使用（标准库 <code>venv</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">python -m venv .venv</span><br><span class="line"><span class="comment"># macOS / Linux</span></span><br><span class="line"><span class="built_in">source</span> .venv/bin/activate</span><br><span class="line"><span class="comment"># Windows</span></span><br><span class="line"><span class="comment"># .venv\Scripts\activate</span></span><br><span class="line"></span><br><span class="line">pip install requests</span><br></pre></td></tr></table></figure>
+
+<p>在已激活的虚拟环境中验证：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">response = requests.get(<span class="string">&quot;https://www.baidu.com&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(response.status_code)</span><br><span class="line"><span class="built_in">print</span>(response.text[:<span class="number">200</span>])</span><br></pre></td></tr></table></figure>
+
+<p>实践建议：正式项目优先使用虚拟环境；依赖清单可用 <code>pip freeze &gt; requirements.txt</code> 固化，再用 <code>pip install -r requirements.txt</code> 还原。</p>
+<hr>
+<h2 id="11-学习小结与实践建议"><a href="#11-学习小结与实践建议" class="headerlink" title="11. 学习小结与实践建议"></a>11. 学习小结与实践建议</h2><table>
+<thead>
+<tr>
+<th>主题</th>
+<th>关键点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模块</td>
+<td><code>.py</code> 文件；可放变量、函数、类</td>
+</tr>
+<tr>
+<td><code>__name__</code></td>
+<td>区分“直接运行”与“被导入”</td>
+</tr>
+<tr>
+<td>导入</td>
+<td>优先 <code>import module</code>，慎用 <code>import *</code></td>
+</tr>
+<tr>
+<td>搜索路径</td>
+<td>当前目录 → <code>sys.path</code></td>
+</tr>
+<tr>
+<td><code>__all__</code></td>
+<td>只约束星号导入</td>
+</tr>
+<tr>
+<td>包</td>
+<td>目录 + <code>__init__.py</code>（经典模型）</td>
+</tr>
+<tr>
+<td>pip &#x2F; PyPI</td>
+<td>安装与管理第三方库</td>
+</tr>
+<tr>
+<td>虚拟环境</td>
+<td>按项目隔离依赖</td>
+</tr>
+</tbody></table>
+<p>建议练习：</p>
+<ol>
+<li>写一个自定义模块，并用五种导入方式分别调用。</li>
+<li>建一个包含两个子模块的包，配置 <code>__init__.py</code> 与 <code>__all__</code>。</li>
+<li>新建虚拟环境，安装 <code>requests</code>，写一个最小请求脚本。</li>
+</ol>
+<p>把“模块—包—第三方库—虚拟环境”这条链走通后，Python 项目结构就会清晰很多。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/17/python-modules-and-packages-guide/">https://qijianyeah.github.io/2026/08/17/python-modules-and-packages-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E6%A8%A1%E5%9D%97/">模块</a><a class="post-meta__tags" href="/tags/%E5%8C%85/">包</a><a class="post-meta__tags" href="/tags/pip/">pip</a><a class="post-meta__tags" href="/tags/%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/">虚拟环境</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</div></div><div class="info-2"><div class="info-item-1">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 map &#x2F; reduce &#x2F; filter &#x2F; sorted 这组常用高阶函数。  目录 1. 递归 2. 函数也是对象：一等公民 3. 匿名函数 lambda 4. 什么是高阶函数 5. 内置高阶函数 map 6. 内置高阶函数 reduce 7. 内置高阶函数 filter 8. 内置高阶函数 sorted 9. 学习小结与实践建议   1. 递归1.1 什么是递归程序在定义中直接或间接调用自身的技巧，称为递归。 下面这个例子能说明“自己调用自己”，但缺少结束条件，实际运行会不断压栈，最终触发 RecursionError： 123456def hello():    print(&quot;欢迎光临&quot;)    hello()  # 缺少结束条件，会递归溢出# hello()  #...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/09/python-start-environment-first-program/" title="Python 启航：环境搭建与第一个程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">Python 启航：环境搭建与第一个程序</div></div><div class="info-2"><div class="info-item-1">Python 启航：环境搭建与第一个程序目录 1. 认识 Python 2. 准备 Python 运行环境 3. 编写并运行第一个 Python 程序 4. 理解 PATH 环境变量 5. 使用 PyCharm 开发 Python 6. 认识 PyCharm 项目目录 7. Python 注释 8. 综合练习：六行输出一首诗 9. 入门常见问题速查   本章从“编程语言是什么”出发，完成 Python 解释器和 PyCharm 的安装与配置，并分别通过交互式解释器、命令行脚本和 IDE 运行第一个 Python 3 程序。最后将进一步认识项目目录、注释规则，并通过一个完整练习巩固输出语句。 1. 认识 Python1.1 编程语言是什么自然语言帮助人与人交流，编程语言则是一套让人向计算机描述数据和操作的形式化规则。计算机底层只能直接处理二进制指令，人编写的 Python 源代码不能被 CPU 直接执行，需要由 Python 解释器读取并执行。 可以把这一过程理解为： 12345开发者编写 Python 源代码          ↓Python 解释器分析并执行         ...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</div></div><div class="info-2"><div class="info-item-1">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 map &#x2F; reduce &#x2F; filter &#x2F; sorted 这组常用高阶函数。  目录 1. 递归 2. 函数也是对象：一等公民 3. 匿名函数 lambda 4. 什么是高阶函数 5. 内置高阶函数 map 6. 内置高阶函数 reduce 7. 内置高阶函数 filter 8. 内置高阶函数 sorted 9. 学习小结与实践建议   1. 递归1.1 什么是递归程序在定义中直接或间接调用自身的技巧，称为递归。 下面这个例子能说明“自己调用自己”，但缺少结束条件，实际运行会不断压栈，最终触发 RecursionError： 123456def hello():    print(&quot;欢迎光临&quot;)    hello()  # 缺少结束条件，会递归溢出# hello()  #...</div></div></div></a><a class="pagination-related" href="/2026/08/15/python-functions-complete-guide/" title="Python 函数完全指南：从参数传递到作用域与常见陷阱"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-15</div><div class="info-item-2">Python 函数完全指南：从参数传递到作用域与常见陷阱</div></div><div class="info-2"><div class="info-item-1">Python 函数完全指南：从参数传递到作用域与常见陷阱函数是组织良好、可以重复调用、用于完成特定功能的代码块。使用函数可以减少重复代码，让程序结构更清晰，也更便于测试和维护。  目录 1. 函数的定义与调用 2. 为什么要使用函数 3. 函数的分类 4. 形参与实参 5. 参数的传递方式 6. 可变参数 7. 参数的打包与解包 8. 函数的返回值 9. 类型注解与文档字符串 10. 局部变量与全局变量 11. 函数之间的调用 12. 默认参数的常见陷阱 13. 本章总结   1. 函数的定义与调用1.1 定义函数Python 使用 def 关键字定义函数： 12def 函数名(参数列表):    函数体  例如： 12def greet(name):   ...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 面向对象完全指南：从类与对象到封装、继承和多态</div></div><div class="info-2"><div class="info-item-1">Python 面向对象完全指南：从类与对象到封装、继承和多态目录 1. 从编程思维说起：面向过程与面向对象 2. 类、对象与“一切皆对象” 3. 定义类与创建对象 4. 属性：类共享的数据与实例自己的状态 5. 方法：实例方法、类方法与静态方法 6. 动态绑定 7. 封装与名称改写 8. 继承、重写与方法解析顺序 9. 多态与鸭子类型 10. 常用魔术属性与魔术方法 11. 抽象类：用接口约束实现 12. 学习总结与实践建议  1. 从编程思维说起：面向过程与面向对象面向过程和面向对象不是互相排斥的两种语言特性，而是组织程序的两种思维方式。  面向过程关注“完成任务需要哪些步骤”，适合流程清楚、规模较小的问题。 面向对象关注“系统中有哪些角色，各自保存什么状态、承担什么职责”，适合状态丰富、角色较多、需要持续扩展的系统。  以制作一道菜为例，面向过程可以把任务拆成连续的函数： 1234567891011121314def prepare_ingredients():    return &quot;准备好的鸡蛋和西红柿&quot;def cook(ingredients):  ...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</div></div><div class="info-2"><div class="info-item-1">Python 内存分析完全指南：不可变对象、可变对象与自定义实例理解 Python 的内存模型，比死记“传值还是传引用”更有用。变量名保存在栈侧，真正的对象在堆上；赋值改的是“指向谁”，就地修改改的是“对象内部”。  目录 1. 先建立心智模型 2. 不可变对象的内存行为 3. 可变对象的内存行为 4. 经典易错题：函数参数里的赋值与原地修改 5. 自定义对象的内存布局 6. 学习小结与实践建议   1. 先建立心智模型Python 中几乎一切都是对象。观察一个对象，通常看三件事：    维度 含义 常用查看方式    身份 identity 对象在一次运行中的唯一标识 id(obj)   类型 type 对象支持哪些操作 type(obj)   值 value 对象表达的数据内容 直接打印或访问属性   教学图里常把内存画成：  栈：保存变量名，以及它当前指向的对象标识 堆：保存真正的对象（类型、值、内部引用）  变量更像标签，不是“装满数据的盒子”。a = b 的含义是：让 a 与 b 指向同一个对象，而不是复制一份新的内容。 注意：id()...</div></div></div></a><a class="pagination-related" href="/2026/08/09/python-core-syntax-data-to-oop/" title="Python 核心语法：从数据运算到面向对象"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">Python 核心语法：从数据运算到面向对象</div></div><div class="info-2"><div class="info-item-1">Python 核心语法：从数据运算到面向对象目录 1. 数据、变量与运算符 2. 流程控制：条件、模式匹配与循环 3. Python 数据容器 4. 函数：封装、参数、作用域与类型注解 5. 模块与包 6. 面向对象基础与异常处理   1. 数据、变量与运算符程序的基本工作可以概括为：接收数据、保存数据、处理数据并输出结果。本章从 Python 的字面量与变量出发，逐步掌握数据类型、字符串、输入输出、类型转换以及四类常用运算符，并通过一组完整案例把这些知识串联起来。 1.1 字面量：直接写在代码中的值字面量（literal） 是直接写在程序中的固定值。例如，下面每一项都是字面量： 12345618-58.5&quot;Hello,...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">52</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">21</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Python-%E6%A8%A1%E5%9D%97%E4%B8%8E%E5%8C%85%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9D%97%E3%80%81%E5%8C%85%E7%BB%93%E6%9E%84%E3%80%81pip-%E4%B8%8E%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">1.</span> <span class="toc-text">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%A8%A1%E5%9D%97"><span class="toc-number">1.2.</span> <span class="toc-text">1. 什么是模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%A8%A1%E5%9D%97"><span class="toc-number">1.3.</span> <span class="toc-text">2. 为什么要使用模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%A8%A1%E5%9D%97%E7%9A%84%E4%B8%89%E7%A7%8D%E5%88%86%E7%B1%BB"><span class="toc-number">1.4.</span> <span class="toc-text">3. 模块的三种分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9D%97"><span class="toc-number">1.5.</span> <span class="toc-text">4. 自定义模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 命名规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9D%97"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 定义模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81%E4%B8%8E-name"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 测试代码与 __name__</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%A8%A1%E5%9D%97%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">1.6.</span> <span class="toc-text">5. 模块导入方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%A8%A1%E5%9D%97%E6%90%9C%E7%B4%A2%E9%A1%BA%E5%BA%8F"><span class="toc-number">1.7.</span> <span class="toc-text">6. 模块搜索顺序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-all-%E6%8E%A7%E5%88%B6%E6%98%9F%E5%8F%B7%E5%AF%BC%E5%85%A5"><span class="toc-number">1.8.</span> <span class="toc-text">7. __all__ 控制星号导入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%8C%85%EF%BC%9A%E7%94%A8%E7%9B%AE%E5%BD%95%E7%BB%84%E7%BB%87%E6%A8%A1%E5%9D%97"><span class="toc-number">1.9.</span> <span class="toc-text">8. 包：用目录组织模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%8C%85"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 什么是包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AF%BC%E5%85%A5%E5%8C%85%E4%B8%AD%E7%9A%84%E6%A8%A1%E5%9D%97"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 导入包中的模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-init-py-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.9.3.</span> <span class="toc-text">8.3 __init__.py 的作用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E3%80%81PyPI-%E4%B8%8E-pip"><span class="toc-number">1.10.</span> <span class="toc-text">9. 第三方库、PyPI 与 pip</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%A0%87%E5%87%86%E5%BA%93%E4%B8%8E%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 标准库与第三方库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-PyPI"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 PyPI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%B8%B8%E7%94%A8-pip-%E5%91%BD%E4%BB%A4"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 常用 pip 命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%85%A8%E5%B1%80%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">1.11.</span> <span class="toc-text">10. 全局环境与虚拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%85%A8%E5%B1%80%E7%8E%AF%E5%A2%83"><span class="toc-number">1.11.1.</span> <span class="toc-text">10.1 全局环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">1.11.2.</span> <span class="toc-text">10.2 虚拟环境</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%AD%A6%E4%B9%A0%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.12.</span> <span class="toc-text">11. 学习小结与实践建议</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</a><time datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</a><time datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</a><time datetime="2026-08-15T17:19:00.000Z" title="发表于 2026-08-16 01:19:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态">Python 面向对象完全指南：从类与对象到封装、继承和多态</a><time datetime="2026-08-15T17:00:00.000Z" title="发表于 2026-08-16 01:00:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/15/python-functions-complete-guide/" title="Python 函数完全指南：从参数传递到作用域与常见陷阱">Python 函数完全指南：从参数传递到作用域与常见陷阱</a><time datetime="2026-08-15T02:22:58.000Z" title="发表于 2026-08-15 10:22:58">2026-08-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
