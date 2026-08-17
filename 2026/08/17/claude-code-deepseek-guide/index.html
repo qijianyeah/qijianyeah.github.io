@@ -1,0 +1,794 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Claude Code 安装与接入 DeepSeek 完全指南 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Claude Code 安装与接入 DeepSeek 完全指南Claude Code 是 Anthropic 的终端 &#x2F; VS Code AI 编程助手。DeepSeek 提供 Anthropic 兼容接口后，只需改 Base URL、Token 和模型映射，就能继续用 Claude Code 的交互方式，把推理后端切到 DeepSeek。本文先把 Git、Node、npm、网络与 AP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code 安装与接入 DeepSeek 完全指南">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/17/claude-code-deepseek-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Claude Code 安装与接入 DeepSeek 完全指南Claude Code 是 Anthropic 的终端 &#x2F; VS Code AI 编程助手。DeepSeek 提供 Anthropic 兼容接口后，只需改 Base URL、Token 和模型映射，就能继续用 Claude Code 的交互方式，把推理后端切到 DeepSeek。本文先把 Git、Node、npm、网络与 AP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-17T14:20:00.000Z">
+<meta property="article:modified_time" content="2026-08-17T14:20:55.761Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="DeepSeek">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="AI 编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/17/claude-code-deepseek-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Claude Code 安装与接入 DeepSeek 完全指南',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">51</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Claude Code 安装与接入 DeepSeek 完全指南</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Claude Code 安装与接入 DeepSeek 完全指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-17T14:20:00.000Z" title="发表于 2026-08-17 22:20:00">2026-08-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-17T14:20:55.761Z" title="更新于 2026-08-17 22:20:55">2026-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E5%AE%9E%E8%B7%B5/">工具与实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Claude-Code-安装与接入-DeepSeek-完全指南"><a href="#Claude-Code-安装与接入-DeepSeek-完全指南" class="headerlink" title="Claude Code 安装与接入 DeepSeek 完全指南"></a>Claude Code 安装与接入 DeepSeek 完全指南</h1><p>Claude Code 是 Anthropic 的终端 &#x2F; VS Code AI 编程助手。DeepSeek 提供 Anthropic 兼容接口后，只需改 Base URL、Token 和模型映射，就能继续用 Claude Code 的交互方式，把推理后端切到 DeepSeek。本文先把 Git、Node、npm、网络与 API Key 等环境装齐，再讲 Claude Code 安装与 DeepSeek 接入。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-claude-code-%E6%98%AF%E4%BB%80%E4%B9%88">1. Claude Code 是什么</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8E%A5%E5%85%A5-deepseek">2. 为什么接入 DeepSeek</a></li>
+<li><a href="#3-%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85%E5%BF%85%E5%81%9A">3. 环境安装（必做）</a></li>
+<li><a href="#4-%E5%AE%89%E8%A3%85-claude-code">4. 安装 Claude Code</a></li>
+<li><a href="#5-%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%B5%B0%E5%88%B0-deepseek">5. 请求如何走到 DeepSeek</a></li>
+<li><a href="#6-%E9%85%8D%E7%BD%AE%E6%8E%A5%E5%85%A5%E6%8E%A8%E8%8D%90-settingsjson">6. 配置接入（推荐 settings.json）</a></li>
+<li><a href="#7-%E7%94%A8%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%8E%A5%E5%85%A5">7. 用环境变量接入</a></li>
+<li><a href="#8-%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E4%B8%8E%E6%98%A0%E5%B0%84">8. 模型选择与映射</a></li>
+<li><a href="#9-%E9%AA%8C%E8%AF%81%E6%98%AF%E5%90%A6%E6%8E%A5%E5%A5%BD">9. 验证是否接好</a></li>
+<li><a href="#10-%E6%97%A5%E5%B8%B8%E4%BD%BF%E7%94%A8">10. 日常使用</a></li>
+<li><a href="#11-vs-code-%E6%89%A9%E5%B1%95%E6%96%B9%E5%BC%8F">11. VS Code 扩展方式</a></li>
+<li><a href="#12-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">12. 常见问题</a></li>
+<li><a href="#13-%E5%B0%8F%E7%BB%93">13. 小结</a></li>
+</ul>
+<hr>
+<h2 id="1-Claude-Code-是什么"><a href="#1-Claude-Code-是什么" class="headerlink" title="1. Claude Code 是什么"></a>1. Claude Code 是什么</h2><p>Claude Code 是面向编程场景的 Agent 工具，常见形态有两种：</p>
+<table>
+<thead>
+<tr>
+<th>形态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CLI</td>
+<td>终端里运行 <code>claude</code>，在项目目录内读代码、改文件、执行命令</td>
+</tr>
+<tr>
+<td>VS Code Extension</td>
+<td>在编辑器侧边栏开会话，读写当前工作区</td>
+</tr>
+</tbody></table>
+<p>它默认走 Anthropic API。把 <code>ANTHROPIC_BASE_URL</code> 指到兼容网关后，请求格式不变，后端可以换成 DeepSeek。</p>
+<hr>
+<h2 id="2-为什么接入-DeepSeek"><a href="#2-为什么接入-DeepSeek" class="headerlink" title="2. 为什么接入 DeepSeek"></a>2. 为什么接入 DeepSeek</h2><p>常见动机：</p>
+<ol>
+<li>继续使用 Claude Code 的交互与工具链</li>
+<li>按 DeepSeek 计费与额度使用模型</li>
+<li>不改业务代码，只改环境配置即可切换后端</li>
+</ol>
+<p>注意边界：</p>
+<ul>
+<li>这是 <strong>API 兼容接入</strong>，不是把 Claude 官方模型换成 DeepSeek 同名模型</li>
+<li>Claude Desktop 的 OAuth 登录路径通常读不到这套 <code>ANTHROPIC_BASE_URL</code> &#x2F; <code>ANTHROPIC_AUTH_TOKEN</code>，本文以 <strong>CLI &#x2F; VS Code 扩展</strong> 为准</li>
+<li>远端控制（Remote Control）等依赖 <code>api.anthropic.com</code> 的能力，在自定义 Base URL 下一般不可用</li>
+</ul>
+<hr>
+<h2 id="3-环境安装（必做）"><a href="#3-环境安装（必做）" class="headerlink" title="3. 环境安装（必做）"></a>3. 环境安装（必做）</h2><p>把 Claude Code 跑起来并接到 DeepSeek，本地至少要准备齐下面几项。缺一项后面就会卡在「装不上 &#x2F; 找不到命令 &#x2F; 鉴权失败」。</p>
+<p>下文以<strong>本机已跑通的环境</strong>为基准：你可以对照表格复现同一套组合；其他系统见各小节的通用安装步骤。</p>
+<h3 id="3-1-本机实践环境（本文实测）"><a href="#3-1-本机实践环境（本文实测）" class="headerlink" title="3.1 本机实践环境（本文实测）"></a>3.1 本机实践环境（本文实测）</h3><p>采集自本文实践机，命令均在 <code>zsh</code> 中执行。密钥只写变量名，不写真实值。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>本机配置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统</td>
+<td>macOS 15.7.7（Build 24G720）</td>
+</tr>
+<tr>
+<td>CPU 架构</td>
+<td>Apple Silicon（<code>arm64</code>）</td>
+</tr>
+<tr>
+<td>Shell</td>
+<td><code>/bin/zsh</code>（配置写入 <code>~/.zshrc</code>）</td>
+</tr>
+<tr>
+<td>包管理</td>
+<td>Homebrew 5.1.12（前缀 <code>/opt/homebrew</code>）</td>
+</tr>
+<tr>
+<td>Git</td>
+<td><code>git version 2.39.5 (Apple Git-154)</code>（Xcode CLT 自带）</td>
+</tr>
+<tr>
+<td>Node 版本管理</td>
+<td>nvm（<code>NVM_DIR=~/.nvm</code>，<code>default -&gt; 22</code>）</td>
+</tr>
+<tr>
+<td>Node.js</td>
+<td><strong>v22.23.2</strong>（路径 <code>~/.nvm/versions/node/v22.23.2/bin/node</code>）</td>
+</tr>
+<tr>
+<td>npm</td>
+<td><strong>10.9.8</strong>（与 Node 同目录）</td>
+</tr>
+<tr>
+<td>npm 全局前缀</td>
+<td><code>~/.npm-global</code>（<code>~/.npmrc</code> 中配置 <code>prefix</code>）</td>
+</tr>
+<tr>
+<td>全局 bin</td>
+<td><code>~/.npm-global/bin</code>（已加入 <code>PATH</code>）</td>
+</tr>
+<tr>
+<td>Claude Code</td>
+<td><strong>2.1.233</strong>（<code>~/.npm-global/bin/claude</code>）</td>
+</tr>
+<tr>
+<td>Python（辅助脚本）</td>
+<td><code>/usr/bin/python3</code> → Python 3.9.6</td>
+</tr>
+<tr>
+<td>DeepSeek Key 存放</td>
+<td><code>~/.zshrc</code> 中 <code>export DEEP_SEEK_KEY=...</code></td>
+</tr>
+<tr>
+<td>Claude 路由配置</td>
+<td><code>~/.claude/settings.json</code>（权限建议 <code>600</code>）</td>
+</tr>
+<tr>
+<td>Base URL</td>
+<td><code>https://api.deepseek.com/anthropic</code></td>
+</tr>
+<tr>
+<td>主模型</td>
+<td><code>deepseek-v4-pro[1m]</code></td>
+</tr>
+<tr>
+<td>轻量模型</td>
+<td><code>deepseek-v4-flash[1m]</code></td>
+</tr>
+</tbody></table>
+<p>本机关键路径关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">~/.nvm/versions/node/v22.23.2/bin/node   # 运行时 Node</span><br><span class="line">~/.npm-global/bin/claude                 # 全局 CLI</span><br><span class="line">~/.claude/settings.json                  # DeepSeek 路由与模型</span><br><span class="line">~/.zshrc                                 # nvm 初始化 + DEEP_SEEK_KEY + PATH</span><br></pre></td></tr></table></figure>
+
+<p>本机 <code>PATH</code> 中与本文相关的片段（应能匹配到）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$PATH</span>&quot;</span> | <span class="built_in">tr</span> <span class="string">&#x27;:&#x27;</span> <span class="string">&#x27;\n&#x27;</span> | grep -E <span class="string">&#x27;nvm/versions/node|npm-global/bin|homebrew/bin&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>实践机输出示例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.../.nvm/versions/node/v22.23.2/bin</span><br><span class="line">.../.npm-global/bin</span><br><span class="line">/opt/homebrew/bin</span><br></pre></td></tr></table></figure>
+
+<p>本机 <code>~/.claude/settings.json</code> 中与 DeepSeek 相关的非密钥字段：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;theme&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dark-ansi&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_BASE_URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;从 DEEP_SEEK_KEY 写入，勿提交仓库&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_OPUS_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_SONNET_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_HAIKU_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-flash[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;CLAUDE_CODE_EFFORT_LEVEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;max&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>对照本机快速自检：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sw_vers</span><br><span class="line"><span class="built_in">uname</span> -m</span><br><span class="line">git --version</span><br><span class="line">node -v &amp;&amp; npm -v</span><br><span class="line">npm prefix -g</span><br><span class="line"><span class="built_in">which</span> claude &amp;&amp; claude --version</span><br><span class="line">[ -n <span class="string">&quot;<span class="variable">$DEEP_SEEK_KEY</span>&quot;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;DEEP_SEEK_KEY=configured&quot;</span> || <span class="built_in">echo</span> <span class="string">&quot;DEEP_SEEK_KEY=missing&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>本机一次实测输出摘要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ProductVersion: 15.7.7</span><br><span class="line">arm64</span><br><span class="line">git version 2.39.5 (Apple Git-154)</span><br><span class="line">v22.23.2</span><br><span class="line">10.9.8</span><br><span class="line">/Users/&lt;you&gt;/.npm-global</span><br><span class="line">.../.npm-global/bin/claude</span><br><span class="line">2.1.233 (Claude Code)</span><br><span class="line">DEEP_SEEK_KEY=configured</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-环境清单"><a href="#3-2-环境清单" class="headerlink" title="3.2 环境清单"></a>3.2 环境清单</h3><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>是否必须</th>
+<th>作用</th>
+<th>本机取值 &#x2F; 建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>终端</td>
+<td>必须</td>
+<td>执行安装与 <code>claude</code></td>
+<td>本机：<code>zsh</code>；Windows 可用 PowerShell &#x2F; Git Bash</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>必须</td>
+<td>Claude Code 读写仓库、Windows 上官方也要求</td>
+<td>本机：Apple Git 2.39.5</td>
+</tr>
+<tr>
+<td>Node.js</td>
+<td>必须</td>
+<td>运行 Claude Code（npm 全局包）</td>
+<td>本机：<strong>v22.23.2</strong>（要求 22+）</td>
+</tr>
+<tr>
+<td>npm</td>
+<td>必须</td>
+<td>随 Node 安装</td>
+<td>本机：10.9.8；全局前缀 <code>~/.npm-global</code></td>
+</tr>
+<tr>
+<td>DeepSeek 账号 + API Key</td>
+<td>必须</td>
+<td>鉴权与计费</td>
+<td>本机：Key 在 <code>DEEP_SEEK_KEY</code></td>
+</tr>
+<tr>
+<td>出网访问</td>
+<td>必须</td>
+<td>访问 <code>api.deepseek.com</code></td>
+<td>需能打开兼容端点</td>
+</tr>
+<tr>
+<td>Homebrew</td>
+<td>推荐（macOS）</td>
+<td>装软件、补工具链</td>
+<td>本机：5.1.12 @ <code>/opt/homebrew</code></td>
+</tr>
+<tr>
+<td>nvm</td>
+<td>推荐</td>
+<td>切换 Node 版本</td>
+<td>本机：<code>default -&gt; 22</code></td>
+</tr>
+<tr>
+<td>VS Code &#x2F; Cursor</td>
+<td>可选</td>
+<td>扩展形态或日常编辑</td>
+<td>按需</td>
+</tr>
+<tr>
+<td>Python 3</td>
+<td>可选</td>
+<td>写入配置、环境检查脚本</td>
+<td>本机：3.9.6</td>
+</tr>
+</tbody></table>
+<p>通用自检命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">uname</span> -s</span><br><span class="line">git --version</span><br><span class="line">node -v</span><br><span class="line">npm -v</span><br><span class="line">curl -I https://api.deepseek.com</span><br></pre></td></tr></table></figure>
+
+<p>Windows PowerShell 可改为：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git <span class="literal">--version</span></span><br><span class="line">node <span class="literal">-v</span></span><br><span class="line">npm <span class="literal">-v</span></span><br><span class="line"><span class="built_in">Invoke-WebRequest</span> https://api.deepseek.com <span class="literal">-Method</span> Head</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/claude-code-deepseek/claude-code-deepseek-003-install-verify.png" alt="安装与验证步骤"></p>
+<h3 id="3-3-安装-Git"><a href="#3-3-安装-Git" class="headerlink" title="3.3 安装 Git"></a>3.3 安装 Git</h3><h4 id="macOS（本机采用此路径）"><a href="#macOS（本机采用此路径）" class="headerlink" title="macOS（本机采用此路径）"></a>macOS（本机采用此路径）</h4><p>未装过命令行工具时，先装 Xcode CLT（会带上 <code>git</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xcode-select --install</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
+
+<p>本机结果：<code>git version 2.39.5 (Apple Git-154)</code>。</p>
+<p>或用 Homebrew：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install git</span><br></pre></td></tr></table></figure>
+
+<h4 id="Linux（Debian-Ubuntu）"><a href="#Linux（Debian-Ubuntu）" class="headerlink" title="Linux（Debian &#x2F; Ubuntu）"></a>Linux（Debian &#x2F; Ubuntu）</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install -y git</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
+
+<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><ol>
+<li>下载并安装 <a target="_blank" rel="noopener" href="https://git-scm.com/download/win">Git for Windows</a></li>
+<li>安装时勾选把 Git 加入 PATH</li>
+<li>打开新的 PowerShell &#x2F; Git Bash，执行 <code>git --version</code></li>
+</ol>
+<p>DeepSeek &#x2F; Claude Code 文档对 Windows 用户通常会明确要求 Git，不要跳过。</p>
+<h3 id="3-4-安装-Node-js-22"><a href="#3-4-安装-Node-js-22" class="headerlink" title="3.4 安装 Node.js 22+"></a>3.4 安装 Node.js 22+</h3><p>官方旧文可能仍写 Node 18+，但当前 <code>@anthropic-ai/claude-code</code> 已常见要求 <strong>Node ≥ 22</strong>。本机曾在 Node 20 上安装，出现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm warn EBADENGINE ... required: &#123; node: &#x27;&gt;=22.0.0&#x27; &#125;, current: &#123; node: &#x27;v20.20.1&#x27; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>随后用 nvm 升到 <strong>v22.23.2</strong> 再装 Claude Code。</p>
+<h4 id="方式-A：nvm（本机采用，推荐）"><a href="#方式-A：nvm（本机采用，推荐）" class="headerlink" title="方式 A：nvm（本机采用，推荐）"></a>方式 A：nvm（本机采用，推荐）</h4><p><strong>安装 nvm（macOS &#x2F; Linux）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash</span><br></pre></td></tr></table></figure>
+
+<p>装完后重新打开终端，或执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> NVM_DIR=<span class="string">&quot;<span class="variable">$HOME</span>/.nvm&quot;</span></span><br><span class="line">[ -s <span class="string">&quot;<span class="variable">$NVM_DIR</span>/nvm.sh&quot;</span> ] &amp;&amp; . <span class="string">&quot;<span class="variable">$NVM_DIR</span>/nvm.sh&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>确认 <code>~/.zshrc</code> &#x2F; <code>~/.bashrc</code> 里已有 nvm 初始化片段。本机 <code>~/.zshrc</code> 中包含 <code>NVM_DIR</code> 相关配置。</p>
+<p><strong>安装并固定 Node 22（与本机一致）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvm install 22</span><br><span class="line">nvm <span class="built_in">alias</span> default 22</span><br><span class="line">node -v    <span class="comment"># 本机：v22.23.2</span></span><br><span class="line">npm -v     <span class="comment"># 本机：10.9.8</span></span><br><span class="line"><span class="built_in">which</span> node <span class="comment"># 本机：~/.nvm/versions/node/v22.23.2/bin/node</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="方式-B：Homebrew（macOS）"><a href="#方式-B：Homebrew（macOS）" class="headerlink" title="方式 B：Homebrew（macOS）"></a>方式 B：Homebrew（macOS）</h4><p>本机已安装 Homebrew（<code>/opt/homebrew</code>，5.1.12），也可用它装 Node：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">brew install node@22</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PATH=&quot;/opt/homebrew/opt/node@22/bin:$PATH&quot;&#x27;</span> &gt;&gt; ~/.zshrc</span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line">node -v</span><br></pre></td></tr></table></figure>
+
+<p>本文实践优先 nvm，便于 Node 20 与 Node 22 并存。</p>
+<h4 id="方式-C：官网安装包"><a href="#方式-C：官网安装包" class="headerlink" title="方式 C：官网安装包"></a>方式 C：官网安装包</h4><p>到 <a target="_blank" rel="noopener" href="https://nodejs.org/zh-cn/download/">Node.js 官网</a> 下载 <strong>22.x</strong> 安装包。装完后新开终端执行 <code>node -v</code>。</p>
+<h4 id="Windows-补充"><a href="#Windows-补充" class="headerlink" title="Windows 补充"></a>Windows 补充</h4><p>也可用 <a target="_blank" rel="noopener" href="https://github.com/coreybutler/nvm-windows">nvm-windows</a> 或官方 MSI：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node <span class="literal">-v</span></span><br><span class="line">npm <span class="literal">-v</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-配置-npm-全局目录（本机：-npm-global）"><a href="#3-5-配置-npm-全局目录（本机：-npm-global）" class="headerlink" title="3.5 配置 npm 全局目录（本机：~/.npm-global）"></a>3.5 配置 npm 全局目录（本机：<code>~/.npm-global</code>）</h3><p>不建议用 <code>sudo npm install -g</code>。本机采用用户级全局前缀：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.npm-global</span><br><span class="line">npm config <span class="built_in">set</span> prefix ~/.npm-global</span><br></pre></td></tr></table></figure>
+
+<p>确认 <code>~/.npmrc</code> 中有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">prefix=~/.npm-global</span><br></pre></td></tr></table></figure>
+
+<p>把下面一行写入 <code>~/.zshrc</code>（本机已配置）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PATH=<span class="string">&quot;<span class="variable">$HOME</span>/.npm-global/bin:<span class="variable">$PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>生效：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line">npm prefix -g    <span class="comment"># 本机：~/.npm-global</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$PATH</span>&quot;</span> | <span class="built_in">tr</span> <span class="string">&#x27;:&#x27;</span> <span class="string">&#x27;\n&#x27;</span> | grep npm-global</span><br></pre></td></tr></table></figure>
+
+<p>之后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @anthropic-ai/claude-code</span><br><span class="line"><span class="built_in">which</span> claude     <span class="comment"># 本机：~/.npm-global/bin/claude</span></span><br></pre></td></tr></table></figure>
+
+<p>本机同时使用 nvm，且 <code>~/.npmrc</code> 写死了 <code>prefix</code>，因此 <code>nvm use</code> 时可能提示与全局 prefix 不兼容。处理方式与本机一致：</p>
+<ol>
+<li><strong>继续用固定 prefix</strong>（本文做法）：只要 <code>which claude</code> 指向 <code>~/.npm-global/bin/claude</code> 即可</li>
+<li><strong>完全交给 nvm</strong>：去掉 <code>~/.npmrc</code> 中的 <code>prefix</code>，按 nvm 提示清理后再装</li>
+</ol>
+<h3 id="3-6-网络与代理"><a href="#3-6-网络与代理" class="headerlink" title="3.6 网络与代理"></a>3.6 网络与代理</h3><p>Claude Code 接 DeepSeek 时至少要能访问：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">https://api.deepseek.com</span><br><span class="line">https://api.deepseek.com/anthropic</span><br></pre></td></tr></table></figure>
+
+<p>快速探测：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sI https://api.deepseek.com | <span class="built_in">head</span> -n 5</span><br></pre></td></tr></table></figure>
+
+<p>若公司网络需 HTTP 代理：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> https_proxy=http://127.0.0.1:7890</span><br><span class="line"><span class="built_in">export</span> http_proxy=http://127.0.0.1:7890</span><br></pre></td></tr></table></figure>
+
+<p>不需要代理时，避免残留错误的 <code>HTTP_PROXY</code> &#x2F; <code>HTTPS_PROXY</code>。</p>
+<h3 id="3-7-申请-DeepSeek-API-Key（本机变量名：DEEP-SEEK-KEY）"><a href="#3-7-申请-DeepSeek-API-Key（本机变量名：DEEP-SEEK-KEY）" class="headerlink" title="3.7 申请 DeepSeek API Key（本机变量名：DEEP_SEEK_KEY）"></a>3.7 申请 DeepSeek API Key（本机变量名：<code>DEEP_SEEK_KEY</code>）</h3><ol>
+<li>打开 <a target="_blank" rel="noopener" href="https://platform.deepseek.com/api_keys">DeepSeek Platform</a></li>
+<li>登录 &#x2F; 注册并完成必要实名或充值（以平台当前规则为准）</li>
+<li>创建 API Key，仅在创建时完整复制一次</li>
+</ol>
+<p>本机存放方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.zshrc（不要提交到公开仓库）</span></span><br><span class="line"><span class="built_in">export</span> DEEP_SEEK_KEY=<span class="string">&quot;&lt;你的 DeepSeek API Key&gt;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line">[ -n <span class="string">&quot;<span class="variable">$DEEP_SEEK_KEY</span>&quot;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;DEEP_SEEK_KEY=configured&quot;</span> || <span class="built_in">echo</span> <span class="string">&quot;DEEP_SEEK_KEY=missing&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>安全建议：</p>
+<ul>
+<li>不要把 Key 写进 Git 仓库、截图或公开博客</li>
+<li>Claude Code 实际读取 <code>~/.claude/settings.json</code> 里的 <code>ANTHROPIC_AUTH_TOKEN</code></li>
+<li>可用第 6 节脚本把 <code>DEEP_SEEK_KEY</code> 同步写入 settings（本机已这样做）</li>
+<li>文件权限：<code>chmod 600 ~/.claude/settings.json</code></li>
+</ul>
+<h3 id="3-8（可选）安装-VS-Code"><a href="#3-8（可选）安装-VS-Code" class="headerlink" title="3.8（可选）安装 VS Code"></a>3.8（可选）安装 VS Code</h3><p>仅在使用 <strong>Claude Code VS Code Extension</strong> 时需要：</p>
+<ol>
+<li>安装 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/">VS Code</a></li>
+<li>扩展市场搜索并安装 <code>Claude Code</code>（发布者 Anthropic）</li>
+<li>确认终端里的 Node &#x2F; <code>claude</code> 与扩展使用同一套用户配置（见第 11 节）</li>
+</ol>
+<p>只用 CLI 可以不装 VS Code。本机日常亦可用 Cursor 作为编辑器，不影响 CLI 方式使用 Claude Code。</p>
+<h3 id="3-9-一键环境检查脚本"><a href="#3-9-一键环境检查脚本" class="headerlink" title="3.9 一键环境检查脚本"></a>3.9 一键环境检查脚本</h3><p>复制到终端执行，确认环境已就绪，并可与本机表对照：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">python3 - &lt;&lt;<span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import os, shutil, subprocess, urllib.request</span><br><span class="line"></span><br><span class="line">def run(cmd):</span><br><span class="line">    try:</span><br><span class="line">        <span class="built_in">return</span> subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).strip()</span><br><span class="line">    except Exception as e:</span><br><span class="line">        <span class="built_in">return</span> f<span class="string">&quot;ERROR: &#123;e&#125;&quot;</span></span><br><span class="line"></span><br><span class="line">checks = &#123;</span><br><span class="line">    <span class="string">&quot;git&quot;</span>: [<span class="string">&quot;git&quot;</span>, <span class="string">&quot;--version&quot;</span>],</span><br><span class="line">    <span class="string">&quot;node&quot;</span>: [<span class="string">&quot;node&quot;</span>, <span class="string">&quot;-v&quot;</span>],</span><br><span class="line">    <span class="string">&quot;npm&quot;</span>: [<span class="string">&quot;npm&quot;</span>, <span class="string">&quot;-v&quot;</span>],</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> name, cmd <span class="keyword">in</span> checks.items():</span><br><span class="line">    path = shutil.which(cmd[0])</span><br><span class="line">    <span class="built_in">print</span>(f<span class="string">&quot;&#123;name&#125;: &#123;&#x27;FOUND &#x27;+path if path else &#x27;MISSING&#x27;&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> path:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot; &quot;</span>, run(cmd))</span><br><span class="line"></span><br><span class="line">node_v = run([<span class="string">&quot;node&quot;</span>, <span class="string">&quot;-v&quot;</span>])</span><br><span class="line">ok_node = node_v.startswith(<span class="string">&quot;v&quot;</span>) and int(node_v.lstrip(<span class="string">&quot;v&quot;</span>).<span class="built_in">split</span>(<span class="string">&quot;.&quot;</span>)[0]) &gt;= 22</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;node&gt;=22:&quot;</span>, ok_node, f<span class="string">&quot;(&#123;node_v&#125;)&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;npm prefix -g:&quot;</span>, run([<span class="string">&quot;npm&quot;</span>, <span class="string">&quot;prefix&quot;</span>, <span class="string">&quot;-g&quot;</span>]))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;claude:&quot;</span>, shutil.which(<span class="string">&quot;claude&quot;</span>) or <span class="string">&quot;MISSING&quot;</span>)</span><br><span class="line"><span class="keyword">if</span> shutil.which(<span class="string">&quot;claude&quot;</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot; &quot;</span>, run([<span class="string">&quot;claude&quot;</span>, <span class="string">&quot;--version&quot;</span>]))</span><br><span class="line"></span><br><span class="line">try:</span><br><span class="line">    with urllib.request.urlopen(<span class="string">&quot;https://api.deepseek.com&quot;</span>, <span class="built_in">timeout</span>=15) as r:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;deepseek reachable: HTTP&quot;</span>, r.status)</span><br><span class="line">except Exception as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;deepseek reachable: FAIL&quot;</span>, <span class="built_in">type</span>(e).__name__)</span><br><span class="line"></span><br><span class="line">key = os.environ.get(<span class="string">&quot;DEEP_SEEK_KEY&quot;</span>) or os.environ.get(<span class="string">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;api key in env:&quot;</span>, <span class="string">&quot;yes&quot;</span> <span class="keyword">if</span> key <span class="keyword">else</span> <span class="string">&quot;no (可稍后写入 settings.json)&quot;</span>)</span><br><span class="line">PY</span><br></pre></td></tr></table></figure>
+
+<p>与本机对齐时，应看到类似：<code>node v22.23.2</code>、<code>npm prefix</code> 为 <code>~/.npm-global</code>、<code>claude</code> 版本 <code>2.1.233</code>、DeepSeek 可访问。</p>
+<hr>
+<h2 id="4-安装-Claude-Code"><a href="#4-安装-Claude-Code" class="headerlink" title="4. 安装 Claude Code"></a>4. 安装 Claude Code</h2><p>确认第 3 节清单已通过（尤其是与本机一致的 **Node 22.23.2+**、Git、<code>PATH</code> 含 <code>~/.npm-global/bin</code>）后再执行本节。</p>
+<h3 id="4-1-全局安装-CLI"><a href="#4-1-全局安装-CLI" class="headerlink" title="4.1 全局安装 CLI"></a>4.1 全局安装 CLI</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @anthropic-ai/claude-code</span><br></pre></td></tr></table></figure>
+
+<p>若使用自定义全局前缀（例如 <code>~/.npm-global</code>），确认该 <code>bin</code> 目录已在 <code>PATH</code> 中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> claude</span><br><span class="line">claude --version</span><br></pre></td></tr></table></figure>
+
+<p>能打印版本号即安装成功。本机实测：<code>2.1.233</code>，路径 <code>~/.npm-global/bin/claude</code>。</p>
+<p>若提示找不到 <code>claude</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看全局 bin 实际位置</span></span><br><span class="line">npm prefix -g</span><br><span class="line"><span class="built_in">ls</span> <span class="string">&quot;<span class="subst">$(npm prefix -g)</span>/bin/claude&quot;</span></span><br><span class="line"><span class="comment"># 把 $(npm prefix -g)/bin 永久加入 PATH 后，重新打开终端</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-健康检查"><a href="#4-2-健康检查" class="headerlink" title="4.2 健康检查"></a>4.2 健康检查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude doctor</span><br></pre></td></tr></table></figure>
+
+<p>关注：</p>
+<ul>
+<li>安装路径与版本</li>
+<li>Search &#x2F; Auto-updates 是否正常</li>
+<li>若已配置自定义 Base URL，Remote Control 会提示不可用（预期行为）</li>
+</ul>
+<hr>
+<h2 id="5-请求如何走到-DeepSeek"><a href="#5-请求如何走到-DeepSeek" class="headerlink" title="5. 请求如何走到 DeepSeek"></a>5. 请求如何走到 DeepSeek</h2><p>核心只有三件事：</p>
+<ol>
+<li><strong>Base URL</strong> 改为 DeepSeek 的 Anthropic 兼容地址</li>
+<li><strong>Auth Token</strong> 使用 DeepSeek API Key</li>
+<li><strong>模型名</strong> 使用 DeepSeek 模型 ID（或依赖服务端对 Claude 名称的映射）</li>
+</ol>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/claude-code-deepseek/claude-code-deepseek-001-request-chain.png" alt="Claude Code 到 DeepSeek 请求链路"></p>
+<p>官方兼容端点：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.deepseek.com/anthropic</span><br></pre></td></tr></table></figure>
+
+<p>注意：</p>
+<ul>
+<li>不要多写尾斜杠</li>
+<li>不要写成 OpenAI 风格的 <code>https://api.deepseek.com/v1</code></li>
+<li>Anthropic 兼容路径与 OpenAI 兼容路径不同，Claude Code 必须用 <code>/anthropic</code></li>
+</ul>
+<hr>
+<h2 id="6-配置接入（推荐-settings-json）"><a href="#6-配置接入（推荐-settings-json）" class="headerlink" title="6. 配置接入（推荐 settings.json）"></a>6. 配置接入（推荐 settings.json）</h2><p>DeepSeek 官方更推荐配置文件：CLI 与 VS Code 扩展都能读到，且新开终端也生效。</p>
+<h3 id="6-1-文件位置"><a href="#6-1-文件位置" class="headerlink" title="6.1 文件位置"></a>6.1 文件位置</h3><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>macOS &#x2F; Linux</td>
+<td><code>~/.claude/settings.json</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>C:\Users\&lt;用户名&gt;\.claude\settings.json</code></td>
+</tr>
+</tbody></table>
+<p>文件不存在时新建即可。建议权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> 600 ~/.claude/settings.json</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-推荐内容"><a href="#6-2-推荐内容" class="headerlink" title="6.2 推荐内容"></a>6.2 推荐内容</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_BASE_URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;你的 DeepSeek API Key&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_OPUS_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_SONNET_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_HAIKU_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deepseek-v4-flash[1m]&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;CLAUDE_CODE_EFFORT_LEVEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;max&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ANTHROPIC_BASE_URL</code></td>
+<td>把请求打到 DeepSeek 兼容端点</td>
+</tr>
+<tr>
+<td><code>ANTHROPIC_AUTH_TOKEN</code></td>
+<td>DeepSeek API Key（Claude Code 读这个字段）</td>
+</tr>
+<tr>
+<td><code>ANTHROPIC_MODEL</code></td>
+<td>默认主模型</td>
+</tr>
+<tr>
+<td><code>ANTHROPIC_DEFAULT_*_MODEL</code></td>
+<td>把内部的 Opus &#x2F; Sonnet &#x2F; Haiku 档位映射到 DeepSeek 模型</td>
+</tr>
+<tr>
+<td><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code></td>
+<td>减少非必要外连（自定义网关场景常用）</td>
+</tr>
+<tr>
+<td><code>CLAUDE_CODE_EFFORT_LEVEL</code></td>
+<td>努力程度；可按需要调整</td>
+</tr>
+</tbody></table>
+<p>若 Key 已单独保存在 <code>~/.zshrc</code>（例如 <code>DEEP_SEEK_KEY</code>），可用脚本写入 <code>settings.json</code>，避免手抄出错：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">python3 - &lt;&lt;<span class="string">&#x27;PY&#x27;</span></span><br><span class="line">import json, os</span><br><span class="line">from pathlib import Path</span><br><span class="line"></span><br><span class="line"><span class="comment"># 先 source 过 zshrc，或在同 shell 中 export DEEP_SEEK_KEY</span></span><br><span class="line">key = os.environ[<span class="string">&quot;DEEP_SEEK_KEY&quot;</span>].strip().strip(<span class="string">&#x27;&quot;&#x27;</span>).strip(<span class="string">&quot;&#x27;&quot;</span>)</span><br><span class="line">path = Path.home() / <span class="string">&quot;.claude&quot;</span> / <span class="string">&quot;settings.json&quot;</span></span><br><span class="line">data = json.loads(path.read_text(encoding=<span class="string">&quot;utf-8&quot;</span>)) <span class="keyword">if</span> path.exists() <span class="keyword">else</span> &#123;&#125;</span><br><span class="line"><span class="built_in">env</span> = dict(data.get(<span class="string">&quot;env&quot;</span>) or &#123;&#125;)</span><br><span class="line">env.update(&#123;</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_BASE_URL&quot;</span>: <span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span>,</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span>: key,</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_MODEL&quot;</span>: <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span>,</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_DEFAULT_OPUS_MODEL&quot;</span>: <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span>,</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_DEFAULT_SONNET_MODEL&quot;</span>: <span class="string">&quot;deepseek-v4-pro[1m]&quot;</span>,</span><br><span class="line">    <span class="string">&quot;ANTHROPIC_DEFAULT_HAIKU_MODEL&quot;</span>: <span class="string">&quot;deepseek-v4-flash[1m]&quot;</span>,</span><br><span class="line">    <span class="string">&quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&quot;</span>: <span class="string">&quot;1&quot;</span>,</span><br><span class="line">    <span class="string">&quot;CLAUDE_CODE_EFFORT_LEVEL&quot;</span>: <span class="string">&quot;max&quot;</span>,</span><br><span class="line">&#125;)</span><br><span class="line">data[<span class="string">&quot;env&quot;</span>] = <span class="built_in">env</span></span><br><span class="line">path.parent.mkdir(parents=True, exist_ok=True)</span><br><span class="line">path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + <span class="string">&quot;\n&quot;</span>, encoding=<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">path.chmod(0o600)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;ok&quot;</span>)</span><br><span class="line">PY</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/claude-code-deepseek/claude-code-deepseek-002-config-methods.png" alt="两种配置方式对比"></p>
+<hr>
+<h2 id="7-用环境变量接入"><a href="#7-用环境变量接入" class="headerlink" title="7. 用环境变量接入"></a>7. 用环境变量接入</h2><p>适合临时切换，或不想把 Token 写进 JSON 文件时。</p>
+<h3 id="7-1-macOS-Linux"><a href="#7-1-macOS-Linux" class="headerlink" title="7.1 macOS &#x2F; Linux"></a>7.1 macOS &#x2F; Linux</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_AUTH_TOKEN=&lt;你的 DeepSeek API Key&gt;</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_MODEL=deepseek-v4-pro[1m]</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m]</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m]</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash[1m]</span><br><span class="line"><span class="built_in">export</span> CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</span><br><span class="line"><span class="built_in">export</span> CLAUDE_CODE_EFFORT_LEVEL=max</span><br></pre></td></tr></table></figure>
+
+<p>需要长期生效时，把上述 <code>export</code> 写入 <code>~/.zshrc</code> 后执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-Windows-PowerShell"><a href="#7-2-Windows-PowerShell" class="headerlink" title="7.2 Windows PowerShell"></a>7.2 Windows PowerShell</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:ANTHROPIC_BASE_URL</span>=<span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_AUTH_TOKEN</span>=<span class="string">&quot;&lt;你的 DeepSeek API Key&gt;&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_MODEL</span>=<span class="string">&quot;deepseek-v4-pro[1m]&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_DEFAULT_OPUS_MODEL</span>=<span class="string">&quot;deepseek-v4-pro[1m]&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_DEFAULT_SONNET_MODEL</span>=<span class="string">&quot;deepseek-v4-pro[1m]&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_DEFAULT_HAIKU_MODEL</span>=<span class="string">&quot;deepseek-v4-flash[1m]&quot;</span></span><br><span class="line"><span class="variable">$env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</span>=<span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="variable">$env:CLAUDE_CODE_EFFORT_LEVEL</span>=<span class="string">&quot;max&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-配置文件-vs-环境变量"><a href="#7-3-配置文件-vs-环境变量" class="headerlink" title="7.3 配置文件 vs 环境变量"></a>7.3 配置文件 vs 环境变量</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>settings.json</th>
+<th>Shell 环境变量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>持久性</td>
+<td>好</td>
+<td>取决于是否写入 rc 文件</td>
+</tr>
+<tr>
+<td>CLI + VS Code</td>
+<td>都可读</td>
+<td>扩展未必继承同一 shell 环境</td>
+</tr>
+<tr>
+<td>临时换后端</td>
+<td>改文件</td>
+<td>当前终端 <code>export</code> 更方便</td>
+</tr>
+<tr>
+<td>密钥管理</td>
+<td>注意文件权限 600</td>
+<td>可与其他 Key 一起放在 rc 文件</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-模型选择与映射"><a href="#8-模型选择与映射" class="headerlink" title="8. 模型选择与映射"></a>8. 模型选择与映射</h2><p>DeepSeek 当前常用模型 ID（以官方文档为准，会随版本更新）：</p>
+<table>
+<thead>
+<tr>
+<th>模型 ID</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>deepseek-v4-pro</code> &#x2F; <code>deepseek-v4-pro[1m]</code></td>
+<td>复杂编码、深度推理</td>
+</tr>
+<tr>
+<td><code>deepseek-v4-flash</code> &#x2F; <code>deepseek-v4-flash[1m]</code></td>
+<td>更快、更轻量的日常任务</td>
+</tr>
+</tbody></table>
+<p>在 Anthropic 兼容接口上，若传入不受支持的 Claude 模型名，服务端可能自动映射到 <code>deepseek-v4-flash</code>。官方也说明过大致映射关系：</p>
+<table>
+<thead>
+<tr>
+<th>Claude 名称前缀</th>
+<th>常见映射</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>claude-opus*</code></td>
+<td><code>deepseek-v4-pro</code></td>
+</tr>
+<tr>
+<td><code>claude-sonnet*</code> &#x2F; <code>claude-haiku*</code></td>
+<td><code>deepseek-v4-flash</code></td>
+</tr>
+</tbody></table>
+<p>更稳妥的做法仍是：在 <code>settings.json</code> 里显式写 DeepSeek 模型 ID，避免依赖隐式映射。</p>
+<p>旧别名如 <code>deepseek-chat</code>、<code>deepseek-reasoner</code> 可能逐步退役，新配置优先用 <code>deepseek-v4-*</code>。</p>
+<hr>
+<h2 id="9-验证是否接好"><a href="#9-验证是否接好" class="headerlink" title="9. 验证是否接好"></a>9. 验证是否接好</h2><h3 id="9-1-看-doctor-是否指向自定义端点"><a href="#9-1-看-doctor-是否指向自定义端点" class="headerlink" title="9.1 看 doctor 是否指向自定义端点"></a>9.1 看 doctor 是否指向自定义端点</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude doctor</span><br></pre></td></tr></table></figure>
+
+<p>若已设置 <code>ANTHROPIC_BASE_URL</code>，通常会提示 Remote Control 因非 <code>api.anthropic.com</code> 不可用——说明路由已切走。</p>
+<h3 id="9-2-直接打-Anthropic-兼容接口（可选）"><a href="#9-2-直接打-Anthropic-兼容接口（可选）" class="headerlink" title="9.2 直接打 Anthropic 兼容接口（可选）"></a>9.2 直接打 Anthropic 兼容接口（可选）</h3><p>确认 Key 与端点本身可用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">curl https://api.deepseek.com/anthropic/v1/messages \</span><br><span class="line">  -H <span class="string">&quot;content-type: application/json&quot;</span> \</span><br><span class="line">  -H <span class="string">&quot;x-api-key: <span class="variable">$ANTHROPIC_AUTH_TOKEN</span>&quot;</span> \</span><br><span class="line">  -H <span class="string">&quot;anthropic-version: 2023-06-01&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;model&quot;: &quot;deepseek-v4-flash&quot;,</span></span><br><span class="line"><span class="string">    &quot;max_tokens&quot;: 32,</span></span><br><span class="line"><span class="string">    &quot;messages&quot;: [&#123;&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;Reply with exactly: OK&quot;&#125;]</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>期望返回 HTTP 200，且正文中有模型回复。</p>
+<h3 id="9-3-启动真实会话"><a href="#9-3-启动真实会话" class="headerlink" title="9.3 启动真实会话"></a>9.3 启动真实会话</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/your-project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+
+<p>进会话后随便问一句；能正常流式回复，即端到端打通。</p>
+<hr>
+<h2 id="10-日常使用"><a href="#10-日常使用" class="headerlink" title="10. 日常使用"></a>10. 日常使用</h2><p>基本流程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/my-project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+
+<p>实践建议：</p>
+<ol>
+<li>在具体项目根目录启动，便于相对路径与 Git 上下文准确</li>
+<li>大改动前先说明约束（不要改哪些目录、是否允许装依赖）</li>
+<li>密钥只放本机配置，不要提交到 Git</li>
+<li>需要切回 Anthropic 官方时：去掉自定义 Base URL &#x2F; Token，或换一份 settings 备份</li>
+</ol>
+<p>临时禁用 DeepSeek 路由的最简单方式：把 <code>~/.claude/settings.json</code> 里 <code>env</code> 中相关项注释掉不现实（JSON 无注释），可改为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mv</span> ~/.claude/settings.json ~/.claude/settings.deepseek.json.bak</span><br></pre></td></tr></table></figure>
+
+<p>恢复时再移回。</p>
+<hr>
+<h2 id="11-VS-Code-扩展方式"><a href="#11-VS-Code-扩展方式" class="headerlink" title="11. VS Code 扩展方式"></a>11. VS Code 扩展方式</h2><ol>
+<li>安装 <a target="_blank" rel="noopener" href="https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code">Claude Code VS Code Extension</a></li>
+<li>使用与 CLI 相同的 <code>~/.claude/settings.json</code></li>
+<li>搜索并勾选 <code>claudeCode.disableLoginPrompt</code>（避免一直卡在官方登录页）</li>
+<li>打开项目 → 侧边栏 Claude Code → <code>New session</code></li>
+</ol>
+<p>扩展读的是用户级配置文件，因此优先把 DeepSeek 配进 <code>settings.json</code>，不要只 <code>export</code> 在某个终端会话里。</p>
+<hr>
+<h2 id="12-常见问题"><a href="#12-常见问题" class="headerlink" title="12. 常见问题"></a>12. 常见问题</h2><h3 id="12-1-EBADENGINE-安装警告"><a href="#12-1-EBADENGINE-安装警告" class="headerlink" title="12.1 EBADENGINE &#x2F; 安装警告"></a>12.1 <code>EBADENGINE</code> &#x2F; 安装警告</h3><p>Node 版本低于 Claude Code 声明的下限。按第 3.3 节升到 Node 22+ 后重新全局安装。</p>
+<h3 id="12-2-command-not-found-claude"><a href="#12-2-command-not-found-claude" class="headerlink" title="12.2 command not found: claude"></a>12.2 <code>command not found: claude</code></h3><ul>
+<li>确认已执行 <code>npm install -g @anthropic-ai/claude-code</code></li>
+<li>确认 <code>$(npm prefix -g)/bin</code> 已在 <code>PATH</code>（见第 3.4、4.1 节）</li>
+<li>改完 <code>~/.zshrc</code> 后必须 <code>source</code> 或新开终端</li>
+</ul>
+<h3 id="12-3-command-not-found-git（尤其-Windows）"><a href="#12-3-command-not-found-git（尤其-Windows）" class="headerlink" title="12.3 command not found: git（尤其 Windows）"></a>12.3 <code>command not found: git</code>（尤其 Windows）</h3><p>按第 3.2 节安装 Git，并重新打开终端。Claude Code 在 Windows 上依赖 Git 环境。</p>
+<h3 id="12-4-401-鉴权失败"><a href="#12-4-401-鉴权失败" class="headerlink" title="12.4 401 &#x2F; 鉴权失败"></a>12.4 401 &#x2F; 鉴权失败</h3><p>核对：</p>
+<ul>
+<li>Key 是否完整、无多余空格或引号</li>
+<li>使用的是 <code>ANTHROPIC_AUTH_TOKEN</code>（不是只写了 OpenAI 风格的别处变量）</li>
+<li>Base URL 是否精确为 <code>https://api.deepseek.com/anthropic</code></li>
+<li>本机能否访问 <code>https://api.deepseek.com</code>（第 3.5 节）</li>
+</ul>
+<h3 id="12-5-仍在走-Anthropic-或要求登录"><a href="#12-5-仍在走-Anthropic-或要求登录" class="headerlink" title="12.5 仍在走 Anthropic 或要求登录"></a>12.5 仍在走 Anthropic 或要求登录</h3><ul>
+<li>VS Code：确认 <code>disableLoginPrompt</code> 已开，且 settings 已被扩展读到（重启编辑器）</li>
+<li>CLI：确认当前 shell 没有覆盖错误的环境变量</li>
+<li>Desktop 客户端：本文方案不适用</li>
+</ul>
+<h3 id="12-6-模型名无效"><a href="#12-6-模型名无效" class="headerlink" title="12.6 模型名无效"></a>12.6 模型名无效</h3><p>改用官方当前 ID：<code>deepseek-v4-pro</code> &#x2F; <code>deepseek-v4-flash</code>（含或不含 <code>[1m]</code> 以平台文档为准）。不要继续依赖已退役别名。</p>
+<h3 id="12-7-claude-doctor-提示-Remote-Control-不可用"><a href="#12-7-claude-doctor-提示-Remote-Control-不可用" class="headerlink" title="12.7 claude doctor 提示 Remote Control 不可用"></a>12.7 <code>claude doctor</code> 提示 Remote Control 不可用</h3><p>自定义 Base URL 时的预期现象，不代表安装失败。</p>
+<h3 id="12-8-npm-全局路径与-nvm-冲突"><a href="#12-8-npm-全局路径与-nvm-冲突" class="headerlink" title="12.8 npm 全局路径与 nvm 冲突"></a>12.8 npm 全局路径与 nvm 冲突</h3><p>若 <code>~/.npmrc</code> 固定了 <code>prefix</code>，nvm 可能提示不兼容。可继续用固定前缀安装 Claude Code，只要 <code>which claude</code> 能找到即可；或按 nvm 提示清理冲突配置后再装（见第 3.4 节）。</p>
+<h3 id="12-9-curl-npm-超时"><a href="#12-9-curl-npm-超时" class="headerlink" title="12.9 curl &#x2F; npm 超时"></a>12.9 curl &#x2F; npm 超时</h3><p>多为代理或防火墙问题。检查 <code>http_proxy</code> &#x2F; <code>https_proxy</code>，或换网络后重试第 3.5、3.8 节探测。</p>
+<hr>
+<h2 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h2><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>要点（对照本机）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>环境</td>
+<td>macOS 15.7.7 arm64 + zsh；Git 2.39.5；nvm → Node <strong>v22.23.2</strong> &#x2F; npm 10.9.8；<code>~/.npm-global</code>；<code>DEEP_SEEK_KEY</code></td>
+</tr>
+<tr>
+<td>安装</td>
+<td><code>npm i -g @anthropic-ai/claude-code</code> → 本机 <code>2.1.233</code> @ <code>~/.npm-global/bin/claude</code></td>
+</tr>
+<tr>
+<td>接入</td>
+<td>Base URL &#x3D; <code>https://api.deepseek.com/anthropic</code></td>
+</tr>
+<tr>
+<td>鉴权</td>
+<td><code>ANTHROPIC_AUTH_TOKEN</code> ← 由 <code>DEEP_SEEK_KEY</code> 写入</td>
+</tr>
+<tr>
+<td>模型</td>
+<td><code>deepseek-v4-pro[1m]</code> &#x2F; <code>deepseek-v4-flash[1m]</code></td>
+</tr>
+<tr>
+<td>推荐落点</td>
+<td><code>~/.claude/settings.json</code>（权限 600）</td>
+</tr>
+<tr>
+<td>验证</td>
+<td>第 3.1 &#x2F; 3.9 节检查 → <code>claude doctor</code> → 进项目跑 <code>claude</code></td>
+</tr>
+</tbody></table>
+<p>顺序固定为：<strong>先对齐第 3.1 节本机环境 → 再装 Claude Code → 再写 DeepSeek 路由配置</strong>。环境没齐时不要急着改 <code>settings.json</code>，否则问题会叠在一起难排查。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/17/claude-code-deepseek-guide/">https://qijianyeah.github.io/2026/08/17/claude-code-deepseek-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Claude-Code/">Claude Code</a><a class="post-meta__tags" href="/tags/DeepSeek/">DeepSeek</a><a class="post-meta__tags" href="/tags/Node-js/">Node.js</a><a class="post-meta__tags" href="/tags/AI-%E7%BC%96%E7%A8%8B/">AI 编程</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</div></div><div class="info-2"><div class="info-item-1">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境项目稍大一点，就不能把所有代码塞进一个文件。Python 用模块组织代码，用包管理模块，再用 pip 安装第三方库，用虚拟环境隔离依赖。本文按这条主线把概念一次讲清。  目录 1. 什么是模块 2. 为什么要使用模块 3. 模块的三种分类 4. 自定义模块 5. 模块导入方式 6. 模块搜索顺序 7. __all__ 控制星号导入 8. 包：用目录组织模块 9. 第三方库、PyPI 与 pip 10. 全局环境与虚拟环境 11. 学习小结与实践建议   1. 什么是模块在 Python 中，一个 .py 文件通常就是一个模块（Module）。可以把模块理解成工具箱：把相关代码集中放在一起，需要时再导入使用。 一个模块里可以放：    内容 例子    变量 num = 100   函数 def test(a, b): ...   类 class User: ...   常量 MAX_RETRY = 3   可执行语句 导入时会执行的初始化代码   目的只有一个：按功能拆分代码，统一管理。  2....</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">51</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Claude-Code-%E5%AE%89%E8%A3%85%E4%B8%8E%E6%8E%A5%E5%85%A5-DeepSeek-%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97"><span class="toc-number">1.</span> <span class="toc-text">Claude Code 安装与接入 DeepSeek 完全指南</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Claude-Code-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.</span> <span class="toc-text">1. Claude Code 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8E%A5%E5%85%A5-DeepSeek"><span class="toc-number">1.3.</span> <span class="toc-text">2. 为什么接入 DeepSeek</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85%EF%BC%88%E5%BF%85%E5%81%9A%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">3. 环境安装（必做）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%9C%AC%E6%9C%BA%E5%AE%9E%E8%B7%B5%E7%8E%AF%E5%A2%83%EF%BC%88%E6%9C%AC%E6%96%87%E5%AE%9E%E6%B5%8B%EF%BC%89"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 本机实践环境（本文实测）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%8E%AF%E5%A2%83%E6%B8%85%E5%8D%95"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 环境清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%89%E8%A3%85-Git"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 安装 Git</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#macOS%EF%BC%88%E6%9C%AC%E6%9C%BA%E9%87%87%E7%94%A8%E6%AD%A4%E8%B7%AF%E5%BE%84%EF%BC%89"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">macOS（本机采用此路径）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Linux%EF%BC%88Debian-Ubuntu%EF%BC%89"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">Linux（Debian &#x2F; Ubuntu）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows"><span class="toc-number">1.4.3.3.</span> <span class="toc-text">Windows</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%AE%89%E8%A3%85-Node-js-22"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 安装 Node.js 22+</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-A%EF%BC%9Anvm%EF%BC%88%E6%9C%AC%E6%9C%BA%E9%87%87%E7%94%A8%EF%BC%8C%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.4.4.1.</span> <span class="toc-text">方式 A：nvm（本机采用，推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-B%EF%BC%9AHomebrew%EF%BC%88macOS%EF%BC%89"><span class="toc-number">1.4.4.2.</span> <span class="toc-text">方式 B：Homebrew（macOS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-C%EF%BC%9A%E5%AE%98%E7%BD%91%E5%AE%89%E8%A3%85%E5%8C%85"><span class="toc-number">1.4.4.3.</span> <span class="toc-text">方式 C：官网安装包</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Windows-%E8%A1%A5%E5%85%85"><span class="toc-number">1.4.4.4.</span> <span class="toc-text">Windows 补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E9%85%8D%E7%BD%AE-npm-%E5%85%A8%E5%B1%80%E7%9B%AE%E5%BD%95%EF%BC%88%E6%9C%AC%E6%9C%BA%EF%BC%9A-npm-global%EF%BC%89"><span class="toc-number">1.4.5.</span> <span class="toc-text">3.5 配置 npm 全局目录（本机：~&#x2F;.npm-global）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E7%BD%91%E7%BB%9C%E4%B8%8E%E4%BB%A3%E7%90%86"><span class="toc-number">1.4.6.</span> <span class="toc-text">3.6 网络与代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E7%94%B3%E8%AF%B7-DeepSeek-API-Key%EF%BC%88%E6%9C%AC%E6%9C%BA%E5%8F%98%E9%87%8F%E5%90%8D%EF%BC%9ADEEP-SEEK-KEY%EF%BC%89"><span class="toc-number">1.4.7.</span> <span class="toc-text">3.7 申请 DeepSeek API Key（本机变量名：DEEP_SEEK_KEY）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89%E5%AE%89%E8%A3%85-VS-Code"><span class="toc-number">1.4.8.</span> <span class="toc-text">3.8（可选）安装 VS Code</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E4%B8%80%E9%94%AE%E7%8E%AF%E5%A2%83%E6%A3%80%E6%9F%A5%E8%84%9A%E6%9C%AC"><span class="toc-number">1.4.9.</span> <span class="toc-text">3.9 一键环境检查脚本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%89%E8%A3%85-Claude-Code"><span class="toc-number">1.5.</span> <span class="toc-text">4. 安装 Claude Code</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%A8%E5%B1%80%E5%AE%89%E8%A3%85-CLI"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 全局安装 CLI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 健康检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E8%B5%B0%E5%88%B0-DeepSeek"><span class="toc-number">1.6.</span> <span class="toc-text">5. 请求如何走到 DeepSeek</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E9%85%8D%E7%BD%AE%E6%8E%A5%E5%85%A5%EF%BC%88%E6%8E%A8%E8%8D%90-settings-json%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">6. 配置接入（推荐 settings.json）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 文件位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%8E%A8%E8%8D%90%E5%86%85%E5%AE%B9"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 推荐内容</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E7%94%A8%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%8E%A5%E5%85%A5"><span class="toc-number">1.8.</span> <span class="toc-text">7. 用环境变量接入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-macOS-Linux"><span class="toc-number">1.8.1.</span> <span class="toc-text">7.1 macOS &#x2F; Linux</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Windows-PowerShell"><span class="toc-number">1.8.2.</span> <span class="toc-text">7.2 Windows PowerShell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-vs-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.8.3.</span> <span class="toc-text">7.3 配置文件 vs 环境变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E4%B8%8E%E6%98%A0%E5%B0%84"><span class="toc-number">1.9.</span> <span class="toc-text">8. 模型选择与映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E9%AA%8C%E8%AF%81%E6%98%AF%E5%90%A6%E6%8E%A5%E5%A5%BD"><span class="toc-number">1.10.</span> <span class="toc-text">9. 验证是否接好</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E7%9C%8B-doctor-%E6%98%AF%E5%90%A6%E6%8C%87%E5%90%91%E8%87%AA%E5%AE%9A%E4%B9%89%E7%AB%AF%E7%82%B9"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 看 doctor 是否指向自定义端点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E7%9B%B4%E6%8E%A5%E6%89%93-Anthropic-%E5%85%BC%E5%AE%B9%E6%8E%A5%E5%8F%A3%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 直接打 Anthropic 兼容接口（可选）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%90%AF%E5%8A%A8%E7%9C%9F%E5%AE%9E%E4%BC%9A%E8%AF%9D"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 启动真实会话</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%97%A5%E5%B8%B8%E4%BD%BF%E7%94%A8"><span class="toc-number">1.11.</span> <span class="toc-text">10. 日常使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-VS-Code-%E6%89%A9%E5%B1%95%E6%96%B9%E5%BC%8F"><span class="toc-number">1.12.</span> <span class="toc-text">11. VS Code 扩展方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">1.13.</span> <span class="toc-text">12. 常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-EBADENGINE-%E5%AE%89%E8%A3%85%E8%AD%A6%E5%91%8A"><span class="toc-number">1.13.1.</span> <span class="toc-text">12.1 EBADENGINE &#x2F; 安装警告</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-command-not-found-claude"><span class="toc-number">1.13.2.</span> <span class="toc-text">12.2 command not found: claude</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-command-not-found-git%EF%BC%88%E5%B0%A4%E5%85%B6-Windows%EF%BC%89"><span class="toc-number">1.13.3.</span> <span class="toc-text">12.3 command not found: git（尤其 Windows）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-401-%E9%89%B4%E6%9D%83%E5%A4%B1%E8%B4%A5"><span class="toc-number">1.13.4.</span> <span class="toc-text">12.4 401 &#x2F; 鉴权失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E4%BB%8D%E5%9C%A8%E8%B5%B0-Anthropic-%E6%88%96%E8%A6%81%E6%B1%82%E7%99%BB%E5%BD%95"><span class="toc-number">1.13.5.</span> <span class="toc-text">12.5 仍在走 Anthropic 或要求登录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E6%A8%A1%E5%9E%8B%E5%90%8D%E6%97%A0%E6%95%88"><span class="toc-number">1.13.6.</span> <span class="toc-text">12.6 模型名无效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-claude-doctor-%E6%8F%90%E7%A4%BA-Remote-Control-%E4%B8%8D%E5%8F%AF%E7%94%A8"><span class="toc-number">1.13.7.</span> <span class="toc-text">12.7 claude doctor 提示 Remote Control 不可用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-8-npm-%E5%85%A8%E5%B1%80%E8%B7%AF%E5%BE%84%E4%B8%8E-nvm-%E5%86%B2%E7%AA%81"><span class="toc-number">1.13.8.</span> <span class="toc-text">12.8 npm 全局路径与 nvm 冲突</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-9-curl-npm-%E8%B6%85%E6%97%B6"><span class="toc-number">1.13.9.</span> <span class="toc-text">12.9 curl &#x2F; npm 超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.14.</span> <span class="toc-text">13. 小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/claude-code-deepseek-guide/" title="Claude Code 安装与接入 DeepSeek 完全指南">Claude Code 安装与接入 DeepSeek 完全指南</a><time datetime="2026-08-17T14:20:00.000Z" title="发表于 2026-08-17 22:20:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</a><time datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</a><time datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</a><time datetime="2026-08-15T17:19:00.000Z" title="发表于 2026-08-16 01:19:00">2026-08-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态">Python 面向对象完全指南：从类与对象到封装、继承和多态</a><time datetime="2026-08-15T17:00:00.000Z" title="发表于 2026-08-16 01:00:00">2026-08-16</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
