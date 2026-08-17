@@ -1,0 +1,481 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Dify 入门完全指南：本地部署、模型接入与第一个工作流 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Dify 入门完全指南：本地部署、模型接入与第一个工作流Dify 是面向 LLM 应用开发的开源平台。它把模型供应商、提示词、知识库、工作流、应用发布与 API 集成放到同一套产品界面中：非开发者可以用可视化方式搭建应用，开发者则可以把工作流和模型能力接入现有系统。 本文从平台定位开始，完成一次基于 Docker Compose 的本地部署，再搭建一个“开始 → LLM → 结束”的最小工作流。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dify 入门完全指南：本地部署、模型接入与第一个工作流">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/17/dify-beginner-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Dify 入门完全指南：本地部署、模型接入与第一个工作流Dify 是面向 LLM 应用开发的开源平台。它把模型供应商、提示词、知识库、工作流、应用发布与 API 集成放到同一套产品界面中：非开发者可以用可视化方式搭建应用，开发者则可以把工作流和模型能力接入现有系统。 本文从平台定位开始，完成一次基于 Docker Compose 的本地部署，再搭建一个“开始 → LLM → 结束”的最小工作流。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-17T14:49:00.000Z">
+<meta property="article:modified_time" content="2026-08-17T14:50:05.710Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Dify">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="工作流">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/17/dify-beginner-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Dify 入门完全指南：本地部署、模型接入与第一个工作流',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">55</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">56</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Dify 入门完全指南：本地部署、模型接入与第一个工作流</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Dify 入门完全指南：本地部署、模型接入与第一个工作流</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-17T14:49:00.000Z" title="发表于 2026-08-17 22:49:00">2026-08-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-17T14:50:05.710Z" title="更新于 2026-08-17 22:50:05">2026-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E5%B7%A5%E5%85%B7%E5%AE%9E%E8%B7%B5/">AI 工具实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Dify-入门完全指南：本地部署、模型接入与第一个工作流"><a href="#Dify-入门完全指南：本地部署、模型接入与第一个工作流" class="headerlink" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流"></a>Dify 入门完全指南：本地部署、模型接入与第一个工作流</h1><p>Dify 是面向 LLM 应用开发的开源平台。它把模型供应商、提示词、知识库、工作流、应用发布与 API 集成放到同一套产品界面中：非开发者可以用可视化方式搭建应用，开发者则可以把工作流和模型能力接入现有系统。</p>
+<p>本文从平台定位开始，完成一次基于 Docker Compose 的本地部署，再搭建一个“开始 → LLM → 结束”的最小工作流。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-dify-%E6%98%AF%E4%BB%80%E4%B9%88">1. Dify 是什么</a></li>
+<li><a href="#2-%E9%83%A8%E7%BD%B2%E5%89%8D%E5%87%86%E5%A4%87">2. 部署前准备</a></li>
+<li><a href="#3-%E7%94%A8-docker-compose-%E9%83%A8%E7%BD%B2-dify">3. 用 Docker Compose 部署 Dify</a></li>
+<li><a href="#4-%E5%AE%8C%E6%88%90%E9%A6%96%E6%AC%A1%E5%88%9D%E5%A7%8B%E5%8C%96">4. 完成首次初始化</a></li>
+<li><a href="#5-%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9E%8B%E4%BE%9B%E5%BA%94%E5%95%86">5. 配置模型供应商</a></li>
+<li><a href="#6-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BA%94%E7%94%A8">6. 创建第一个工作流应用</a></li>
+<li><a href="#7-%E8%AF%95%E8%BF%90%E8%A1%8C%E4%B8%8E%E6%8E%92%E9%9A%9C">7. 试运行与排障</a></li>
+<li><a href="#8-dify-%E4%B8%8E-coze-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9">8. Dify 与 Coze 如何选择</a></li>
+<li><a href="#9-%E5%B0%8F%E7%BB%93">9. 小结</a></li>
+</ul>
+<hr>
+<h2 id="1-Dify-是什么"><a href="#1-Dify-是什么" class="headerlink" title="1. Dify 是什么"></a>1. Dify 是什么</h2><p>Dify 可以理解为一套 LLM 应用开发平台：它不负责训练基础模型，而是把“调用模型、组织上下文、处理输入输出、编排业务流程、对外发布应用”这些重复工作产品化。</p>
+<p>典型能力包括：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型供应商管理</td>
+<td>统一配置 LLM、Embedding、重排序、语音等模型凭据</td>
+</tr>
+<tr>
+<td>Prompt 与应用编排</td>
+<td>用应用或工作流组织提示词、变量和输出</td>
+</tr>
+<tr>
+<td>RAG &#x2F; 知识库</td>
+<td>处理文档、分段、向量检索与引用</td>
+</tr>
+<tr>
+<td>工作流节点</td>
+<td>用开始、LLM、代码、条件、迭代、工具等节点实现逻辑</td>
+</tr>
+<tr>
+<td>API 与发布</td>
+<td>把应用能力以 Web 应用或 API 的形式交付</td>
+</tr>
+</tbody></table>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-001-platform-overview.png" alt="Dify 平台概览"></p>
+<p>从工程视角看，Dify 接近“面向生成式 AI 的 BaaS（Backend as a Service）”：平台封装了大量基础设施，团队可以把精力集中在业务数据、流程设计、提示词和评测上。</p>
+<blockquote>
+<p>BaaS 的核心价值不是取代业务后端，而是把用户鉴权、数据存储、任务调度、接口接入等通用能力服务化。Dify 则把其中与 LLM 应用最相关的那部分能力进一步封装。</p>
+</blockquote>
+<hr>
+<h2 id="2-部署前准备"><a href="#2-部署前准备" class="headerlink" title="2. 部署前准备"></a>2. 部署前准备</h2><p>官方 Docker Compose 快速部署要求至少具备：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CPU</td>
+<td>不低于 2 核</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>不低于 4 GiB；本地 Docker Desktop 通常建议分配更多内存</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>Linux Docker 19.03+ 或 Docker Desktop</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>2.24.0+</td>
+</tr>
+<tr>
+<td>工具</td>
+<td><code>git</code>、<code>curl</code>；按官方“拉取最新发布版”命令还需要 <code>jq</code></td>
+</tr>
+</tbody></table>
+<p>先检查环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker --version</span><br><span class="line">docker compose version</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1-Windows：WSL-与-Docker-Desktop"><a href="#2-1-Windows：WSL-与-Docker-Desktop" class="headerlink" title="2.1 Windows：WSL 与 Docker Desktop"></a>2.1 Windows：WSL 与 Docker Desktop</h3><p>Windows 上建议使用 WSL 2 后端运行 Docker Desktop。管理员 PowerShell 中可执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl <span class="literal">--install</span></span><br></pre></td></tr></table></figure>
+
+<p>重启并完成 Linux 发行版初始化后，再安装 Docker Desktop，并确认设置中启用了 WSL 2 后端。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-002-docker-desktop-settings.png" alt="Docker Desktop 设置界面"></p>
+<h3 id="2-2-镜像拉取问题"><a href="#2-2-镜像拉取问题" class="headerlink" title="2.2 镜像拉取问题"></a>2.2 镜像拉取问题</h3><p>不要把某个第三方镜像站当成永久可用的固定配置。镜像源的可用性和合规状态会变化；拉取失败时优先：</p>
+<ol>
+<li>检查网络、DNS、代理与 Docker Desktop 状态；</li>
+<li>使用企业已批准的镜像仓库或镜像代理；</li>
+<li>查看 Dify 官方部署 FAQ 与当前发布说明；</li>
+<li>避免把不明来源的镜像配置直接用于生产环境。</li>
+</ol>
+<hr>
+<h2 id="3-用-Docker-Compose-部署-Dify"><a href="#3-用-Docker-Compose-部署-Dify" class="headerlink" title="3. 用 Docker Compose 部署 Dify"></a>3. 用 Docker Compose 部署 Dify</h2><p>以下流程按 Dify 官方 Docker Compose 文档整理。为了避免某次克隆拿到不兼容的开发分支，建议优先拉取最新 release 标签。</p>
+<h3 id="3-1-获取代码"><a href="#3-1-获取代码" class="headerlink" title="3.1 获取代码"></a>3.1 获取代码</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 需要 git、curl、jq</span></span><br><span class="line">git <span class="built_in">clone</span> --branch <span class="string">&quot;<span class="subst">$(curl -s https://api.github.com/repos/langgenius/dify/releases/latest | jq -r .tag_name)</span>&quot;</span> \</span><br><span class="line">  https://github.com/langgenius/dify.git</span><br></pre></td></tr></table></figure>
+
+<p>如果不需要自动解析 release 标签，也可以直接克隆仓库后切换到确定的发布版本。</p>
+<p>课程原始操作中也展示了从 GitHub 获取项目的方式：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-003-clone-project.png" alt="获取 Dify 项目"></p>
+<h3 id="3-2-进入-Docker-目录并准备环境变量"><a href="#3-2-进入-Docker-目录并准备环境变量" class="headerlink" title="3.2 进入 Docker 目录并准备环境变量"></a>3.2 进入 Docker 目录并准备环境变量</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> dify/docker</span><br><span class="line"><span class="built_in">cp</span> .env.example .<span class="built_in">env</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>.env</code> 是 Compose 部署配置，不应提交到公开仓库。后续若要调整域名、端口、存储、向量库或安全参数，应修改该文件并参考官方环境变量文档。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-004-docker-directory.png" alt="Dify 的 Docker 目录"></p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-005-env-file.png" alt="复制并准备 .env 文件"></p>
+<h3 id="3-3-启动服务"><a href="#3-3-启动服务" class="headerlink" title="3.3 启动服务"></a>3.3 启动服务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-006-open-terminal.png" alt="在终端中启动 Compose 服务"></p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-007-compose-start.png" alt="Compose 启动结果"></p>
+<p>启动后立刻检查状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker compose ps</span><br><span class="line">docker compose logs -f --<span class="built_in">tail</span>=100</span><br></pre></td></tr></table></figure>
+
+<p>大部分长期运行容器应处于 <code>Up</code> 或 <code>healthy</code>。某些只负责初始化权限的一次性任务容器完成后显示 <code>Exited</code> 可能是正常现象，应结合服务名称和日志判断。</p>
+<h3 id="3-4-常用运维命令"><a href="#3-4-常用运维命令" class="headerlink" title="3.4 常用运维命令"></a>3.4 常用运维命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停止并移除当前 Compose 服务</span></span><br><span class="line">docker compose down</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新拉取镜像并启动</span></span><br><span class="line">docker compose pull</span><br><span class="line">docker compose up -d</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看某个服务日志</span></span><br><span class="line">docker compose logs -f api</span><br></pre></td></tr></table></figure>
+
+<p>生产环境升级前要先阅读版本发布说明和迁移要求，并备份数据库与挂载卷；不要直接在生产机上无备份执行破坏性命令。</p>
+<hr>
+<h2 id="4-完成首次初始化"><a href="#4-完成首次初始化" class="headerlink" title="4. 完成首次初始化"></a>4. 完成首次初始化</h2><p>默认本地访问地址通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost/install</span><br></pre></td></tr></table></figure>
+
+<p>也可使用原教程中的回环地址：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/install</span><br></pre></td></tr></table></figure>
+
+<p>首次进入页面时，按向导创建工作区管理员账号。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-008-initial-setup.png" alt="首次安装向导"></p>
+<p>完成后进入工作区主界面：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-009-dashboard.png" alt="Dify 工作区主界面"></p>
+<p>如果页面无法访问，按下面顺序排查：</p>
+<ol>
+<li><code>docker compose ps</code> 是否有核心容器未启动；</li>
+<li>宿主机端口是否已被占用；</li>
+<li>Docker Desktop 是否正常运行；</li>
+<li>浏览器访问的地址是否与 <code>.env</code> 中的端口配置一致；</li>
+<li>查看 <code>docker compose logs -f</code> 中的 API、Web、Nginx 等日志。</li>
+</ol>
+<hr>
+<h2 id="5-配置模型供应商"><a href="#5-配置模型供应商" class="headerlink" title="5. 配置模型供应商"></a>5. 配置模型供应商</h2><p>Dify 应用必须至少有一个可用模型。进入 <strong>Integrations（集成）→ Model Provider（模型供应商）</strong>，安装所需供应商插件后，输入 API Key 或其他凭据。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-010-model-provider.png" alt="模型供应商配置入口"></p>
+<p>常见模型类别：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>常见用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LLM &#x2F; 系统推理模型</td>
+<td>聊天、生成、分类、总结、工作流 LLM 节点</td>
+</tr>
+<tr>
+<td>Embedding</td>
+<td>文档向量化、知识库检索、语义召回</td>
+</tr>
+<tr>
+<td>Rerank</td>
+<td>对初步检索结果按相关性重新排序</td>
+</tr>
+<tr>
+<td>Speech-to-Text</td>
+<td>语音转文本</td>
+</tr>
+<tr>
+<td>Text-to-Speech</td>
+<td>文本转语音</td>
+</tr>
+</tbody></table>
+<p>配置时注意：</p>
+<ul>
+<li>凭据通常对工作区可用，管理员应按最小权限与成本边界管理；</li>
+<li>新模型或微调模型未出现在预置列表时，是否可添加取决于供应商插件能力；</li>
+<li>Dify 的供应商与模型通过插件体系演进，具体页面名称、支持模型和参数会随版本变化，以当前产品界面和官方文档为准。</li>
+</ul>
+<hr>
+<h2 id="6-创建第一个工作流应用"><a href="#6-创建第一个工作流应用" class="headerlink" title="6. 创建第一个工作流应用"></a>6. 创建第一个工作流应用</h2><p>最适合理解 Dify 的第一个例子，是一个最小问答工作流：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">开始节点（接收 query）</span><br><span class="line">        ↓</span><br><span class="line">LLM 节点（引用 query 并生成回答）</span><br><span class="line">        ↓</span><br><span class="line">结束节点（返回 LLM 输出）</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-1-创建空白应用"><a href="#6-1-创建空白应用" class="headerlink" title="6.1 创建空白应用"></a>6.1 创建空白应用</h3><p>进入工作室，创建空白工作流应用。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-011-create-app.png" alt="创建空白应用"></p>
+<p>在 Dify 中，“应用”更接近一套可执行、可发布的 AI 流程；工作流负责把输入、模型、工具和输出连接起来。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-012-basic-workflow.png" alt="最小工作流骨架"></p>
+<h3 id="6-2-配置开始节点"><a href="#6-2-配置开始节点" class="headerlink" title="6.2 配置开始节点"></a>6.2 配置开始节点</h3><p>在开始节点添加一个文本变量，例如 <code>query</code>，用于接收用户问题。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-013-start-input.png" alt="开始节点输入变量"></p>
+<p>变量名、类型、是否必填要和后续节点引用保持一致。变量名改变后，应同步检查下游 LLM 节点的引用。</p>
+<h3 id="6-3-添加-LLM-节点"><a href="#6-3-添加-LLM-节点" class="headerlink" title="6.3 添加 LLM 节点"></a>6.3 添加 LLM 节点</h3><p>从画布中添加 LLM 节点，选择已配置的模型。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-014-add-llm-node.png" alt="添加 LLM 节点"></p>
+<p>在提示词中引用开始节点的 <code>query</code>。示例系统提示词不必夸张，关键是清楚地描述角色、任务、约束与输出形式：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">你是一个可靠的中文助手。</span><br><span class="line">请基于用户问题给出准确、清晰的回答。</span><br><span class="line">如果信息不足，请直接说明需要补充什么信息。</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-015-llm-configuration.png" alt="配置 LLM 节点"></p>
+<h3 id="6-4-添加结束节点"><a href="#6-4-添加结束节点" class="headerlink" title="6.4 添加结束节点"></a>6.4 添加结束节点</h3><p>结束节点负责把 LLM 节点的文本输出暴露为工作流结果。将它连接到 LLM，并选择对应的输出变量。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-016-end-node.png" alt="配置结束节点输出"></p>
+<hr>
+<h2 id="7-试运行与排障"><a href="#7-试运行与排障" class="headerlink" title="7. 试运行与排障"></a>7. 试运行与排障</h2><p>点击工作流的试运行入口，输入一个问题，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">西安有什么值得尝试的本地美食？</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-017-debug-run.png" alt="工作流试运行"></p>
+<p>检查节点执行路径、输入变量和最终响应：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-beginner/dify-beginner-018-debug-output.png" alt="工作流执行结果"></p>
+<p>如果 LLM 节点报错，优先检查：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>鉴权失败</td>
+<td>模型供应商 API Key、组织 &#x2F; Endpoint 配置、账户余额与权限</td>
+</tr>
+<tr>
+<td>模型不可选</td>
+<td>对应供应商插件是否已安装且凭据验证成功</td>
+</tr>
+<tr>
+<td>变量为空</td>
+<td>节点连线、变量选择、开始节点输入是否正确</td>
+</tr>
+<tr>
+<td>超时</td>
+<td>网络、模型服务状态、输入长度、工作流超时配置</td>
+</tr>
+<tr>
+<td>输出格式不稳定</td>
+<td>在 Prompt 中明确 JSON &#x2F; Markdown 等格式，必要时加入结构化输出校验</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-Dify-与-Coze-如何选择"><a href="#8-Dify-与-Coze-如何选择" class="headerlink" title="8. Dify 与 Coze 如何选择"></a>8. Dify 与 Coze 如何选择</h2><p>Dify 和 Coze 都能构建 AI 应用，但不应把它们简单视为可互换工具。产品能力、定价、部署方式和区域可用性会持续变化，选型应回到实际约束。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>更适合优先考虑 Dify 的情形</th>
+<th>更适合优先考虑 Coze 的情形</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>部署与数据</td>
+<td>希望自托管、接入内部网络或受合规约束</td>
+<td>更偏好云端托管、降低基础设施运维</td>
+</tr>
+<tr>
+<td>工程集成</td>
+<td>要接入现有业务 API、知识库与发布流程</td>
+<td>希望快速做面向用户的 Bot 或内容原型</td>
+</tr>
+<tr>
+<td>可定制性</td>
+<td>需要细粒度工作流、模型或插件定制</td>
+<td>需求以平台现成功能为主</td>
+</tr>
+<tr>
+<td>使用门槛</td>
+<td>有开发 &#x2F; AI 工程支持</td>
+<td>产品、运营、内容团队希望快速上手</td>
+</tr>
+</tbody></table>
+<p>实际选择时，先回答四个问题：</p>
+<ol>
+<li>数据能否出网，是否要求私有化部署？</li>
+<li>需要对接哪些内部系统与模型供应商？</li>
+<li>谁负责后续运维、版本升级、观测与成本控制？</li>
+<li>是验证一个轻量原型，还是建设长期运行的生产应用？</li>
+</ol>
+<hr>
+<h2 id="9-小结"><a href="#9-小结" class="headerlink" title="9. 小结"></a>9. 小结</h2><p>完成本篇后，你应该已经走通了这条最小路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">准备 Docker → 拉取 Dify → 配置 .env → docker compose up -d</span><br><span class="line">→ 创建管理员 → 配置模型供应商 → 搭建 开始 → LLM → 结束 工作流</span><br><span class="line">→ 试运行并查看节点输出</span><br></pre></td></tr></table></figure>
+
+<p>下一步可继续学习文档提取、代码节点、迭代节点与结构化输出，把简单问答工作流升级为可处理真实业务数据的应用。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/17/dify-beginner-guide/">https://qijianyeah.github.io/2026/08/17/dify-beginner-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/Dify/">Dify</a><a class="post-meta__tags" href="/tags/Docker/">Docker</a><a class="post-meta__tags" href="/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/">工作流</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</div></div><div class="info-2"><div class="info-item-1">Dify 工作流实战：从文档生成大模型微调 JSONL 语料高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。 需要先明确边界：Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &#x2F; 验证集划分。  目录 1. 微调与 JSONL 数据格式 2. 工作流设计与关键风险 3. 开始节点：接收文件与任务约束 4. 文档提取器：把文件变成文本 5. 代码节点：清洗和分块，而非盲目截断 6. LLM 节点：生成可审核的问答 7. 结束节点与 JSONL 输出 8. 测试、校验与人工审核 9. 生产化改进建议 10. 小结   1. 微调与 JSONL...</div></div></div></a><a class="pagination-related" href="/2026/08/17/claude-code-deepseek-guide/" title="Claude Code 安装与接入 DeepSeek 完全指南"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Claude Code 安装与接入 DeepSeek 完全指南</div></div><div class="info-2"><div class="info-item-1">Claude Code 安装与接入 DeepSeek 完全指南Claude Code 是 Anthropic 的终端 &#x2F; VS Code AI 编程助手。DeepSeek 提供 Anthropic 兼容接口后，只需改 Base URL、Token 和模型映射，就能继续用 Claude Code 的交互方式，把推理后端切到 DeepSeek。本文先把 Git、Node、npm、网络与 API Key 等环境装齐，再讲 Claude Code 安装与 DeepSeek 接入。  目录 1. Claude Code 是什么 2. 为什么接入 DeepSeek 3. 环境安装（必做） 4. 安装 Claude Code 5. 请求如何走到 DeepSeek 6. 配置接入（推荐 settings.json） 7. 用环境变量接入 8. 模型选择与映射 9. 验证是否接好 10. 日常使用 11. VS Code 扩展方式 12. 常见问题 13. 小结   1. Claude Code 是什么Claude Code 是面向编程场景的 Agent...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-17</div><div class="info-item-2">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</div></div><div class="info-2"><div class="info-item-1">Dify 工作流实战：从文档生成大模型微调 JSONL 语料高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。 需要先明确边界：Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &#x2F; 验证集划分。  目录 1. 微调与 JSONL 数据格式 2. 工作流设计与关键风险 3. 开始节点：接收文件与任务约束 4. 文档提取器：把文件变成文本 5. 代码节点：清洗和分块，而非盲目截断 6. LLM 节点：生成可审核的问答 7. 结束节点与 JSONL 输出 8. 测试、校验与人工审核 9. 生产化改进建议 10. 小结   1. 微调与 JSONL...</div></div></div></a><a class="pagination-related" href="/2026/08/15/llm-icebreaking/" title="大模型破冰之旅"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-15</div><div class="info-item-2">大模型破冰之旅</div></div><div class="info-2"><div class="info-item-1">大模型破冰之旅从人工智能、机器学习、深度学习，一路走到大语言模型：先把概念地图立住，再谈选型、微调和落地。  目录 1. 学习路线 2. 学习方法 3. 硬件准备 4. 语言准备 5. AI 必备概念 5.1 从人工智能到大模型 5.2 机器学习 5.3 深度学习 5.4 神经网络 5.5 大语言模型   6. 常见大模型介绍 7. 大模型选型 8. 通用基础大模型 vs 行业垂直大模型 9. 大模型微调 10. 行业应用、趋势与挑战   1. 学习路线大模型学习没有唯一正确顺序，但有一条不容易走弯路的主线：先会用，再理解，最后才定制。    阶段 目标 建议投入 产出    概念破冰 搞清 AI &#x2F; ML &#x2F; DL &#x2F; LLM 的包含关系 1～2 天 能用自己的话讲清「大模型是什么」   上手调用 用 API 或本地 Ollama 跑通一轮对话 2～3 天 一个能聊天的 Demo   提示词与应用 Prompt、RAG、工作流、Agent 1～2 周 知识问答 &#x2F; 客服 &#x2F;...</div></div></div></a><a class="pagination-related" href="/2026/08/01/Ollama%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="Ollama 本地大模型使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-01</div><div class="info-item-2">Ollama 本地大模型使用教程</div></div><div class="info-2"><div class="info-item-1">Ollama 本地大模型使用教程 目录 一、Ollama 是什么 二、安装与验证 三、快速上手 四、模型管理 五、CLI 命令速查 六、交互式对话技巧 七、REST API 八、Python &#x2F; JavaScript SDK 九、Modelfile 自定义模型 十、环境变量与服务配置 十一、Docker 部署 十二、与开发工具集成 十三、硬件与选型建议 十四、常见问题排查   一、Ollama 是什么Ollama 是一款本地大模型运行时，把「下载模型 → 加载推理 → 提供 API」做成一条命令即可完成的体验，常被比作 「大模型界的 Docker」。    能力 说明    本地运行 模型在本机推理，默认不上传提示词与对话内容   一条命令开聊 ollama run &lt;模型名&gt; 自动拉取并进入对话   内置 HTTP API 默认 http://localhost:11434，便于接入应用   官方 SDK 提供 Python、JavaScript 库   可定制 通过 Modelfile 改系统提示、参数、导入 GGUF   生态集成 可对接...</div></div></div></a><a class="pagination-related" href="/2026/08/03/%E6%8F%90%E7%A4%BA%E8%AF%8D%E7%BC%96%E5%86%99%E6%95%99%E7%A8%8B/" title="提示词编写教程：从六大原则到 Spring AI 实战"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-03</div><div class="info-item-2">提示词编写教程：从六大原则到 Spring AI 实战</div></div><div class="info-2"><div class="info-item-1">提示词编写教程一、什么是提示词工程提示词（Prompt）：发送给大模型的指令。 提示词工程（Prompt Engineering）：通过优化提示词，使大模型生成尽可能理想的内容。 常用做法包括：  清晰明确的指令 使用分隔符标记输入 按步骤拆解复杂任务 提供输入输出示例 明确要求输出格式 给模型设定一个角色  很多简单的 AI 应用，仅靠一段足够好的 System Prompt 就能跑起来（纯 Prompt 模式）。本文以「哄哄模拟器」提示词为例，说明如何系统化编写提示词。  二、提示词角色与大模型对话时，消息通常包含三种角色：    角色 作用 示例    system 设定身份、规则、输出格式，优先级最高 你只能以女友身份回答……   user 用户本轮输入 在我心里你永远是最美的！   assistant 模型历史回复，用于会话记忆 (微笑)哼，我怎么知道……   业务规则应写在 System Prompt 中，不要依赖用户自觉遵守。 在 Spring AI 中，可在创建 ChatClient 时通过 .defaultSystem(...)...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">55</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">56</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Dify-%E5%85%A5%E9%97%A8%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97%EF%BC%9A%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E3%80%81%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">1.</span> <span class="toc-text">Dify 入门完全指南：本地部署、模型接入与第一个工作流</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Dify-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.2.</span> <span class="toc-text">1. Dify 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%83%A8%E7%BD%B2%E5%89%8D%E5%87%86%E5%A4%87"><span class="toc-number">1.3.</span> <span class="toc-text">2. 部署前准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Windows%EF%BC%9AWSL-%E4%B8%8E-Docker-Desktop"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 Windows：WSL 与 Docker Desktop</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%95%9C%E5%83%8F%E6%8B%89%E5%8F%96%E9%97%AE%E9%A2%98"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 镜像拉取问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%94%A8-Docker-Compose-%E9%83%A8%E7%BD%B2-Dify"><span class="toc-number">1.4.</span> <span class="toc-text">3. 用 Docker Compose 部署 Dify</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%8E%B7%E5%8F%96%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 获取代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%BF%9B%E5%85%A5-Docker-%E7%9B%AE%E5%BD%95%E5%B9%B6%E5%87%86%E5%A4%87%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 进入 Docker 目录并准备环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 启动服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B8%B8%E7%94%A8%E8%BF%90%E7%BB%B4%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 常用运维命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%8C%E6%88%90%E9%A6%96%E6%AC%A1%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.5.</span> <span class="toc-text">4. 完成首次初始化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9E%8B%E4%BE%9B%E5%BA%94%E5%95%86"><span class="toc-number">1.6.</span> <span class="toc-text">5. 配置模型供应商</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BA%94%E7%94%A8"><span class="toc-number">1.7.</span> <span class="toc-text">6. 创建第一个工作流应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%9B%E5%BB%BA%E7%A9%BA%E7%99%BD%E5%BA%94%E7%94%A8"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 创建空白应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%85%8D%E7%BD%AE%E5%BC%80%E5%A7%8B%E8%8A%82%E7%82%B9"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 配置开始节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%B7%BB%E5%8A%A0-LLM-%E8%8A%82%E7%82%B9"><span class="toc-number">1.7.3.</span> <span class="toc-text">6.3 添加 LLM 节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%B7%BB%E5%8A%A0%E7%BB%93%E6%9D%9F%E8%8A%82%E7%82%B9"><span class="toc-number">1.7.4.</span> <span class="toc-text">6.4 添加结束节点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%AF%95%E8%BF%90%E8%A1%8C%E4%B8%8E%E6%8E%92%E9%9A%9C"><span class="toc-number">1.8.</span> <span class="toc-text">7. 试运行与排障</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-Dify-%E4%B8%8E-Coze-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="toc-number">1.9.</span> <span class="toc-text">8. Dify 与 Coze 如何选择</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.10.</span> <span class="toc-text">9. 小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</a><time datetime="2026-08-17T14:49:30.000Z" title="发表于 2026-08-17 22:49:30">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-beginner-guide/" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流">Dify 入门完全指南：本地部署、模型接入与第一个工作流</a><time datetime="2026-08-17T14:49:00.000Z" title="发表于 2026-08-17 22:49:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/claude-code-deepseek-guide/" title="Claude Code 安装与接入 DeepSeek 完全指南">Claude Code 安装与接入 DeepSeek 完全指南</a><time datetime="2026-08-17T14:20:00.000Z" title="发表于 2026-08-17 22:20:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</a><time datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</a><time datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

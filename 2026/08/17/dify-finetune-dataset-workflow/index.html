@@ -1,0 +1,437 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Dify 工作流实战：从文档生成大模型微调 JSONL 语料 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Dify 工作流实战：从文档生成大模型微调 JSONL 语料高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。 需要先明确边界：Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dify 工作流实战：从文档生成大模型微调 JSONL 语料">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/17/dify-finetune-dataset-workflow/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Dify 工作流实战：从文档生成大模型微调 JSONL 语料高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。 需要先明确边界：Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-17T14:49:30.000Z">
+<meta property="article:modified_time" content="2026-08-17T14:50:05.711Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Dify">
+<meta property="article:tag" content="工作流">
+<meta property="article:tag" content="微调">
+<meta property="article:tag" content="JSONL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/17/dify-finetune-dataset-workflow/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Dify 工作流实战：从文档生成大模型微调 JSONL 语料',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">55</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">56</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-17T14:49:30.000Z" title="发表于 2026-08-17 22:49:30">2026-08-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-17T14:50:05.711Z" title="更新于 2026-08-17 22:50:05">2026-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E5%B7%A5%E5%85%B7%E5%AE%9E%E8%B7%B5/">AI 工具实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Dify-工作流实战：从文档生成大模型微调-JSONL-语料"><a href="#Dify-工作流实战：从文档生成大模型微调-JSONL-语料" class="headerlink" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料"></a>Dify 工作流实战：从文档生成大模型微调 JSONL 语料</h1><p>高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。</p>
+<p>需要先明确边界：<strong>Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。</strong> 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &#x2F; 验证集划分。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E5%BE%AE%E8%B0%83%E4%B8%8E-jsonl-%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F">1. 微调与 JSONL 数据格式</a></li>
+<li><a href="#2-%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%85%B3%E9%94%AE%E9%A3%8E%E9%99%A9">2. 工作流设计与关键风险</a></li>
+<li><a href="#3-%E5%BC%80%E5%A7%8B%E8%8A%82%E7%82%B9%E6%8E%A5%E6%94%B6%E6%96%87%E4%BB%B6%E4%B8%8E%E4%BB%BB%E5%8A%A1%E7%BA%A6%E6%9D%9F">3. 开始节点：接收文件与任务约束</a></li>
+<li><a href="#4-%E6%96%87%E6%A1%A3%E6%8F%90%E5%8F%96%E5%99%A8%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%98%E6%88%90%E6%96%87%E6%9C%AC">4. 文档提取器：把文件变成文本</a></li>
+<li><a href="#5-%E4%BB%A3%E7%A0%81%E8%8A%82%E7%82%B9%E6%B8%85%E6%B4%97%E5%92%8C%E5%88%86%E5%9D%97%E8%80%8C%E9%9D%9E%E7%9B%B2%E7%9B%AE%E6%88%AA%E6%96%AD">5. 代码节点：清洗和分块，而非盲目截断</a></li>
+<li><a href="#6-llm-%E8%8A%82%E7%82%B9%E7%94%9F%E6%88%90%E5%8F%AF%E5%AE%A1%E6%A0%B8%E7%9A%84%E9%97%AE%E7%AD%94">6. LLM 节点：生成可审核的问答</a></li>
+<li><a href="#7-%E7%BB%93%E6%9D%9F%E8%8A%82%E7%82%B9%E4%B8%8E-jsonl-%E8%BE%93%E5%87%BA">7. 结束节点与 JSONL 输出</a></li>
+<li><a href="#8-%E6%B5%8B%E8%AF%95%E6%A0%A1%E9%AA%8C%E4%B8%8E%E4%BA%BA%E5%B7%A5%E5%AE%A1%E6%A0%B8">8. 测试、校验与人工审核</a></li>
+<li><a href="#9-%E7%94%9F%E4%BA%A7%E5%8C%96%E6%94%B9%E8%BF%9B%E5%BB%BA%E8%AE%AE">9. 生产化改进建议</a></li>
+<li><a href="#10-%E5%B0%8F%E7%BB%93">10. 小结</a></li>
+</ul>
+<hr>
+<h2 id="1-微调与-JSONL-数据格式"><a href="#1-微调与-JSONL-数据格式" class="headerlink" title="1. 微调与 JSONL 数据格式"></a>1. 微调与 JSONL 数据格式</h2><p>微调（Fine-tuning）是在预训练模型基础上，用特定任务或领域的数据继续训练，使模型更稳定地遵循某种表达方式、任务结构或知识边界。</p>
+<p>一个完整微调项目通常包含：</p>
+<ol>
+<li>明确任务与评价指标；</li>
+<li>采集或整理合法的数据；</li>
+<li>清洗、去重、脱敏、标注与质量控制；</li>
+<li>按训练集、验证集、测试集划分数据；</li>
+<li>执行训练并评测；</li>
+<li>部署、监控与持续迭代。</li>
+</ol>
+<p>本文覆盖其中的“从文档生成候选监督样本”环节。</p>
+<h3 id="1-1-为什么常用-JSONL"><a href="#1-1-为什么常用-JSONL" class="headerlink" title="1.1 为什么常用 JSONL"></a>1.1 为什么常用 JSONL</h3><p>JSONL（JSON Lines）要求每行都是一条独立、完整的 JSON 对象，适合流式处理、分批追加与训练管线读取。</p>
+<p>一个三角色对话样本可写成：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;messages&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span><span class="attr">&quot;role&quot;</span><span class="punctuation">:</span><span class="string">&quot;system&quot;</span><span class="punctuation">,</span><span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;你是一个严谨的科普助手。&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span><span class="attr">&quot;role&quot;</span><span class="punctuation">:</span><span class="string">&quot;user&quot;</span><span class="punctuation">,</span><span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;什么是迁移学习？&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span><span class="attr">&quot;role&quot;</span><span class="punctuation">:</span><span class="string">&quot;assistant&quot;</span><span class="punctuation">,</span><span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;迁移学习是把模型在通用数据中学到的能力迁移到特定任务上的方法。&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：这是<strong>一行 JSON</strong>。真正的 JSONL 文件包含多行此类对象，行与行之间不放逗号，也不包裹在数组中。</p>
+<h3 id="1-2-合成数据的质量风险"><a href="#1-2-合成数据的质量风险" class="headerlink" title="1.2 合成数据的质量风险"></a>1.2 合成数据的质量风险</h3><p>LLM 可以快速根据文档生成问答，但也可能：</p>
+<ul>
+<li>编造原文不存在的事实；</li>
+<li>把推测写成确定结论；</li>
+<li>重复生成同义问题；</li>
+<li>泄露原文中的个人信息、商业秘密或受版权保护内容；</li>
+<li>生成不符合目标模型训练格式的 JSON。</li>
+</ul>
+<p>因此，下游应把每条记录视为“待审核候选”，而不是直接投喂训练。</p>
+<hr>
+<h2 id="2-工作流设计与关键风险"><a href="#2-工作流设计与关键风险" class="headerlink" title="2. 工作流设计与关键风险"></a>2. 工作流设计与关键风险</h2><p>本篇的最小工作流如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">开始节点（文件、system_prompt、生成参数）</span><br><span class="line">        ↓</span><br><span class="line">文档提取器（file → text）</span><br><span class="line">        ↓</span><br><span class="line">代码节点（清洗 / 分块）</span><br><span class="line">        ↓</span><br><span class="line">LLM 节点（按约束生成 JSONL）</span><br><span class="line">        ↓</span><br><span class="line">结束节点（输出文本）</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-001-workflow-overview.png" alt="文档生成微调语料工作流总览"></p>
+<p>这个设计的关键不是“串起节点”，而是正确处理长度与质量：</p>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>对应控制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文件变量不能被 LLM 直接理解</td>
+<td>用文档提取器得到文本变量</td>
+</tr>
+<tr>
+<td>长文超出上下文窗口</td>
+<td>按语义分块、迭代处理，不是只取开头</td>
+</tr>
+<tr>
+<td>JSON 输出夹带解释</td>
+<td>Prompt 要求只输出 JSONL，并在下游解析校验</td>
+</tr>
+<tr>
+<td>生成内容脱离原文</td>
+<td>Prompt 明确“不得补充无依据事实”，审核时回链源片段</td>
+</tr>
+<tr>
+<td>单批样本相似</td>
+<td>按主题 &#x2F; 难度 &#x2F; 问题类型做配额和去重</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="3-开始节点：接收文件与任务约束"><a href="#3-开始节点：接收文件与任务约束" class="headerlink" title="3. 开始节点：接收文件与任务约束"></a>3. 开始节点：接收文件与任务约束</h2><p>开始节点负责暴露用户输入。建议至少设置：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>类型</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>attachments</code></td>
+<td>文件或文件列表</td>
+<td>用户上传待处理文档</td>
+</tr>
+<tr>
+<td><code>system_prompt</code></td>
+<td>短文本</td>
+<td>目标模型的系统提示词 &#x2F; 风格约束</td>
+</tr>
+<tr>
+<td><code>questions_per_chunk</code></td>
+<td>数字</td>
+<td>每个文本分块生成的问答数量</td>
+</tr>
+<tr>
+<td><code>domain</code></td>
+<td>短文本</td>
+<td>领域标签，如“医疗科普”“产品手册”</td>
+</tr>
+</tbody></table>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-002-start-node.png" alt="开始节点配置"></p>
+<p>原始课程示例中为文件与系统提示词设置了输入。实际项目里不要把“48 字符限制”等界面细节当成稳定契约；节点字段和限制会随 Dify 版本变化，应以当前产品界面为准。</p>
+<p>开始节点还应做业务层约束：</p>
+<ul>
+<li>明确允许上传的文件类型和大小；</li>
+<li>告知用户不要上传敏感个人信息与无授权材料；</li>
+<li>对文档来源记录任务 ID、上传时间、操作者与许可状态；</li>
+<li>大文件和多文件任务采用异步 &#x2F; 批处理策略。</li>
+</ul>
+<hr>
+<h2 id="4-文档提取器：把文件变成文本"><a href="#4-文档提取器：把文件变成文本" class="headerlink" title="4. 文档提取器：把文件变成文本"></a>4. 文档提取器：把文件变成文本</h2><p>LLM 节点不能直接读取文件变量；文档提取器负责把上传文件转换为下游可引用的文本变量。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-003-document-extractor.png" alt="文档提取器节点"></p>
+<p>当前 Dify 文档说明，文档提取器支持单文件或批量文件：</p>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单个文件</td>
+<td><code>string</code> 类型文本</td>
+</tr>
+<tr>
+<td>多个文件</td>
+<td><code>array[string]</code> 类型文本数组</td>
+</tr>
+</tbody></table>
+<p>将开始节点的 <code>attachments</code> 连接到文档提取器后，后续节点应引用其 <code>text</code> 输出，而不是直接引用原始文件对象。</p>
+<h3 id="4-1-文件格式不是永远都能直接处理"><a href="#4-1-文件格式不是永远都能直接处理" class="headerlink" title="4.1 文件格式不是永远都能直接处理"></a>4.1 文件格式不是永远都能直接处理</h3><p>不同 Dify 版本、部署配置与文件格式会影响解析能力。尤其是旧格式 Office 文件、扫描 PDF、演示文稿等，可能需要额外解析服务或 OCR 流程。</p>
+<p>建议在生产前建立一组真实样本做验收：</p>
+<ol>
+<li>正常 PDF、DOCX、TXT、Markdown；</li>
+<li>扫描件与图片型 PDF；</li>
+<li>超长文档；</li>
+<li>多语言文档；</li>
+<li>表格、代码、公式较多的文档。</li>
+</ol>
+<hr>
+<h2 id="5-代码节点：清洗和分块，而非盲目截断"><a href="#5-代码节点：清洗和分块，而非盲目截断" class="headerlink" title="5. 代码节点：清洗和分块，而非盲目截断"></a>5. 代码节点：清洗和分块，而非盲目截断</h2><p>课程原始工作流通过代码节点合并文本后截取前一部分字符，再交给 LLM。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-004-code-node.png" alt="代码节点配置"></p>
+<p>这种方式能快速跑通 Demo，但存在两个问题：</p>
+<ol>
+<li>只截取开头会系统性丢失文档后半部分内容；</li>
+<li>字符数、Token 数和语义边界并不等价，硬截断可能切断句子、代码块或表格。</li>
+</ol>
+<h3 id="5-1-最小清洗示例"><a href="#5-1-最小清洗示例" class="headerlink" title="5.1 最小清洗示例"></a>5.1 最小清洗示例</h3><p>如果输入是字符串，可先做轻量标准化：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>(<span class="params">text: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">    cleaned = re.sub(<span class="string">r&quot;\n&#123;3,&#125;&quot;</span>, <span class="string">&quot;\n\n&quot;</span>, text <span class="keyword">or</span> <span class="string">&quot;&quot;</span>).strip()</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;cleaned_text&quot;</span>: cleaned&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-按段落分块示例"><a href="#5-2-按段落分块示例" class="headerlink" title="5.2 按段落分块示例"></a>5.2 按段落分块示例</h3><p>下面示例按段落累计字符数，输出文本块数组。它不是通用分块器，但比固定截取前 N 个字符更合理：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>(<span class="params">text: <span class="built_in">str</span>, max_chars: <span class="built_in">int</span> = <span class="number">6000</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">    paragraphs = [item.strip() <span class="keyword">for</span> item <span class="keyword">in</span> (text <span class="keyword">or</span> <span class="string">&quot;&quot;</span>).split(<span class="string">&quot;\n\n&quot;</span>) <span class="keyword">if</span> item.strip()]</span><br><span class="line">    chunks, current = [], []</span><br><span class="line">    current_size = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> paragraph <span class="keyword">in</span> paragraphs:</span><br><span class="line">        extra = <span class="built_in">len</span>(paragraph) + (<span class="number">2</span> <span class="keyword">if</span> current <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">if</span> current <span class="keyword">and</span> current_size + extra &gt; max_chars:</span><br><span class="line">            chunks.append(<span class="string">&quot;\n\n&quot;</span>.join(current))</span><br><span class="line">            current, current_size = [], <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        current.append(paragraph)</span><br><span class="line">        current_size += extra</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> current:</span><br><span class="line">        chunks.append(<span class="string">&quot;\n\n&quot;</span>.join(current))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;chunks&quot;</span>: chunks&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于多个文件，文档提取器的输出可能是数组；应先遍历文件文本，再对每个文件分块。Dify 里可以结合迭代节点逐块调用 LLM，避免把所有内容塞进一次请求。</p>
+<hr>
+<h2 id="6-LLM-节点：生成可审核的问答"><a href="#6-LLM-节点：生成可审核的问答" class="headerlink" title="6. LLM 节点：生成可审核的问答"></a>6. LLM 节点：生成可审核的问答</h2><p>LLM 节点接收一个文本块、系统提示词和生成约束，并输出 JSONL 候选。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-005-llm-node.png" alt="LLM 节点配置"></p>
+<h3 id="6-1-Prompt-的核心约束"><a href="#6-1-Prompt-的核心约束" class="headerlink" title="6.1 Prompt 的核心约束"></a>6.1 Prompt 的核心约束</h3><p>课程示例通过角色、任务、要求和输出规范约束模型。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-006-prompt-configuration.png" alt="Prompt 配置界面"></p>
+<p>更适合生产审核的 Prompt 应补足事实边界与格式边界：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">你是训练数据标注助手。请仅依据“参考文本”生成问答样本。</span><br><span class="line"></span><br><span class="line">要求：</span><br><span class="line">1. 每条样本只陈述参考文本明确支持的事实；信息不足时不要补写。</span><br><span class="line">2. 问题要清晰、可独立理解，不直接复制大段原文。</span><br><span class="line">3. 回答准确、简洁，避免带入个人观点。</span><br><span class="line">4. 只输出 JSONL：每行一个合法 JSON 对象，不能输出 Markdown、解释或代码围栏。</span><br><span class="line">5. 每条对象必须包含 messages 数组，数组依次包含 system、user、assistant 三个 role。</span><br><span class="line"></span><br><span class="line">system 内容：&#123;&#123;system_prompt&#125;&#125;</span><br><span class="line">参考文本：</span><br><span class="line">&#123;&#123;chunk&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-输出数量不要只靠“每次-10-条”"><a href="#6-2-输出数量不要只靠“每次-10-条”" class="headerlink" title="6.2 输出数量不要只靠“每次 10 条”"></a>6.2 输出数量不要只靠“每次 10 条”</h3><p>固定要求每块生成 10 条，容易在信息稀疏的文本上逼迫模型重复或臆造。更合理的方式是：</p>
+<ul>
+<li>允许模型在“内容不足”时少生成；</li>
+<li>设置最大条数而不是必须条数；</li>
+<li>为定义、步骤、对比、边界条件、常见误区等问题类型设配额；</li>
+<li>记录样本来自哪个文件、哪个分块，便于回溯。</li>
+</ul>
+<hr>
+<h2 id="7-结束节点与-JSONL-输出"><a href="#7-结束节点与-JSONL-输出" class="headerlink" title="7. 结束节点与 JSONL 输出"></a>7. 结束节点与 JSONL 输出</h2><p>结束节点将 LLM 输出作为工作流结果返回。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-007-end-node.png" alt="结束节点输出配置"></p>
+<p>如果 LLM 输出变量是 <code>text</code>，结束节点通常直接引用对应文本变量即可。重点是不要让结束节点混入调试信息、标题或自然语言解释，否则下游 JSONL 校验会失败。</p>
+<p>建议在工作流外加一道程序化校验。例如保存为 <code>dataset.jsonl</code> 后：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</span><br><span class="line"></span><br><span class="line">errors = []</span><br><span class="line"><span class="keyword">for</span> line_no, line <span class="keyword">in</span> <span class="built_in">enumerate</span>(Path(<span class="string">&quot;dataset.jsonl&quot;</span>).read_text(encoding=<span class="string">&quot;utf-8&quot;</span>).splitlines(), <span class="number">1</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> line.strip():</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        item = json.loads(line)</span><br><span class="line">        messages = item[<span class="string">&quot;messages&quot;</span>]</span><br><span class="line">        roles = [message[<span class="string">&quot;role&quot;</span>] <span class="keyword">for</span> message <span class="keyword">in</span> messages]</span><br><span class="line">        <span class="keyword">assert</span> roles == [<span class="string">&quot;system&quot;</span>, <span class="string">&quot;user&quot;</span>, <span class="string">&quot;assistant&quot;</span>]</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> exc:</span><br><span class="line">        errors.append(<span class="string">f&quot;第 <span class="subst">&#123;line_no&#125;</span> 行：<span class="subst">&#123;exc&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> errors:</span><br><span class="line">    <span class="keyword">raise</span> SystemExit(<span class="string">&quot;\n&quot;</span>.join(errors))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;JSONL 格式校验通过&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-测试、校验与人工审核"><a href="#8-测试、校验与人工审核" class="headerlink" title="8. 测试、校验与人工审核"></a>8. 测试、校验与人工审核</h2><p>运行工作流时，用一份可公开、篇幅较短的测试文档验证流程。</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-008-run-workflow.png" alt="工作流试运行"></p>
+<p>输出结果应是连续的 JSONL 记录：</p>
+<p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/dify-finetune-dataset/dify-finetune-dataset-009-jsonl-result.png" alt="JSONL 生成结果"></p>
+<h3 id="8-1-三层验收"><a href="#8-1-三层验收" class="headerlink" title="8.1 三层验收"></a>8.1 三层验收</h3><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>检查内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>格式</td>
+<td>每一行可被 <code>json.loads</code> 解析；role 顺序正确；字段齐全</td>
+</tr>
+<tr>
+<td>内容</td>
+<td>问答可回溯到源文档；无明显幻觉、重复、矛盾与敏感信息</td>
+</tr>
+<tr>
+<td>训练适配</td>
+<td>与目标模型微调 API 的格式、最大长度、特殊 token 和许可要求一致</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-抽样审核问题清单"><a href="#8-2-抽样审核问题清单" class="headerlink" title="8.2 抽样审核问题清单"></a>8.2 抽样审核问题清单</h3><p>对每一批样本，至少抽查：</p>
+<ol>
+<li>问题是否能从原文得到回答？</li>
+<li>答案是否引入原文没有的细节？</li>
+<li>system 提示词是否符合目标用途？</li>
+<li>同一主题是否生成了重复问题？</li>
+<li>是否包含手机号、地址、身份信息、账号、商业机密等内容？</li>
+<li>文档是否具备被用于训练的授权？</li>
+</ol>
+<hr>
+<h2 id="9-生产化改进建议"><a href="#9-生产化改进建议" class="headerlink" title="9. 生产化改进建议"></a>9. 生产化改进建议</h2><h3 id="9-1-加入迭代与合并"><a href="#9-1-加入迭代与合并" class="headerlink" title="9.1 加入迭代与合并"></a>9.1 加入迭代与合并</h3><p>大文件不要只处理第一个分块。使用迭代节点逐块生成，再把结果合并为一个 JSONL 文件或写入数据存储。</p>
+<h3 id="9-2-引入结构化输出与重试"><a href="#9-2-引入结构化输出与重试" class="headerlink" title="9.2 引入结构化输出与重试"></a>9.2 引入结构化输出与重试</h3><p>仅靠 Prompt 不能保证百分之百输出合法 JSON。可使用平台提供的结构化输出能力（若当前模型 &#x2F; 版本支持），或增加“JSON 解析失败 → 修复节点 → 再校验”的回路。</p>
+<h3 id="9-3-保存溯源信息"><a href="#9-3-保存溯源信息" class="headerlink" title="9.3 保存溯源信息"></a>9.3 保存溯源信息</h3><p>训练数据应保存以下元数据，而不仅是三角色对话：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;source_document_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;doc-20260817-001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;source_chunk_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;doc-20260817-001-003&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;generator_model&quot;</span><span class="punctuation">:</span> <span class="string">&quot;your-model-name&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;generated_at&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2026-08-17T00:00:00Z&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;review_status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>训练导出时再把通过审核的 <code>messages</code> 写成目标平台要求的 JSONL。</p>
+<h3 id="9-4-把“微调”与“RAG”分开选择"><a href="#9-4-把“微调”与“RAG”分开选择" class="headerlink" title="9.4 把“微调”与“RAG”分开选择"></a>9.4 把“微调”与“RAG”分开选择</h3><p>当需求是让模型回答频繁变化的企业知识时，RAG 通常比微调更适合；当目标是固定风格、格式遵循、特定任务模式时，微调才可能更匹配。两者也可以组合，但不能用“让模型记住一篇文档”作为唯一判断标准。</p>
+<hr>
+<h2 id="10-小结"><a href="#10-小结" class="headerlink" title="10. 小结"></a>10. 小结</h2><p>用 Dify 生成微调语料的核心链路是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文件上传 → 文档提取 → 清洗 / 分块 → LLM 生成候选 JSONL → 格式校验 → 人工审核 → 导出训练集</span><br></pre></td></tr></table></figure>
+
+<p>工作流降低的是第一轮数据整理与问答生成成本；决定最终训练效果的，仍然是数据授权、事实准确性、覆盖度、多样性、去重、审核和评测。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/17/dify-finetune-dataset-workflow/">https://qijianyeah.github.io/2026/08/17/dify-finetune-dataset-workflow/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Dify/">Dify</a><a class="post-meta__tags" href="/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/">工作流</a><a class="post-meta__tags" href="/tags/%E5%BE%AE%E8%B0%83/">微调</a><a class="post-meta__tags" href="/tags/JSONL/">JSONL</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/17/dify-beginner-guide/" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Dify 入门完全指南：本地部署、模型接入与第一个工作流</div></div><div class="info-2"><div class="info-item-1">Dify 入门完全指南：本地部署、模型接入与第一个工作流Dify 是面向 LLM 应用开发的开源平台。它把模型供应商、提示词、知识库、工作流、应用发布与 API 集成放到同一套产品界面中：非开发者可以用可视化方式搭建应用，开发者则可以把工作流和模型能力接入现有系统。 本文从平台定位开始，完成一次基于 Docker Compose 的本地部署，再搭建一个“开始 → LLM → 结束”的最小工作流。  目录 1. Dify 是什么 2. 部署前准备 3. 用 Docker Compose 部署 Dify 4. 完成首次初始化 5. 配置模型供应商 6. 创建第一个工作流应用 7. 试运行与排障 8. Dify 与 Coze 如何选择 9. 小结   1. Dify 是什么Dify 可以理解为一套 LLM 应用开发平台：它不负责训练基础模型，而是把“调用模型、组织上下文、处理输入输出、编排业务流程、对外发布应用”这些重复工作产品化。 典型能力包括：    能力 作用    模型供应商管理 统一配置 LLM、Embedding、重排序、语音等模型凭据   Prompt...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/17/dify-beginner-guide/" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-17</div><div class="info-item-2">Dify 入门完全指南：本地部署、模型接入与第一个工作流</div></div><div class="info-2"><div class="info-item-1">Dify 入门完全指南：本地部署、模型接入与第一个工作流Dify 是面向 LLM 应用开发的开源平台。它把模型供应商、提示词、知识库、工作流、应用发布与 API 集成放到同一套产品界面中：非开发者可以用可视化方式搭建应用，开发者则可以把工作流和模型能力接入现有系统。 本文从平台定位开始，完成一次基于 Docker Compose 的本地部署，再搭建一个“开始 → LLM → 结束”的最小工作流。  目录 1. Dify 是什么 2. 部署前准备 3. 用 Docker Compose 部署 Dify 4. 完成首次初始化 5. 配置模型供应商 6. 创建第一个工作流应用 7. 试运行与排障 8. Dify 与 Coze 如何选择 9. 小结   1. Dify 是什么Dify 可以理解为一套 LLM 应用开发平台：它不负责训练基础模型，而是把“调用模型、组织上下文、处理输入输出、编排业务流程、对外发布应用”这些重复工作产品化。 典型能力包括：    能力 作用    模型供应商管理 统一配置 LLM、Embedding、重排序、语音等模型凭据   Prompt...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">55</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">56</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Dify-%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%AE%9E%E6%88%98%EF%BC%9A%E4%BB%8E%E6%96%87%E6%A1%A3%E7%94%9F%E6%88%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83-JSONL-%E8%AF%AD%E6%96%99"><span class="toc-number">1.</span> <span class="toc-text">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BE%AE%E8%B0%83%E4%B8%8E-JSONL-%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.2.</span> <span class="toc-text">1. 微调与 JSONL 数据格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%B8%B8%E7%94%A8-JSONL"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 为什么常用 JSONL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%88%E6%88%90%E6%95%B0%E6%8D%AE%E7%9A%84%E8%B4%A8%E9%87%8F%E9%A3%8E%E9%99%A9"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 合成数据的质量风险</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%85%B3%E9%94%AE%E9%A3%8E%E9%99%A9"><span class="toc-number">1.3.</span> <span class="toc-text">2. 工作流设计与关键风险</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%BC%80%E5%A7%8B%E8%8A%82%E7%82%B9%EF%BC%9A%E6%8E%A5%E6%94%B6%E6%96%87%E4%BB%B6%E4%B8%8E%E4%BB%BB%E5%8A%A1%E7%BA%A6%E6%9D%9F"><span class="toc-number">1.4.</span> <span class="toc-text">3. 开始节点：接收文件与任务约束</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%96%87%E6%A1%A3%E6%8F%90%E5%8F%96%E5%99%A8%EF%BC%9A%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%98%E6%88%90%E6%96%87%E6%9C%AC"><span class="toc-number">1.5.</span> <span class="toc-text">4. 文档提取器：把文件变成文本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E4%B8%8D%E6%98%AF%E6%B0%B8%E8%BF%9C%E9%83%BD%E8%83%BD%E7%9B%B4%E6%8E%A5%E5%A4%84%E7%90%86"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 文件格式不是永远都能直接处理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%BB%A3%E7%A0%81%E8%8A%82%E7%82%B9%EF%BC%9A%E6%B8%85%E6%B4%97%E5%92%8C%E5%88%86%E5%9D%97%EF%BC%8C%E8%80%8C%E9%9D%9E%E7%9B%B2%E7%9B%AE%E6%88%AA%E6%96%AD"><span class="toc-number">1.6.</span> <span class="toc-text">5. 代码节点：清洗和分块，而非盲目截断</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%9C%80%E5%B0%8F%E6%B8%85%E6%B4%97%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 最小清洗示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8C%89%E6%AE%B5%E8%90%BD%E5%88%86%E5%9D%97%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 按段落分块示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-LLM-%E8%8A%82%E7%82%B9%EF%BC%9A%E7%94%9F%E6%88%90%E5%8F%AF%E5%AE%A1%E6%A0%B8%E7%9A%84%E9%97%AE%E7%AD%94"><span class="toc-number">1.7.</span> <span class="toc-text">6. LLM 节点：生成可审核的问答</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Prompt-%E7%9A%84%E6%A0%B8%E5%BF%83%E7%BA%A6%E6%9D%9F"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 Prompt 的核心约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%BE%93%E5%87%BA%E6%95%B0%E9%87%8F%E4%B8%8D%E8%A6%81%E5%8F%AA%E9%9D%A0%E2%80%9C%E6%AF%8F%E6%AC%A1-10-%E6%9D%A1%E2%80%9D"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 输出数量不要只靠“每次 10 条”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E7%BB%93%E6%9D%9F%E8%8A%82%E7%82%B9%E4%B8%8E-JSONL-%E8%BE%93%E5%87%BA"><span class="toc-number">1.8.</span> <span class="toc-text">7. 结束节点与 JSONL 输出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%B5%8B%E8%AF%95%E3%80%81%E6%A0%A1%E9%AA%8C%E4%B8%8E%E4%BA%BA%E5%B7%A5%E5%AE%A1%E6%A0%B8"><span class="toc-number">1.9.</span> <span class="toc-text">8. 测试、校验与人工审核</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%B8%89%E5%B1%82%E9%AA%8C%E6%94%B6"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 三层验收</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8A%BD%E6%A0%B7%E5%AE%A1%E6%A0%B8%E9%97%AE%E9%A2%98%E6%B8%85%E5%8D%95"><span class="toc-number">1.9.2.</span> <span class="toc-text">8.2 抽样审核问题清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E7%94%9F%E4%BA%A7%E5%8C%96%E6%94%B9%E8%BF%9B%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.10.</span> <span class="toc-text">9. 生产化改进建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%8A%A0%E5%85%A5%E8%BF%AD%E4%BB%A3%E4%B8%8E%E5%90%88%E5%B9%B6"><span class="toc-number">1.10.1.</span> <span class="toc-text">9.1 加入迭代与合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%BC%95%E5%85%A5%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA%E4%B8%8E%E9%87%8D%E8%AF%95"><span class="toc-number">1.10.2.</span> <span class="toc-text">9.2 引入结构化输出与重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BF%9D%E5%AD%98%E6%BA%AF%E6%BA%90%E4%BF%A1%E6%81%AF"><span class="toc-number">1.10.3.</span> <span class="toc-text">9.3 保存溯源信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E6%8A%8A%E2%80%9C%E5%BE%AE%E8%B0%83%E2%80%9D%E4%B8%8E%E2%80%9CRAG%E2%80%9D%E5%88%86%E5%BC%80%E9%80%89%E6%8B%A9"><span class="toc-number">1.10.4.</span> <span class="toc-text">9.4 把“微调”与“RAG”分开选择</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%B0%8F%E7%BB%93"><span class="toc-number">1.11.</span> <span class="toc-text">10. 小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</a><time datetime="2026-08-17T14:49:30.000Z" title="发表于 2026-08-17 22:49:30">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-beginner-guide/" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流">Dify 入门完全指南：本地部署、模型接入与第一个工作流</a><time datetime="2026-08-17T14:49:00.000Z" title="发表于 2026-08-17 22:49:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/claude-code-deepseek-guide/" title="Claude Code 安装与接入 DeepSeek 完全指南">Claude Code 安装与接入 DeepSeek 完全指南</a><time datetime="2026-08-17T14:20:00.000Z" title="发表于 2026-08-17 22:20:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</a><time datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</a><time datetime="2026-08-16T15:21:00.000Z" title="发表于 2026-08-16 23:21:00">2026-08-16</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
