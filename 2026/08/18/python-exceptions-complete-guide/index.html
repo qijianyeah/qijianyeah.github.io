@@ -1,0 +1,494 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Python 异常处理完全指南：从 try-except 到自定义异常 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Python 异常处理完全指南：从 try-except 到自定义异常程序跑着跑着突然中断，终端甩出一长串红色报错——这就是异常。本文从「求两个整数的商」这个小需求出发，讲清异常是什么、怎么读、怎么捕、怎么抛，以及如何自定义业务异常。  目录 1. 从一个小需求说起 2. 什么是异常 3. 如何阅读异常信息 4. 用 if-else 堵漏洞及其局限 5. 异常类的继承体系 6. try-excep">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 异常处理完全指南：从 try-except 到自定义异常">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/08/18/python-exceptions-complete-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Python 异常处理完全指南：从 try-except 到自定义异常程序跑着跑着突然中断，终端甩出一长串红色报错——这就是异常。本文从「求两个整数的商」这个小需求出发，讲清异常是什么、怎么读、怎么捕、怎么抛，以及如何自定义业务异常。  目录 1. 从一个小需求说起 2. 什么是异常 3. 如何阅读异常信息 4. 用 if-else 堵漏洞及其局限 5. 异常类的继承体系 6. try-excep">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-08-17T16:17:02.000Z">
+<meta property="article:modified_time" content="2026-08-17T16:17:02.131Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="异常处理">
+<meta property="article:tag" content="try-except">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/08/18/python-exceptions-complete-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Python 异常处理完全指南：从 try-except 到自定义异常',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Python 异常处理完全指南：从 try-except 到自定义异常</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Python 异常处理完全指南：从 try-except 到自定义异常</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-17T16:17:02.000Z" title="发表于 2026-08-18 00:17:02">2026-08-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-17T16:17:02.131Z" title="更新于 2026-08-18 00:17:02">2026-08-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python-%E5%AD%A6%E4%B9%A0/">Python 学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Python-异常处理完全指南：从-try-except-到自定义异常"><a href="#Python-异常处理完全指南：从-try-except-到自定义异常" class="headerlink" title="Python 异常处理完全指南：从 try-except 到自定义异常"></a>Python 异常处理完全指南：从 try-except 到自定义异常</h1><p>程序跑着跑着突然中断，终端甩出一长串红色报错——这就是异常。本文从「求两个整数的商」这个小需求出发，讲清异常是什么、怎么读、怎么捕、怎么抛，以及如何自定义业务异常。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E4%BB%8E%E4%B8%80%E4%B8%AA%E5%B0%8F%E9%9C%80%E6%B1%82%E8%AF%B4%E8%B5%B7">1. 从一个小需求说起</a></li>
+<li><a href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E5%BC%82%E5%B8%B8">2. 什么是异常</a></li>
+<li><a href="#3-%E5%A6%82%E4%BD%95%E9%98%85%E8%AF%BB%E5%BC%82%E5%B8%B8%E4%BF%A1%E6%81%AF">3. 如何阅读异常信息</a></li>
+<li><a href="#4-%E7%94%A8-if-else-%E5%A0%B5%E6%BC%8F%E6%B4%9E%E5%8F%8A%E5%85%B6%E5%B1%80%E9%99%90">4. 用 if-else 堵漏洞及其局限</a></li>
+<li><a href="#5-%E5%BC%82%E5%B8%B8%E7%B1%BB%E7%9A%84%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB">5. 异常类的继承体系</a></li>
+<li><a href="#6-try-except-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95">6. try-except 基础语法</a></li>
+<li><a href="#7-%E6%8D%95%E8%8E%B7%E6%8C%87%E5%AE%9A%E5%BC%82%E5%B8%B8">7. 捕获指定异常</a></li>
+<li><a href="#8-%E8%8E%B7%E5%8F%96%E5%BC%82%E5%B8%B8%E5%AF%B9%E8%B1%A1%E4%BF%A1%E6%81%AF">8. 获取异常对象信息</a></li>
+<li><a href="#9-traceback-%E6%89%93%E5%8D%B0%E5%AE%8C%E6%95%B4%E5%A0%86%E6%A0%88">9. traceback 打印完整堆栈</a></li>
+<li><a href="#10-else-%E4%B8%8E-finally">10. else 与 finally</a></li>
+<li><a href="#11-raise-%E5%BC%BA%E5%88%B6%E6%8A%9B%E5%87%BA%E5%BC%82%E5%B8%B8">11. raise 强制抛出异常</a></li>
+<li><a href="#12-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8">12. 自定义异常</a></li>
+<li><a href="#13-%E5%BC%82%E5%B8%B8%E7%9A%84%E4%BC%A0%E9%80%92">13. 异常的传递</a></li>
+<li><a href="#14-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE%E5%B0%8F%E7%BB%93">14. 实践建议小结</a></li>
+</ul>
+<hr>
+<h2 id="1-从一个小需求说起"><a href="#1-从一个小需求说起" class="headerlink" title="1. 从一个小需求说起"></a>1. 从一个小需求说起</h2><p>需求：键盘录入两个整数，求商。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>正常输入 <code>10</code> 和 <code>2</code> 时，结果是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">请录入第一个数：10</span><br><span class="line">请录入第二个数：2</span><br><span class="line">商：5</span><br></pre></td></tr></table></figure>
+
+<p>但只要输入稍有偏差，程序就会直接崩溃，例如：</p>
+<table>
+<thead>
+<tr>
+<th>输入情况</th>
+<th>典型异常</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>录入非数字，如 <code>abc</code></td>
+<td><code>ValueError</code></td>
+</tr>
+<tr>
+<td>除数为 <code>0</code></td>
+<td><code>ZeroDivisionError</code></td>
+</tr>
+<tr>
+<td>录入带符号或空串等边界值</td>
+<td><code>ValueError</code> 等</td>
+</tr>
+</tbody></table>
+<p>业务逻辑本身很简单，真正让程序「挂掉」的是运行时错误事件——异常。</p>
+<hr>
+<h2 id="2-什么是异常"><a href="#2-什么是异常" class="headerlink" title="2. 什么是异常"></a>2. 什么是异常</h2><p><strong>异常（Exception）</strong>是程序运行时发生的错误事件，会打断正常执行流程。一旦产生且未被处理，解释器通常会打印堆栈信息，然后终止当前程序。</p>
+<p>可以把它理解成：</p>
+<ol>
+<li>某行代码触发了错误条件</li>
+<li>解释器创建对应的异常对象</li>
+<li>沿着调用栈向上寻找能处理它的 <code>except</code></li>
+<li>找不到就让程序异常退出</li>
+</ol>
+<p>常见触发源包括：非法输入、除零、下标越界、文件不存在、网络超时、类型不匹配等。</p>
+<hr>
+<h2 id="3-如何阅读异常信息"><a href="#3-如何阅读异常信息" class="headerlink" title="3. 如何阅读异常信息"></a>3. 如何阅读异常信息</h2><p>以除零为例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="number">10</span> // <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p>终端大致会输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;demo.py&quot;, line 1, in &lt;module&gt;</span><br><span class="line">    print(10 // 0)</span><br><span class="line">ZeroDivisionError: integer division or modulo by zero</span><br></pre></td></tr></table></figure>
+
+<p>阅读顺序建议自下而上：</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最后一行异常类型</td>
+<td>如 <code>ZeroDivisionError</code>，先看「出了什么错」</td>
+</tr>
+<tr>
+<td>冒号后的描述</td>
+<td>错误说明，如 <code>division by zero</code></td>
+</tr>
+<tr>
+<td>上面的堆栈帧</td>
+<td>从哪里调用到这里，哪一行触发</td>
+</tr>
+<tr>
+<td><code>File &quot;...&quot;, line N</code></td>
+<td>精确定位文件与行号</td>
+</tr>
+</tbody></table>
+<p>养成习惯：<strong>先看异常类型和最后一行描述，再顺着堆栈找自己的代码行。</strong></p>
+<hr>
+<h2 id="4-用-if-else-堵漏洞及其局限"><a href="#4-用-if-else-堵漏洞及其局限" class="headerlink" title="4. 用 if-else 堵漏洞及其局限"></a>4. 用 if-else 堵漏洞及其局限</h2><p>可以在转换和除法前手动校验：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">user_input1 = <span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> user_input1.isdigit():</span><br><span class="line">    num1 = <span class="built_in">int</span>(user_input1)</span><br><span class="line">    user_input2 = <span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> user_input2.isdigit():</span><br><span class="line">        num2 = <span class="built_in">int</span>(user_input2)</span><br><span class="line">        <span class="keyword">if</span> num2 != <span class="number">0</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;错误：除数不能为零！&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;错误：第二个数不是有效的整数！&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;错误：第一个数不是有效的整数！&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这种写法能挡住一部分非法输入，但有明显缺点：</p>
+<ol>
+<li><strong>代码臃肿</strong>：业务与防护逻辑缠在一起</li>
+<li><strong>可读性差</strong>：层层嵌套，主流程被淹没</li>
+<li><strong>维护成本高</strong>：每加一种校验就多一层分支</li>
+<li><strong>很难堵全</strong>：例如 <code>isdigit()</code> 不接受负数 <code>-3</code>，也不覆盖所有 <code>int()</code> 能失败的情况</li>
+</ol>
+<p>结论：简单前置校验可以有，但<strong>系统性错误处理应交给异常机制</strong>。</p>
+<hr>
+<h2 id="5-异常类的继承体系"><a href="#5-异常类的继承体系" class="headerlink" title="5. 异常类的继承体系"></a>5. 异常类的继承体系</h2><p>Python 内置异常是一棵继承树。开发中最常接触的是 <code>Exception</code> 及其子类；<code>KeyboardInterrupt</code>、<code>SystemExit</code> 等直接挂在 <code>BaseException</code> 下，一般不要用裸 <code>except:</code> 或 <code>except Exception</code> 去「吞掉」它们。</p>
+<p>精简示意：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">BaseException</span><br><span class="line"> ├── KeyboardInterrupt</span><br><span class="line"> ├── SystemExit</span><br><span class="line"> ├── GeneratorExit</span><br><span class="line"> └── Exception                    # 业务代码通常捕获这一支</span><br><span class="line">      ├── ArithmeticError</span><br><span class="line">      │    └── ZeroDivisionError</span><br><span class="line">      ├── LookupError</span><br><span class="line">      │    ├── IndexError</span><br><span class="line">      │    └── KeyError</span><br><span class="line">      ├── OSError</span><br><span class="line">      │    ├── FileNotFoundError</span><br><span class="line">      │    └── PermissionError</span><br><span class="line">      ├── TypeError</span><br><span class="line">      ├── ValueError</span><br><span class="line">      └── ...</span><br></pre></td></tr></table></figure>
+
+<p>完整层级见官方文档：<a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/exceptions.html#exception-hierarchy">Built-in Exceptions — Exception hierarchy</a>。</p>
+<p>匹配规则很重要：**<code>except</code> 会捕获该类及其所有子类**。因此要把更具体的异常写在前面，把更宽泛的（如 <code>Exception</code>）放在后面。</p>
+<hr>
+<h2 id="6-try-except-基础语法"><a href="#6-try-except-基础语法" class="headerlink" title="6. try-except 基础语法"></a>6. try-except 基础语法</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">try:</span><br><span class="line">    可能出错的代码</span><br><span class="line">except:</span><br><span class="line">    出错后的处理代码</span><br></pre></td></tr></table></figure>
+
+<p>把求商改成异常处理版：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">    num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;程序出现异常&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;后续逻辑代码1&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;后续逻辑代码2&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>执行路径可以概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有异常：产生异常 → 找最近 except → 处理 → 继续往下跑</span><br><span class="line">无异常：跳过 except → 继续往下跑</span><br></pre></td></tr></table></figure>
+
+<p>注意：裸 <code>except:</code> 会捕获几乎所有异常（包括本不该吞掉的中断类异常），生产代码应尽量写成具体类型，至少写成 <code>except Exception:</code>。</p>
+<hr>
+<h2 id="7-捕获指定异常"><a href="#7-捕获指定异常" class="headerlink" title="7. 捕获指定异常"></a>7. 捕获指定异常</h2><p>多个 <code>except</code> <strong>自上而下匹配</strong>，命中后不再继续往下找：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">    num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;输入有误，请输入整数！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ZeroDivisionError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;除数不能为 0！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> Exception:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;意外异常&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;后续逻辑代码1&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>异常</th>
+<th>常见触发场景</th>
+<th>提示文案示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ValueError</code></td>
+<td><code>int(&quot;abc&quot;)</code></td>
+<td>请输入整数</td>
+</tr>
+<tr>
+<td><code>ZeroDivisionError</code></td>
+<td><code>n // 0</code></td>
+<td>除数不能为 0</td>
+</tr>
+<tr>
+<td><code>Exception</code></td>
+<td>其他未预期错误</td>
+<td>兜底日志&#x2F;提示</td>
+</tr>
+</tbody></table>
+<p>也可以用元组一次捕获多种类型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">except</span> (ValueError, TypeError) <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;输入类型或格式错误：<span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-获取异常对象信息"><a href="#8-获取异常对象信息" class="headerlink" title="8. 获取异常对象信息"></a>8. 获取异常对象信息</h2><p>用 <code>as</code> 把异常对象绑定到变量，便于打印详情：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">    num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(aa)  <span class="comment"># 故意制造 NameError，演示兜底分支</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;输入有误，请输入整数！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ZeroDivisionError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;除数不能为 0！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;意外异常&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;异常信息：<span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;异常类型：<span class="subst">&#123;<span class="built_in">type</span>(e)&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;异常的文件：<span class="subst">&#123;e.__traceback__.tb_frame.f_code.co_filename&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;异常的具体行数：<span class="subst">&#123;e.__traceback__.tb_lineno&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>常用字段：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>e</code> &#x2F; <code>str(e)</code></td>
+<td>错误描述</td>
+</tr>
+<tr>
+<td><code>type(e)</code></td>
+<td>异常类型</td>
+</tr>
+<tr>
+<td><code>e.__traceback__</code></td>
+<td>追溯对象，可取文件名、行号</td>
+</tr>
+</tbody></table>
+<p>日常调试更推荐下一节的 <code>traceback</code>，信息更完整、写法也更稳妥。</p>
+<hr>
+<h2 id="9-traceback-打印完整堆栈"><a href="#9-traceback-打印完整堆栈" class="headerlink" title="9. traceback 打印完整堆栈"></a>9. traceback 打印完整堆栈</h2><p><code>traceback</code> 用于格式化异常调用链：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">    num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(aa)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;输入有误，请输入整数！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ZeroDivisionError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;除数不能为 0！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> Exception:</span><br><span class="line">    <span class="built_in">print</span>(traceback.format_exc())</span><br></pre></td></tr></table></figure>
+
+<p><code>traceback.format_exc()</code> 返回字符串形式的完整堆栈，适合写入日志；需要直接打印到标准错误流时可用 <code>traceback.print_exc()</code>。</p>
+<hr>
+<h2 id="10-else-与-finally"><a href="#10-else-与-finally" class="headerlink" title="10. else 与 finally"></a>10. else 与 finally</h2><p>完整结构：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">try:</span><br><span class="line">    可能出现异常的代码</span><br><span class="line">except 异常类型:</span><br><span class="line">    出现异常后的处理代码</span><br><span class="line">else:</span><br><span class="line">    没有出现异常时执行的代码</span><br><span class="line">finally:</span><br><span class="line">    无论是否出现异常，最后都会执行的代码</span><br></pre></td></tr></table></figure>
+
+<p>一句话记忆：</p>
+<table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>try</code></td>
+<td>尝试执行</td>
+</tr>
+<tr>
+<td><code>except</code></td>
+<td>出错了怎么办</td>
+</tr>
+<tr>
+<td><code>else</code></td>
+<td>没出错怎么办</td>
+</tr>
+<tr>
+<td><code>finally</code></td>
+<td>最后一定要做什么（关文件、释锁、关连接等清理工作）</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">    num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ValueError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;输入有误，请输入整数！&quot;</span>)</span><br><span class="line"><span class="keyword">except</span> ZeroDivisionError:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;除数不能为 0！&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;计算成功&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据保存成功&quot;</span>)</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;清理/收尾逻辑&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>要点：</p>
+<ul>
+<li><code>else</code> 只在 <strong>try 块没有异常</strong> 时执行，适合放「成功后的后续业务」，避免和可能抛错的代码混在一起</li>
+<li><code>finally</code> <strong>几乎总会执行</strong>（进程被强杀等极端情况除外），适合做资源清理</li>
+<li>现代写法里，文件&#x2F;锁等资源也常用 <code>with</code> 语句，与 <code>finally</code> 目标一致</li>
+</ul>
+<hr>
+<h2 id="11-raise-强制抛出异常"><a href="#11-raise-强制抛出异常" class="headerlink" title="11. raise 强制抛出异常"></a>11. raise 强制抛出异常</h2><p><code>raise</code> 用于主动触发异常。适用于：校验失败、当前层无法处理、需要把错误交给上层等场景。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">num1 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第一个数：&quot;</span>))</span><br><span class="line">num2 = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请录入第二个数：&quot;</span>))</span><br><span class="line"><span class="keyword">if</span> num2 &lt; <span class="number">0</span>:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;除数不能为负数&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;商：<span class="subst">&#123;num1 // num2&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>常见用法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 抛出带说明的异常</span></span><br><span class="line"><span class="keyword">raise</span> ValueError(<span class="string">&quot;参数不合法&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 捕获后原样继续向上抛</span></span><br><span class="line"><span class="keyword">except</span> ValueError:</span><br><span class="line">    <span class="comment"># 做一点日志后，再抛给调用方</span></span><br><span class="line">    <span class="keyword">raise</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 捕获后换成另一种异常（注意保留因果时可用 from）</span></span><br><span class="line"><span class="keyword">except</span> KeyError <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;缺少必要字段&quot;</span>) <span class="keyword">from</span> e</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="12-自定义异常"><a href="#12-自定义异常" class="headerlink" title="12. 自定义异常"></a>12. 自定义异常</h2><p>内置异常覆盖了大多数语法&#x2F;运行时错误，但业务规则往往需要自己的异常类型，例如：</p>
+<ul>
+<li>用户年龄必须大于 18</li>
+<li>密码长度必须大于 6</li>
+<li>余额不足不能转账</li>
+<li>商品库存不足不能下单</li>
+</ul>
+<p><strong>自定义异常应继承 <code>Exception</code>（或其合适子类）</strong>，类名通常以 <code>Error</code> 结尾，并保持简单：携带必要属性，方便上层提取信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">WeightError</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, msg</span>):</span><br><span class="line">        <span class="variable language_">self</span>.msg = msg</span><br><span class="line">        <span class="built_in">super</span>().__init__(<span class="string">&quot;体重异常：&quot;</span> + msg)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__str__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">f&quot;体重超标原因是<span class="subst">&#123;self.msg&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>():</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        w = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">&quot;请输入体重：&quot;</span>))</span><br><span class="line">        <span class="keyword">if</span> w &gt;= <span class="number">200</span>:</span><br><span class="line">            <span class="keyword">raise</span> WeightError(<span class="string">&quot;夏季烧烤吃太多&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span> WeightError <span class="keyword">as</span> result:</span><br><span class="line">        <span class="built_in">print</span>(result)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;请输入整数体重&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    test()</span><br></pre></td></tr></table></figure>
+
+<p>设计建议：</p>
+<ol>
+<li>按业务域划分异常，如 <code>InsufficientBalanceError</code>、<code>OutOfStockError</code></li>
+<li>需要区分处理时再细分类型；不要为每个细枝末节都建一个类</li>
+<li>捕获时优先写具体自定义类型，而不是一律 <code>except Exception</code></li>
+</ol>
+<hr>
+<h2 id="13-异常的传递"><a href="#13-异常的传递" class="headerlink" title="13. 异常的传递"></a>13. 异常的传递</h2><p>如果当前代码块没有捕获异常，它会<strong>沿着调用链向上传递</strong>；每一层都有机会处理。若一直无人处理，程序最终因未捕获异常而终止。</p>
+<p>未捕获时的传递示意：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test1</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test1开始******&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test1结束******&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test2</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test2开始******&quot;</span>)</span><br><span class="line">    num = <span class="number">10</span> / <span class="number">0</span>  <span class="comment"># 这里抛出 ZeroDivisionError</span></span><br><span class="line">    test1()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test2结束******&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test3</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test3开始******&quot;</span>)</span><br><span class="line">    test2()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test3结束******&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    test3()</span><br></pre></td></tr></table></figure>
+
+<p>运行结果类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">******test3开始******</span><br><span class="line">******test2开始******</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  ...</span><br><span class="line">  File &quot;...&quot;, line ..., in test2</span><br><span class="line">    num = 10 / 0</span><br><span class="line">ZeroDivisionError: division by zero</span><br></pre></td></tr></table></figure>
+
+<p><code>test1()</code> 根本不会执行，<code>test2</code> &#x2F; <code>test3</code> 的结束打印也不会出现。</p>
+<p>在出错层捕获后，调用链可继续：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test2</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test2开始******&quot;</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        num = <span class="number">10</span> / <span class="number">0</span></span><br><span class="line">    <span class="keyword">except</span> ZeroDivisionError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;已在 test2 处理：<span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">    test1()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;******test2结束******&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>分层原则：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>常见做法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层工具函数</td>
+<td>可抛出具体异常，或转换后上抛</td>
+</tr>
+<tr>
+<td>业务服务层</td>
+<td>捕获并转成领域异常 &#x2F; 返回错误结果</td>
+</tr>
+<tr>
+<td>入口（脚本、接口）</td>
+<td>统一兜底日志，给用户友好提示</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="14-实践建议小结"><a href="#14-实践建议小结" class="headerlink" title="14. 实践建议小结"></a>14. 实践建议小结</h2><ol>
+<li><strong>先定位再处理</strong>：看异常类型与堆栈最后几帧</li>
+<li><strong>捕获要具体</strong>：优先 <code>ValueError</code>、<code>ZeroDivisionError</code> 等，慎用裸 <code>except:</code></li>
+<li><strong>业务与防护分离</strong>：用 <code>try-except</code> 代替层层 <code>if</code> 堵漏洞</li>
+<li><strong>成功路径放 <code>else</code>，清理放 <code>finally</code> &#x2F; <code>with</code></strong></li>
+<li><strong>规则校验用 <code>raise</code>，领域规则用自定义异常</strong></li>
+<li>**日志用 <code>traceback</code>**，不要只打印一句「出错了」</li>
+<li><strong>异常会向上传递</strong>：在合适的那一层处理，既不要过早吞掉，也不要全部堆到最顶层</li>
+</ol>
+<p>把「求商」这个例子吃透后，文件读写、网络请求、Web 接口里的错误处理，都是同一套机制的延伸。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/08/18/python-exceptions-complete-guide/">https://qijianyeah.github.io/2026/08/18/python-exceptions-complete-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a><a class="post-meta__tags" href="/tags/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/">异常处理</a><a class="post-meta__tags" href="/tags/try-except/">try-except</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</div></div><div class="info-2"><div class="info-item-1">Dify 工作流实战：从文档生成大模型微调 JSONL 语料高质量微调数据往往比“把模型训起来”更难获得。本文使用 Dify 工作流，把用户上传的文档转换为可供人工审核的问答候选，再输出 JSONL 格式的对话样本。 需要先明确边界：Dify 工作流生成的是合成语料候选，不等于完成微调，更不等于数据天然可用。 它适合降低初始整理成本，但最终仍需要去重、事实校验、版权与隐私审查、格式验证和训练集 &#x2F; 验证集划分。  目录 1. 微调与 JSONL 数据格式 2. 工作流设计与关键风险 3. 开始节点：接收文件与任务约束 4. 文档提取器：把文件变成文本 5. 代码节点：清洗和分块，而非盲目截断 6. LLM 节点：生成可审核的问答 7. 结束节点与 JSONL 输出 8. 测试、校验与人工审核 9. 生产化改进建议 10. 小结   1. 微调与 JSONL...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/09/python-start-environment-first-program/" title="Python 启航：环境搭建与第一个程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-09</div><div class="info-item-2">Python 启航：环境搭建与第一个程序</div></div><div class="info-2"><div class="info-item-1">Python 启航：环境搭建与第一个程序目录 1. 认识 Python 2. 准备 Python 运行环境 3. 编写并运行第一个 Python 程序 4. 理解 PATH 环境变量 5. 使用 PyCharm 开发 Python 6. 认识 PyCharm 项目目录 7. Python 注释 8. 综合练习：六行输出一首诗 9. 入门常见问题速查   本章从“编程语言是什么”出发，完成 Python 解释器和 PyCharm 的安装与配置，并分别通过交互式解释器、命令行脚本和 IDE 运行第一个 Python 3 程序。最后将进一步认识项目目录、注释规则，并通过一个完整练习巩固输出语句。 1. 认识 Python1.1 编程语言是什么自然语言帮助人与人交流，编程语言则是一套让人向计算机描述数据和操作的形式化规则。计算机底层只能直接处理二进制指令，人编写的 Python 源代码不能被 CPU 直接执行，需要由 Python 解释器读取并执行。 可以把这一过程理解为： 12345开发者编写 Python 源代码          ↓Python 解释器分析并执行         ...</div></div></div></a><a class="pagination-related" href="/2026/08/15/python-functions-complete-guide/" title="Python 函数完全指南：从参数传递到作用域与常见陷阱"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-15</div><div class="info-item-2">Python 函数完全指南：从参数传递到作用域与常见陷阱</div></div><div class="info-2"><div class="info-item-1">Python 函数完全指南：从参数传递到作用域与常见陷阱函数是组织良好、可以重复调用、用于完成特定功能的代码块。使用函数可以减少重复代码，让程序结构更清晰，也更便于测试和维护。  目录 1. 函数的定义与调用 2. 为什么要使用函数 3. 函数的分类 4. 形参与实参 5. 参数的传递方式 6. 可变参数 7. 参数的打包与解包 8. 函数的返回值 9. 类型注解与文档字符串 10. 局部变量与全局变量 11. 函数之间的调用 12. 默认参数的常见陷阱 13. 本章总结   1. 函数的定义与调用1.1 定义函数Python 使用 def 关键字定义函数： 12def 函数名(参数列表):    函数体  例如： 12def greet(name):   ...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-functions-advanced-guide/" title="Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数</div></div><div class="info-2"><div class="info-item-1">Python 函数进阶完全指南：递归、一等公民、lambda 与内置高阶函数学完函数基础后，下一步是把函数真正当作“可传递的值”来用。本文从递归入手，再讲清函数对象、匿名函数，以及 map &#x2F; reduce &#x2F; filter &#x2F; sorted 这组常用高阶函数。  目录 1. 递归 2. 函数也是对象：一等公民 3. 匿名函数 lambda 4. 什么是高阶函数 5. 内置高阶函数 map 6. 内置高阶函数 reduce 7. 内置高阶函数 filter 8. 内置高阶函数 sorted 9. 学习小结与实践建议   1. 递归1.1 什么是递归程序在定义中直接或间接调用自身的技巧，称为递归。 下面这个例子能说明“自己调用自己”，但缺少结束条件，实际运行会不断压栈，最终触发 RecursionError： 123456def hello():    print(&quot;欢迎光临&quot;)    hello()  # 缺少结束条件，会递归溢出# hello()  #...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-memory-analysis-guide/" title="Python 内存分析完全指南：不可变对象、可变对象与自定义实例"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 内存分析完全指南：不可变对象、可变对象与自定义实例</div></div><div class="info-2"><div class="info-item-1">Python 内存分析完全指南：不可变对象、可变对象与自定义实例理解 Python 的内存模型，比死记“传值还是传引用”更有用。变量名保存在栈侧，真正的对象在堆上；赋值改的是“指向谁”，就地修改改的是“对象内部”。  目录 1. 先建立心智模型 2. 不可变对象的内存行为 3. 可变对象的内存行为 4. 经典易错题：函数参数里的赋值与原地修改 5. 自定义对象的内存布局 6. 学习小结与实践建议   1. 先建立心智模型Python 中几乎一切都是对象。观察一个对象，通常看三件事：    维度 含义 常用查看方式    身份 identity 对象在一次运行中的唯一标识 id(obj)   类型 type 对象支持哪些操作 type(obj)   值 value 对象表达的数据内容 直接打印或访问属性   教学图里常把内存画成：  栈：保存变量名，以及它当前指向的对象标识 堆：保存真正的对象（类型、值、内部引用）  变量更像标签，不是“装满数据的盒子”。a = b 的含义是：让 a 与 b 指向同一个对象，而不是复制一份新的内容。 注意：id()...</div></div></div></a><a class="pagination-related" href="/2026/08/16/python-object-oriented-programming-guide/" title="Python 面向对象完全指南：从类与对象到封装、继承和多态"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-16</div><div class="info-item-2">Python 面向对象完全指南：从类与对象到封装、继承和多态</div></div><div class="info-2"><div class="info-item-1">Python 面向对象完全指南：从类与对象到封装、继承和多态目录 1. 从编程思维说起：面向过程与面向对象 2. 类、对象与“一切皆对象” 3. 定义类与创建对象 4. 属性：类共享的数据与实例自己的状态 5. 方法：实例方法、类方法与静态方法 6. 动态绑定 7. 封装与名称改写 8. 继承、重写与方法解析顺序 9. 多态与鸭子类型 10. 常用魔术属性与魔术方法 11. 抽象类：用接口约束实现 12. 学习总结与实践建议  1. 从编程思维说起：面向过程与面向对象面向过程和面向对象不是互相排斥的两种语言特性，而是组织程序的两种思维方式。  面向过程关注“完成任务需要哪些步骤”，适合流程清楚、规模较小的问题。 面向对象关注“系统中有哪些角色，各自保存什么状态、承担什么职责”，适合状态丰富、角色较多、需要持续扩展的系统。  以制作一道菜为例，面向过程可以把任务拆成连续的函数： 1234567891011121314def prepare_ingredients():    return &quot;准备好的鸡蛋和西红柿&quot;def cook(ingredients):  ...</div></div></div></a><a class="pagination-related" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-17</div><div class="info-item-2">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</div></div><div class="info-2"><div class="info-item-1">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境项目稍大一点，就不能把所有代码塞进一个文件。Python 用模块组织代码，用包管理模块，再用 pip 安装第三方库，用虚拟环境隔离依赖。本文按这条主线把概念一次讲清。  目录 1. 什么是模块 2. 为什么要使用模块 3. 模块的三种分类 4. 自定义模块 5. 模块导入方式 6. 模块搜索顺序 7. __all__ 控制星号导入 8. 包：用目录组织模块 9. 第三方库、PyPI 与 pip 10. 全局环境与虚拟环境 11. 学习小结与实践建议   1. 什么是模块在 Python 中，一个 .py 文件通常就是一个模块（Module）。可以把模块理解成工具箱：把相关代码集中放在一起，需要时再导入使用。 一个模块里可以放：    内容 例子    变量 num = 100   函数 def test(a, b): ...   类 class User: ...   常量 MAX_RETRY = 3   可执行语句 导入时会执行的初始化代码   目的只有一个：按功能拆分代码，统一管理。  2....</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">56</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">58</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">22</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Python-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97%EF%BC%9A%E4%BB%8E-try-except-%E5%88%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8"><span class="toc-number">1.</span> <span class="toc-text">Python 异常处理完全指南：从 try-except 到自定义异常</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%8E%E4%B8%80%E4%B8%AA%E5%B0%8F%E9%9C%80%E6%B1%82%E8%AF%B4%E8%B5%B7"><span class="toc-number">1.2.</span> <span class="toc-text">1. 从一个小需求说起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E5%BC%82%E5%B8%B8"><span class="toc-number">1.3.</span> <span class="toc-text">2. 什么是异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%A6%82%E4%BD%95%E9%98%85%E8%AF%BB%E5%BC%82%E5%B8%B8%E4%BF%A1%E6%81%AF"><span class="toc-number">1.4.</span> <span class="toc-text">3. 如何阅读异常信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%A8-if-else-%E5%A0%B5%E6%BC%8F%E6%B4%9E%E5%8F%8A%E5%85%B6%E5%B1%80%E9%99%90"><span class="toc-number">1.5.</span> <span class="toc-text">4. 用 if-else 堵漏洞及其局限</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%BC%82%E5%B8%B8%E7%B1%BB%E7%9A%84%E7%BB%A7%E6%89%BF%E4%BD%93%E7%B3%BB"><span class="toc-number">1.6.</span> <span class="toc-text">5. 异常类的继承体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-try-except-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95"><span class="toc-number">1.7.</span> <span class="toc-text">6. try-except 基础语法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%8D%95%E8%8E%B7%E6%8C%87%E5%AE%9A%E5%BC%82%E5%B8%B8"><span class="toc-number">1.8.</span> <span class="toc-text">7. 捕获指定异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E8%8E%B7%E5%8F%96%E5%BC%82%E5%B8%B8%E5%AF%B9%E8%B1%A1%E4%BF%A1%E6%81%AF"><span class="toc-number">1.9.</span> <span class="toc-text">8. 获取异常对象信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-traceback-%E6%89%93%E5%8D%B0%E5%AE%8C%E6%95%B4%E5%A0%86%E6%A0%88"><span class="toc-number">1.10.</span> <span class="toc-text">9. traceback 打印完整堆栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-else-%E4%B8%8E-finally"><span class="toc-number">1.11.</span> <span class="toc-text">10. else 与 finally</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-raise-%E5%BC%BA%E5%88%B6%E6%8A%9B%E5%87%BA%E5%BC%82%E5%B8%B8"><span class="toc-number">1.12.</span> <span class="toc-text">11. raise 强制抛出异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8"><span class="toc-number">1.13.</span> <span class="toc-text">12. 自定义异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E5%BC%82%E5%B8%B8%E7%9A%84%E4%BC%A0%E9%80%92"><span class="toc-number">1.14.</span> <span class="toc-text">13. 异常的传递</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE%E5%B0%8F%E7%BB%93"><span class="toc-number">1.15.</span> <span class="toc-text">14. 实践建议小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/18/python-exceptions-complete-guide/" title="Python 异常处理完全指南：从 try-except 到自定义异常">Python 异常处理完全指南：从 try-except 到自定义异常</a><time datetime="2026-08-17T16:17:02.000Z" title="发表于 2026-08-18 00:17:02">2026-08-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-finetune-dataset-workflow/" title="Dify 工作流实战：从文档生成大模型微调 JSONL 语料">Dify 工作流实战：从文档生成大模型微调 JSONL 语料</a><time datetime="2026-08-17T14:49:30.000Z" title="发表于 2026-08-17 22:49:30">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/dify-beginner-guide/" title="Dify 入门完全指南：本地部署、模型接入与第一个工作流">Dify 入门完全指南：本地部署、模型接入与第一个工作流</a><time datetime="2026-08-17T14:49:00.000Z" title="发表于 2026-08-17 22:49:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/claude-code-deepseek-guide/" title="Claude Code 安装与接入 DeepSeek 完全指南">Claude Code 安装与接入 DeepSeek 完全指南</a><time datetime="2026-08-17T14:20:00.000Z" title="发表于 2026-08-17 22:20:00">2026-08-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/17/python-modules-and-packages-guide/" title="Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境">Python 模块与包完全指南：自定义模块、包结构、pip 与虚拟环境</a><time datetime="2026-08-17T12:01:00.000Z" title="发表于 2026-08-17 20:01:00">2026-08-17</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
