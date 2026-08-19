@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>Claude Code 安装与 DeepSeek 配置指南：4 个环境变量快速配通</title>
+      <link href="//2026/08/19/claude-code-deepseek-setup-guide/"/>
+      <url>//2026/08/19/claude-code-deepseek-setup-guide/</url>
+      
+        <content type="html"><![CDATA[<p>如果你想继续用 Claude Code 的交互方式和工具链，但又不想走 Anthropic 官方付费授权，这篇就够了。核心思路很简单：Claude Code 继续当前端，推理后端改成 DeepSeek 的 Anthropic 兼容接口。</p><p>这不是“破解”或“魔改”，本质上是一次标准的 API 兼容接入。你只需要把安装、环境变量和验证这三步配通，就能在终端里直接用起来。</p><h2 id="先说结论"><a href="#先说结论" class="headerlink" title="先说结论"></a>先说结论</h2><p>想把 Claude Code 接到 DeepSeek，最关键的是 4 个配置：</p><ol><li><code>ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic</code></li><li><code>ANTHROPIC_AUTH_TOKEN=你的 DeepSeek API Key</code></li><li><code>ANTHROPIC_MODEL=deepseek-v4-pro[1m]</code></li><li><code>ANTHROPIC_SMALL_FAST_MODEL=deepseek-v4-flash</code></li></ol><p>配好以后，启动 <code>claude</code>，再用 <code>/model</code> 检查当前模型是否已经切到 DeepSeek 即可。</p><h2 id="一、安装前要准备什么"><a href="#一、安装前要准备什么" class="headerlink" title="一、安装前要准备什么"></a>一、安装前要准备什么</h2><p>正式安装前，先确认几件事：</p><ul><li>操作系统满足 Claude Code 官方要求</li><li>Windows 用户最好先装 <code>Git for Windows</code></li><li>本机已经有可用的 Node.js 环境</li><li>安装阶段如果网络受限，要先准备代理</li><li>你已经在 DeepSeek 开放平台创建好 API Key</li></ul><p>如果这些前置条件没准备好，后面最常见的问题就是：装不上、命令找不到、启动后还提示登录。</p><h2 id="二、Claude-Code-怎么安装"><a href="#二、Claude-Code-怎么安装" class="headerlink" title="二、Claude Code 怎么安装"></a>二、Claude Code 怎么安装</h2><p>官方安装命令目前还是这三套。</p><h3 id="macOS-Linux-WSL"><a href="#macOS-Linux-WSL" class="headerlink" title="macOS &#x2F; Linux &#x2F; WSL"></a>macOS &#x2F; Linux &#x2F; WSL</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://claude.ai/install.sh | bash</span><br></pre></td></tr></table></figure><h3 id="Windows-PowerShell"><a href="#Windows-PowerShell" class="headerlink" title="Windows PowerShell"></a>Windows PowerShell</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">irm</span> https://claude.ai/install.ps1 | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure><h3 id="Windows-CMD"><a href="#Windows-CMD" class="headerlink" title="Windows CMD"></a>Windows CMD</h3><figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://claude.ai/install.<span class="built_in">cmd</span> -o install.<span class="built_in">cmd</span> &amp;&amp; install.<span class="built_in">cmd</span> &amp;&amp; <span class="built_in">del</span> install.<span class="built_in">cmd</span></span><br></pre></td></tr></table></figure><p>如果你在 PowerShell 里误执行了 CMD 命令，常见报错是 <code>&amp;&amp;</code> 不被识别；反过来在 CMD 里执行 <code>irm</code> 也会失败。最简单的判断方法是先看命令行提示符：带 <code>PS</code> 的是 PowerShell，不带的是 CMD。</p><p>另外，Claude Code 现在也支持图形化安装路径，例如 macOS 的 Homebrew 和 Windows 的 WinGet；但如果你只想最快跑通，直接用官方脚本最省事。</p><h2 id="三、为什么能接入-DeepSeek"><a href="#三、为什么能接入-DeepSeek" class="headerlink" title="三、为什么能接入 DeepSeek"></a>三、为什么能接入 DeepSeek</h2><p>Claude Code 默认走 Anthropic 接口，但 DeepSeek 提供了 Anthropic 兼容端点，所以你不需要改 Claude Code 的使用方式，只需要把请求地址和鉴权信息换掉。</p><p>关键兼容地址是：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://api.deepseek.com/anthropic</span><br></pre></td></tr></table></figure><p>这里有两个容易踩坑的点：</p><ol><li><code>ANTHROPIC_BASE_URL</code> 末尾不要带 <code>/</code></li><li>不要继续使用旧模型名 <code>deepseek-chat</code> 或 <code>deepseek-reasoner</code></li></ol><p>根据 DeepSeek 当前文档，推荐直接使用 <code>deepseek-v4-pro</code> 和 <code>deepseek-v4-flash</code>。其中 V4 系列支持更长上下文，适合 Claude Code 这类会读代码库、跑多轮任务的 Agent 场景。</p><h2 id="四、4-个环境变量怎么配"><a href="#四、4-个环境变量怎么配" class="headerlink" title="四、4 个环境变量怎么配"></a>四、4 个环境变量怎么配</h2><p>这是整套配置里最核心的一步。</p><table><thead><tr><th>变量名</th><th>推荐值</th></tr></thead><tbody><tr><td><code>ANTHROPIC_BASE_URL</code></td><td><code>https://api.deepseek.com/anthropic</code></td></tr><tr><td><code>ANTHROPIC_AUTH_TOKEN</code></td><td>你的 DeepSeek API Key</td></tr><tr><td><code>ANTHROPIC_MODEL</code></td><td><code>deepseek-v4-pro[1m]</code></td></tr><tr><td><code>ANTHROPIC_SMALL_FAST_MODEL</code></td><td><code>deepseek-v4-flash</code></td></tr></tbody></table><p>这里补充解释两个容易忽略的点：</p><ul><li><code>ANTHROPIC_AUTH_TOKEN</code> 直接填 DeepSeek 的 <code>sk-...</code> 密钥</li><li><code>deepseek-v4-pro[1m]</code> 这种写法，是显式启用长上下文工作模式，适合复杂项目分析和大文件场景</li></ul><h3 id="Windows-临时配置"><a href="#Windows-临时配置" class="headerlink" title="Windows 临时配置"></a>Windows 临时配置</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:ANTHROPIC_BASE_URL</span>=<span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_AUTH_TOKEN</span>=<span class="string">&quot;sk-你的密钥&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_MODEL</span>=<span class="string">&quot;deepseek-v4-pro[1m]&quot;</span></span><br><span class="line"><span class="variable">$env:ANTHROPIC_SMALL_FAST_MODEL</span>=<span class="string">&quot;deepseek-v4-flash&quot;</span></span><br></pre></td></tr></table></figure><h3 id="macOS-Linux-永久配置"><a href="#macOS-Linux-永久配置" class="headerlink" title="macOS &#x2F; Linux 永久配置"></a>macOS &#x2F; Linux 永久配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> ANTHROPIC_BASE_URL=<span class="string">&quot;https://api.deepseek.com/anthropic&quot;</span></span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_AUTH_TOKEN=<span class="string">&quot;sk-你的密钥&quot;</span></span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_MODEL=<span class="string">&quot;deepseek-v4-pro[1m]&quot;</span></span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_SMALL_FAST_MODEL=<span class="string">&quot;deepseek-v4-flash&quot;</span></span><br></pre></td></tr></table></figure><p>写入 <code>~/.zshrc</code> 或 <code>~/.bashrc</code> 后，记得执行：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br></pre></td></tr></table></figure><p>如果你是在 Windows 用户变量里配置的，最稳妥的做法是重启一次终端，必要时直接重启电脑。</p><h2 id="五、怎么验证是否真的接好了"><a href="#五、怎么验证是否真的接好了" class="headerlink" title="五、怎么验证是否真的接好了"></a>五、怎么验证是否真的接好了</h2><p>最简单的检查流程只有两步。</p><h3 id="第一步：启动-Claude-Code"><a href="#第一步：启动-Claude-Code" class="headerlink" title="第一步：启动 Claude Code"></a>第一步：启动 Claude Code</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude</span><br></pre></td></tr></table></figure><h3 id="第二步：进入后执行"><a href="#第二步：进入后执行" class="headerlink" title="第二步：进入后执行"></a>第二步：进入后执行</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/model</span><br></pre></td></tr></table></figure><p>如果当前模型已经显示为 <code>deepseek-v4-pro</code>，就说明路由基本打通了。</p><p>如果这时仍然弹出 Anthropic 登录流程，优先检查下面几项：</p><ol><li>环境变量是否真的生效</li><li><code>ANTHROPIC_BASE_URL</code> 是否写错或多了斜杠</li><li>API Key 是否可用</li><li>是否还在用旧模型名</li></ol><h2 id="六、日常怎么用更顺手"><a href="#六、日常怎么用更顺手" class="headerlink" title="六、日常怎么用更顺手"></a>六、日常怎么用更顺手</h2><p>配通之后，真正高频的其实不是“安装”，而是日常使用习惯。</p><p>建议记住这几个命令和操作：</p><ul><li>在项目目录里启动 <code>claude</code></li><li>输入 <code>/</code> 查看全部内置命令</li><li>用 <code>/clear</code> 清空当前对话</li><li>用 <code>/compact</code> 压缩上下文</li><li>用 <code>/init</code> 生成项目说明文件</li><li>用 <code>claude --continue</code> 续接最近一次对话</li></ul><p>另外，<code>Shift + Tab</code> 可以切权限模式：</p><ul><li><code>default</code>：每次写文件或执行命令都确认，适合稳妥场景</li><li><code>acceptEdits</code>：自动接受编辑，适合快速迭代</li><li><code>plan</code>：只给方案不动文件，适合先评估再执行</li></ul><h2 id="七、最常见的-4-个问题"><a href="#七、最常见的-4-个问题" class="headerlink" title="七、最常见的 4 个问题"></a>七、最常见的 4 个问题</h2><h3 id="1-安装阶段网络报错"><a href="#1-安装阶段网络报错" class="headerlink" title="1. 安装阶段网络报错"></a>1. 安装阶段网络报错</h3><p>Claude Code 官方安装脚本拉取阶段通常需要能访问外网。这个阶段报错，优先处理代理，不要上来就怀疑 Node 或 npm。</p><h3 id="2-安装完后-claude-命令找不到"><a href="#2-安装完后-claude-命令找不到" class="headerlink" title="2. 安装完后 claude 命令找不到"></a>2. 安装完后 <code>claude</code> 命令找不到</h3><p>这通常是 PATH 没生效。重开终端后再试；如果仍不行，再检查 Node 和全局 bin 目录是否在 PATH 里。</p><h3 id="3-启动后还是提示登录"><a href="#3-启动后还是提示登录" class="headerlink" title="3. 启动后还是提示登录"></a>3. 启动后还是提示登录</h3><p>说明 DeepSeek 路由没有真正生效。大多数情况都是环境变量漏配、写错，或者当前 shell 没重新加载配置。</p><h3 id="4-上下文太长、响应越来越慢"><a href="#4-上下文太长、响应越来越慢" class="headerlink" title="4. 上下文太长、响应越来越慢"></a>4. 上下文太长、响应越来越慢</h3><p>可以先执行 <code>/compact</code> 压缩上下文，再继续当前任务。对于特别大的项目，也可以把轻量任务交给 <code>deepseek-v4-flash</code>。</p><h2 id="最后总结"><a href="#最后总结" class="headerlink" title="最后总结"></a>最后总结</h2><p>如果你想低成本继续使用 Claude Code，最省事的路径不是换工具，而是把后端切到 DeepSeek。</p><p>你真正需要做的只有三件事：</p><ol><li>按官方方式安装 Claude Code</li><li>配好 4 个环境变量</li><li>启动后用 <code>/model</code> 做一次验证</li></ol><p>一旦这三步跑通，后面你在终端里的使用方式几乎不用改，写代码、读项目、跑命令的体验也能保持一致。</p><p>参考资料：</p><ol><li>Claude Code 官方安装文档：<a href="https://code.claude.com/docs/en/install">https://code.claude.com/docs/en/install</a></li><li>Claude Code 官方总览：<a href="https://code.claude.com/docs/zh-CN/overview">https://code.claude.com/docs/zh-CN/overview</a></li><li>DeepSeek API 文档：<a href="https://api-docs.deepseek.com/">https://api-docs.deepseek.com/</a></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 工具实践 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> DeepSeek </tag>
+            
+            <tag> Node.js </tag>
+            
+            <tag> AI 编程 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Python 异常处理完全指南：从 try-except 到自定义异常</title>
       <link href="//2026/08/18/python-exceptions-complete-guide/"/>
       <url>//2026/08/18/python-exceptions-complete-guide/</url>
@@ -243,9 +274,9 @@
             
             <tag> Python </tag>
             
-            <tag> Python 基础 </tag>
-            
             <tag> 面向对象 </tag>
+            
+            <tag> Python 基础 </tag>
             
             <tag> OOP </tag>
             
@@ -421,9 +452,9 @@
             
             <tag> Python </tag>
             
-            <tag> 面向对象 </tag>
-            
             <tag> Python 核心语法 </tag>
+            
+            <tag> 面向对象 </tag>
             
         </tags>
       
