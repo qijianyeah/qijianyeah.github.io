@@ -1,0 +1,649 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前端无论发 GET 还是 POST，后端走的都是同一条处理管道。真正的差别在报文怎么带参数，以及 Spring 怎么把这些参数绑到方法上。请求头对两种方法一视同仁：都在报文最前面，Tomcat 解析完就能用，不走 Jackson。 本文以 Spring Boot + 嵌入式 Tomcat 为例，从请求进机讲到响应出机，并补上请求头的读取、框架消费，以及自定义头的前后端约定。  目录 1. 先看报文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端发起 GET&#x2F;POST 时后端发生了什么：从报文解析到自定义请求头">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/09/02/http-get-post-request-header-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="前端无论发 GET 还是 POST，后端走的都是同一条处理管道。真正的差别在报文怎么带参数，以及 Spring 怎么把这些参数绑到方法上。请求头对两种方法一视同仁：都在报文最前面，Tomcat 解析完就能用，不走 Jackson。 本文以 Spring Boot + 嵌入式 Tomcat 为例，从请求进机讲到响应出机，并补上请求头的读取、框架消费，以及自定义头的前后端约定。  目录 1. 先看报文">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-09-02T14:52:41.000Z">
+<meta property="article:modified_time" content="2026-09-02T14:54:14.941Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="Spring MVC">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="请求头">
+<meta property="article:tag" content="GET">
+<meta property="article:tag" content="POST">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/09/02/http-get-post-request-header-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">73</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-09-02T14:52:41.000Z" title="发表于 2026-09-02 22:52:41">2026-09-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-02T14:54:14.941Z" title="更新于 2026-09-02 22:54:14">2026-09-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java-Web/">Java Web</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>前端无论发 GET 还是 POST，后端走的都是同一条处理管道。真正的差别在<strong>报文怎么带参数</strong>，以及 <strong>Spring 怎么把这些参数绑到方法上</strong>。请求头对两种方法一视同仁：都在报文最前面，Tomcat 解析完就能用，不走 Jackson。</p>
+<p>本文以 Spring Boot + 嵌入式 Tomcat 为例，从请求进机讲到响应出机，并补上请求头的读取、框架消费，以及自定义头的前后端约定。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E5%85%88%E7%9C%8B%E6%8A%A5%E6%96%87get-%E5%92%8C-post-%E5%B7%AE%E5%9C%A8%E5%93%AA">1. 先看报文：GET 和 POST 差在哪</a></li>
+<li><a href="#2-%E6%8A%A5%E6%96%87%E8%BF%9B-jvm-%E4%B9%8B%E5%89%8Dtomcat-%E5%A6%82%E4%BD%95%E8%AF%BB%E8%AF%B7%E6%B1%82">2. 报文进 JVM 之前：Tomcat 如何读请求</a></li>
+<li><a href="#3-filter-%E5%88%B0-dispatcherservlet%E7%BB%9F%E4%B8%80%E5%88%86%E5%8F%91">3. Filter 到 DispatcherServlet：统一分发</a></li>
+<li><a href="#4-%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9Aget-%E5%92%8C-post-%E5%9C%A8%E8%BF%99%E9%87%8C%E5%88%86%E5%AE%B6">4. 参数绑定：GET 和 POST 在这里分家</a></li>
+<li><a href="#5-%E4%B8%9A%E5%8A%A1%E5%B1%82%E4%B8%8E%E5%93%8D%E5%BA%94%E5%86%99%E5%9B%9E">5. 业务层与响应写回</a></li>
+<li><a href="#6-%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%B7%E6%B1%82%E5%A4%B4">6. 后端如何获取请求头</a></li>
+<li><a href="#7-%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E8%AF%B7%E6%B1%82%E5%A4%B4">7. 后端如何处理请求头</a></li>
+<li><a href="#8-%E5%89%8D%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AF%B7%E6%B1%82%E5%A4%B4">8. 前后端如何使用自定义请求头</a></li>
+<li><a href="#9-%E6%95%B4%E6%9D%A1%E9%93%BE%E8%B7%AF%E4%B8%B2%E8%B5%B7%E6%9D%A5">9. 整条链路串起来</a></li>
+<li><a href="#10-%E5%B0%8F%E7%BB%93">10. 小结</a></li>
+</ul>
+<hr>
+<h2 id="1-先看报文：GET-和-POST-差在哪"><a href="#1-先看报文：GET-和-POST-差在哪" class="headerlink" title="1. 先看报文：GET 和 POST 差在哪"></a>1. 先看报文：GET 和 POST 差在哪</h2><p>浏览器或 axios 发出去的，本质都是一段 HTTP 报文。</p>
+<p><strong>GET 查用户：</strong></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/users/1?status=active</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>api.example.com</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>session=xxx</span><br></pre></td></tr></table></figure>
+
+<p>参数在 <strong>URL 路径或查询字符串</strong>里，没有 Body。</p>
+<p><strong>POST 新建用户：</strong></p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/api/users</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>api.example.com</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>45</span><br><span class="line"></span><br><span class="line"><span class="language-perl">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;张三&quot;</span>,<span class="string">&quot;email&quot;</span>:<span class="string">&quot;a<span class="variable">@b</span>.com&quot;</span>&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>参数在 <strong>Body</strong> 里，方法名告诉服务器这是一次提交或变更。</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>GET</th>
+<th>POST</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语义</td>
+<td>获取资源</td>
+<td>提交 &#x2F; 创建资源</td>
+</tr>
+<tr>
+<td>参数位置</td>
+<td>URL（path &#x2F; query）</td>
+<td>Body</td>
+</tr>
+<tr>
+<td>幂等</td>
+<td>是（多次调用结果应一样）</td>
+<td>通常否</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>可被浏览器 &#x2F; CDN 缓存</td>
+<td>一般不缓存</td>
+</tr>
+<tr>
+<td>长度</td>
+<td>受 URL 长度限制</td>
+<td>主要受 Body 与服务器限制</td>
+</tr>
+</tbody></table>
+<p>后端不会因为「是 POST」就自动写库，也不会因为「是 GET」就自动只读。写不写库，完全取决于映射到的那个方法里写了什么。</p>
+<hr>
+<h2 id="2-报文进-JVM-之前：Tomcat-如何读请求"><a href="#2-报文进-JVM-之前：Tomcat-如何读请求" class="headerlink" title="2. 报文进 JVM 之前：Tomcat 如何读请求"></a>2. 报文进 JVM 之前：Tomcat 如何读请求</h2><ol>
+<li>DNS 解析、TCP 三次握手；HTTPS 再加一层 TLS。</li>
+<li>操作系统把数据包交给监听端口的进程（嵌入式 Tomcat 默认 <code>8080</code>）。</li>
+<li>Tomcat 的 <strong>Acceptor</strong> 接受连接，从线程池取出 <strong>Worker</strong> 读 socket。</li>
+<li><strong>Http11Processor</strong> 解析出：方法（GET &#x2F; POST）、URI、Header、QueryString。若是 POST，再按 <code>Content-Length</code> 或 chunked 把 Body 读进 <code>HttpServletRequest</code>。</li>
+</ol>
+<p>到这一步，GET 和 POST 已经分叉：GET 通常没有 Body；POST 必须把 Body 读完（或交给后续流式读取），否则 Controller 拿不到 JSON。</p>
+<p>Header 比 Body 更早可用。鉴权、限流、租户识别都应该在 Filter &#x2F; Interceptor 里读头，不要等进 Controller 再判断。</p>
+<hr>
+<h2 id="3-Filter-到-DispatcherServlet：统一分发"><a href="#3-Filter-到-DispatcherServlet：统一分发" class="headerlink" title="3. Filter 到 DispatcherServlet：统一分发"></a>3. Filter 到 DispatcherServlet：统一分发</h2><p>Tomcat 把请求包装成 <code>HttpServletRequest</code> &#x2F; <code>HttpServletResponse</code>，丢进 <strong>FilterChain</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">请求</span><br><span class="line">  → CharacterEncodingFilter（编码）</span><br><span class="line">  → CorsFilter（跨域预检 OPTIONS 也在这里处理）</span><br><span class="line">  → SecurityFilter / Spring Security（鉴权、CSRF）</span><br><span class="line">  → 业务自定义 Filter</span><br><span class="line">  → DispatcherServlet</span><br></pre></td></tr></table></figure>
+
+<p>Filter 不关心业务，只做横切：鉴权失败这里直接 <code>401</code> &#x2F; <code>403</code> 返回，根本进不了 Controller。</p>
+<p>Spring Security 对 GET &#x2F; POST 还有一点差异：默认 CSRF 保护对 <strong>状态变更方法</strong>（POST &#x2F; PUT &#x2F; DELETE）更严；纯 REST + JWT 通常会关掉 Session CSRF，改用 Token。</p>
+<h3 id="3-1-DispatcherServlet-怎么找到方法"><a href="#3-1-DispatcherServlet-怎么找到方法" class="headerlink" title="3.1 DispatcherServlet 怎么找到方法"></a>3.1 DispatcherServlet 怎么找到方法</h3><p>Spring MVC 所有请求都先进 <strong>DispatcherServlet</strong>（前端控制器）：</p>
+<ol>
+<li><strong>HandlerMapping</strong> 用「HTTP 方法 + URL」找处理器。例如 <code>@GetMapping(&quot;/api/users/&#123;id&#125;&quot;)</code> 只匹配 GET；POST 打到同一个 URL 会 <code>405 Method Not Allowed</code>。</li>
+<li>得到 <code>HandlerExecutionChain</code> &#x3D; Controller 方法 + <strong>Interceptor</strong> 链。</li>
+<li><code>preHandle</code>：登录校验、日志、限流。返回 <code>false</code> 则短路。</li>
+<li><strong>HandlerAdapter</strong>（一般是 <code>RequestMappingHandlerAdapter</code>）真正调用 Controller 方法。</li>
+<li><code>postHandle</code> &#x2F; <code>afterCompletion</code>：收尾、记耗时、清 ThreadLocal。</li>
+</ol>
+<p>匹配规则是 <strong>方法 + 路径一起看</strong>，不是只看 URL。这就是「前端发错方法，后端 405」的原因。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">请求到达 DispatcherServlet</span><br><span class="line">  → HandlerMapping 按「方法 + URL」找 HandlerExecutionChain</span><br><span class="line">  → Interceptor.preHandle</span><br><span class="line">  → HandlerAdapter 调用 Controller</span><br><span class="line">  → 返回 ModelAndView 或 @ResponseBody</span><br><span class="line">  → ViewResolver 渲染，或 HttpMessageConverter 序列化 JSON</span><br><span class="line">  → DispatcherServlet 写回响应</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-参数绑定：GET-和-POST-在这里分家"><a href="#4-参数绑定：GET-和-POST-在这里分家" class="headerlink" title="4. 参数绑定：GET 和 POST 在这里分家"></a>4. 参数绑定：GET 和 POST 在这里分家</h2><p>适配器调用方法前，要把 HTTP 数据绑到 Java 参数上。</p>
+<p><strong>GET：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/api/users/&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> UserVO <span class="title function_">getUser</span><span class="params">(<span class="meta">@PathVariable</span> Long id,</span></span><br><span class="line"><span class="params">                      <span class="meta">@RequestParam(required = false)</span> String status)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> userService.get(id, status);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>@PathVariable</code> ← URI 里的 <code>&#123;id&#125;</code></li>
+<li><code>@RequestParam</code> ← <code>?status=active</code></li>
+<li>没有 Body，<strong>不会</strong>走 JSON 反序列化</li>
+</ul>
+<p><strong>POST：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/api/users&quot;)</span></span><br><span class="line"><span class="keyword">public</span> UserVO <span class="title function_">createUser</span><span class="params">(<span class="meta">@RequestBody</span> <span class="meta">@Valid</span> CreateUserRequest req)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> userService.create(req);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>@RequestBody</code> 触发 <strong>HttpMessageConverter</strong>（Jackson）</li>
+<li>按 <code>Content-Type: application/json</code> 把字节流反序列化成对象</li>
+<li><code>@Valid</code> 触发 Bean Validation；失败直接 <code>400</code>，进不了 Service</li>
+</ul>
+<p>表单 POST（<code>application/x-www-form-urlencoded</code>）则更像 GET：用 <code>@RequestParam</code> &#x2F; 对象绑定，不走 JSON Converter。</p>
+<table>
+<thead>
+<tr>
+<th>取值来源</th>
+<th>GET</th>
+<th>JSON POST</th>
+<th>表单 POST</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Path &#x2F; Query</td>
+<td><code>@PathVariable</code> &#x2F; <code>@RequestParam</code></td>
+<td>仍可用</td>
+<td>仍可用</td>
+</tr>
+<tr>
+<td>Body</td>
+<td>通常无</td>
+<td><code>@RequestBody</code> + Jackson</td>
+<td><code>@RequestParam</code> &#x2F; 表单对象</td>
+</tr>
+<tr>
+<td>失败表现</td>
+<td>缺必填参数 <code>400</code></td>
+<td>JSON 非法 &#x2F; 校验失败 <code>400</code>；类型不支持 <code>415</code></td>
+<td>缺字段 <code>400</code></td>
+</tr>
+</tbody></table>
+<p>所以后端「发生了什么」的关键差异是：</p>
+<ul>
+<li>GET：从 <strong>URI &#x2F; Query</strong> 取值，便宜、可缓存、有长度限制</li>
+<li>POST：从 <strong>Body</strong> 取值，要读流、反序列化、校验，通常不能被 CDN 当只读缓存</li>
+</ul>
+<hr>
+<h2 id="5-业务层与响应写回"><a href="#5-业务层与响应写回" class="headerlink" title="5. 业务层与响应写回"></a>5. 业务层与响应写回</h2><p>进了 Controller 之后，分层一般是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Controller  →  Service（事务、业务规则）  →  Mapper / Repository  →  MySQL</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>GET：查缓存 &#x2F; 查库，组 VO，<strong>通常不加写事务</strong></li>
+<li>POST：开事务、插库、发消息、清缓存；失败回滚</li>
+</ul>
+<p>事务、锁、幂等，是业务代码决定的，不是 HTTP 方法自动带的。实务上 POST 创建接口常常还要自己做幂等（唯一键、幂等键），因为网络重试会把同一个 POST 打两次。</p>
+<h3 id="5-1-响应怎么回去"><a href="#5-1-响应怎么回去" class="headerlink" title="5.1 响应怎么回去"></a>5.1 响应怎么回去</h3><ol>
+<li>Controller 返回对象（或 <code>ResponseEntity</code>）。</li>
+<li><code>@RestController</code> 走 <strong>HttpMessageConverter</strong>，对象 → JSON 字节。</li>
+<li>写入 <code>HttpServletResponse</code>：状态码、Header、Body。</li>
+<li>Filter &#x2F; Interceptor 的 <code>afterCompletion</code> 执行。</li>
+<li>Tomcat 把字节写回 socket，连接 keep-alive 或四次挥手。</li>
+</ol>
+<p>常见状态码：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>状态码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET 成功</td>
+<td><code>200</code>，Body 是资源</td>
+</tr>
+<tr>
+<td>POST 创建成功</td>
+<td>更规范是 <code>201 Created</code> + <code>Location</code>，很多项目仍返回 <code>200</code></td>
+</tr>
+<tr>
+<td>URL 不存在</td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td>方法不匹配</td>
+<td><code>405</code></td>
+</tr>
+<tr>
+<td>Body 解析 &#x2F; 校验失败</td>
+<td><code>400</code></td>
+</tr>
+<tr>
+<td>Content-Type 不支持</td>
+<td><code>415</code></td>
+</tr>
+<tr>
+<td>Accept 无法满足</td>
+<td><code>406</code></td>
+</tr>
+<tr>
+<td>未登录 &#x2F; 没权限</td>
+<td><code>401</code> &#x2F; <code>403</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-后端如何获取请求头"><a href="#6-后端如何获取请求头" class="headerlink" title="6. 后端如何获取请求头"></a>6. 后端如何获取请求头</h2><p>HTTP 头是一组 <code>Name: Value</code>。Tomcat 解析后放进 <code>HttpServletRequest</code>，Spring 再提供几种更方便的取法。GET 和 POST 在「取头」上没有区别。</p>
+<p>原始报文类似：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/users/1</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>api.example.com</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Bearer eyJhbGciOi...</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">X-Request-Id</span><span class="punctuation">: </span>7f3a2c</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-1-RequestHeader（Controller-最常用）"><a href="#6-1-RequestHeader（Controller-最常用）" class="headerlink" title="6.1 @RequestHeader（Controller 最常用）"></a>6.1 <code>@RequestHeader</code>（Controller 最常用）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/api/users/&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> UserVO <span class="title function_">getUser</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@PathVariable</span> Long id,</span></span><br><span class="line"><span class="params">        <span class="meta">@RequestHeader(&quot;Authorization&quot;)</span> String authorization,</span></span><br><span class="line"><span class="params">        <span class="meta">@RequestHeader(value = &quot;X-Request-Id&quot;, required = false)</span> String requestId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> userService.get(id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>默认 <strong>必填</strong>：没有这个头 → <code>400 Bad Request</code>（<code>MissingRequestHeaderException</code>）</li>
+<li><code>required = false</code>：没有就 <code>null</code></li>
+<li><code>defaultValue = &quot;zh-CN&quot;</code>：没有就用默认值</li>
+</ul>
+<p>取多个同名头（少见，比如 <code>Accept</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestHeader(&quot;Accept&quot;)</span> List&lt;String&gt; accepts</span><br></pre></td></tr></table></figure>
+
+<p>把全部头灌进 Map：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/debug/headers&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Map&lt;String, String&gt; <span class="title function_">all</span><span class="params">(<span class="meta">@RequestHeader</span> Map&lt;String, String&gt; headers)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> headers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>HTTP 头名 <strong>大小写不敏感</strong>，<code>Authorization</code> 和 <code>authorization</code> 是同一个。Spring 的 Map 一般按你声明的名字返回。</p>
+<h3 id="6-2-HttpHeaders-HttpServletRequest"><a href="#6-2-HttpHeaders-HttpServletRequest" class="headerlink" title="6.2 HttpHeaders &#x2F; HttpServletRequest"></a>6.2 <code>HttpHeaders</code> &#x2F; <code>HttpServletRequest</code></h3><p>需要遍历、或同时拿方法 &#x2F; URI 时用这两个。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/api/users&quot;)</span></span><br><span class="line"><span class="keyword">public</span> UserVO <span class="title function_">create</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                     <span class="meta">@RequestHeader</span> HttpHeaders headers,</span></span><br><span class="line"><span class="params">                     <span class="meta">@RequestBody</span> CreateUserRequest body)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">ua</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;User-Agent&quot;</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">auth</span> <span class="operator">=</span> headers.getFirst(HttpHeaders.AUTHORIZATION);</span><br><span class="line">    <span class="type">String</span> <span class="variable">contentType</span> <span class="operator">=</span> request.getContentType();</span><br><span class="line">    <span class="keyword">return</span> userService.create(body);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>request.getHeader(&quot;X-Request-Id&quot;)</code></td>
+<td>单个值，没有则 <code>null</code></td>
+</tr>
+<tr>
+<td><code>request.getHeaders(&quot;Accept&quot;)</code></td>
+<td>同名多值，返回 <code>Enumeration</code></td>
+</tr>
+<tr>
+<td><code>request.getHeaderNames()</code></td>
+<td>遍历所有头名</td>
+</tr>
+<tr>
+<td><code>headers.getFirst(&quot;X-Request-Id&quot;)</code></td>
+<td>Spring 封装，推荐</td>
+</tr>
+<tr>
+<td><code>headers.getAccept()</code></td>
+<td>已解析成 <code>List&lt;MediaType&gt;</code></td>
+</tr>
+<tr>
+<td><code>headers.getContentType()</code></td>
+<td>已解析成 <code>MediaType</code></td>
+</tr>
+</tbody></table>
+<h3 id="6-3-Filter-Interceptor-里取头"><a href="#6-3-Filter-Interceptor-里取头" class="headerlink" title="6.3 Filter &#x2F; Interceptor 里取头"></a>6.3 Filter &#x2F; Interceptor 里取头</h3><p>Filter 和 Interceptor 没有 <code>@RequestHeader</code>，只能用 <code>HttpServletRequest</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RequestIdInterceptor</span> <span class="keyword">implements</span> <span class="title class_">HandlerInterceptor</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">HEADER</span> <span class="operator">=</span> <span class="string">&quot;X-Request-Id&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                             HttpServletResponse response,</span></span><br><span class="line"><span class="params">                             Object handler)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">id</span> <span class="operator">=</span> request.getHeader(HEADER);</span><br><span class="line">        <span class="keyword">if</span> (id == <span class="literal">null</span> || id.isBlank()) &#123;</span><br><span class="line">            id = UUID.randomUUID().toString();</span><br><span class="line">        &#125;</span><br><span class="line">        MDC.put(<span class="string">&quot;requestId&quot;</span>, id);</span><br><span class="line">        request.setAttribute(<span class="string">&quot;requestId&quot;</span>, id);</span><br><span class="line">        response.setHeader(HEADER, id);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">afterCompletion</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                                HttpServletResponse response,</span></span><br><span class="line"><span class="params">                                Object handler,</span></span><br><span class="line"><span class="params">                                Exception ex)</span> &#123;</span><br><span class="line">        MDC.remove(<span class="string">&quot;requestId&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>取头发生在哪一层：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Tomcat 解析 Header（此时 Body 可能还没读完）</span><br><span class="line">  → Filter 已能 getHeader()</span><br><span class="line">  → Interceptor / Spring Security 已能 getHeader()</span><br><span class="line">  → DispatcherServlet 参数绑定 @RequestHeader</span><br><span class="line">  → Controller</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-后端如何处理请求头"><a href="#7-后端如何处理请求头" class="headerlink" title="7. 后端如何处理请求头"></a>7. 后端如何处理请求头</h2><p>业务代码「读取」和框架「消费」是两回事。很多头你没写 <code>@RequestHeader</code>，框架已经用过了。</p>
+<h3 id="7-1-框架自动消费的头"><a href="#7-1-框架自动消费的头" class="headerlink" title="7.1 框架自动消费的头"></a>7.1 框架自动消费的头</h3><table>
+<thead>
+<tr>
+<th>请求头</th>
+<th>谁处理</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Content-Type</code></td>
+<td><code>HttpMessageConverter</code> &#x2F; Servlet</td>
+<td>决定 Body 怎么反序列化</td>
+</tr>
+<tr>
+<td><code>Content-Length</code> &#x2F; <code>Transfer-Encoding</code></td>
+<td>Tomcat</td>
+<td>决定 Body 读多长；异常或过大 → <code>400</code> &#x2F; <code>413</code></td>
+</tr>
+<tr>
+<td><code>Accept</code></td>
+<td>内容协商</td>
+<td>决定响应是 JSON 还是 XML</td>
+</tr>
+<tr>
+<td><code>Accept-Language</code></td>
+<td><code>LocaleResolver</code></td>
+<td>国际化</td>
+</tr>
+<tr>
+<td><code>Cookie</code></td>
+<td>Servlet &#x2F; Spring Session</td>
+<td>解析 <code>JSESSIONID</code> 等，恢复 Session</td>
+</tr>
+<tr>
+<td><code>Authorization</code></td>
+<td>Spring Security</td>
+<td><code>Bearer</code> Token、Basic Auth</td>
+</tr>
+<tr>
+<td><code>Origin</code> &#x2F; <code>Access-Control-Request-*</code></td>
+<td>CORS Filter</td>
+<td>跨域预检</td>
+</tr>
+<tr>
+<td><code>If-None-Match</code> &#x2F; <code>If-Modified-Since</code></td>
+<td>静态资源 &#x2F; 缓存过滤器</td>
+<td>可能直接 <code>304</code></td>
+</tr>
+<tr>
+<td><code>X-Forwarded-For</code> &#x2F; <code>X-Forwarded-Proto</code></td>
+<td><code>ForwardedHeaderFilter</code></td>
+<td>还原真实 IP、HTTPS（经网关时）</td>
+</tr>
+</tbody></table>
+<p><code>Content-Type</code> 是 POST 能否进 <code>@RequestBody</code> 的开关：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Content-Type: application/json</span><br><span class="line">  → MappingJackson2HttpMessageConverter 把 Body 转成对象</span><br><span class="line"></span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">  → 当表单绑到 @RequestParam / 对象，不用 @RequestBody</span><br><span class="line"></span><br><span class="line">Content-Type 缺失或不支持</span><br><span class="line">  → 415 Unsupported Media Type</span><br></pre></td></tr></table></figure>
+
+<p><code>Accept</code> 则管响应：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Accept: application/json  → 用 Jackson 写出 JSON</span><br><span class="line">Accept: application/xml   → 若有 XML Converter 才行，否则 406</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-鉴权头：Spring-Security-的典型路径"><a href="#7-2-鉴权头：Spring-Security-的典型路径" class="headerlink" title="7.2 鉴权头：Spring Security 的典型路径"></a>7.2 鉴权头：Spring Security 的典型路径</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Authorization: Bearer &lt;jwt&gt;</span><br><span class="line">  → BearerTokenAuthenticationFilter</span><br><span class="line">  → 解析 JWT、查用户、写入 SecurityContext</span><br><span class="line">  → 失败：401</span><br><span class="line">  → 成功：后续 Controller 可用 @AuthenticationPrincipal</span><br></pre></td></tr></table></figure>
+
+<p>自定义头做鉴权也可以，但要自己写 Filter，并在 Security 链里登记。不要只在 Controller 里校验，否则未保护的路径会漏。</p>
+<h3 id="7-3-跨域头：浏览器会先发-OPTIONS"><a href="#7-3-跨域头：浏览器会先发-OPTIONS" class="headerlink" title="7.3 跨域头：浏览器会先发 OPTIONS"></a>7.3 跨域头：浏览器会先发 OPTIONS</h3><p>当前端域名和 API 域名不同，且带了自定义头或 <code>Authorization</code> 时，浏览器先发 <strong>预检</strong>：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">OPTIONS</span> <span class="string">/api/users</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>https://app.example.com</span><br><span class="line"><span class="attribute">Access-Control-Request-Method</span><span class="punctuation">: </span>POST</span><br><span class="line"><span class="attribute">Access-Control-Request-Headers</span><span class="punctuation">: </span>authorization,x-request-id,content-type</span><br></pre></td></tr></table></figure>
+
+<p>后端 CORS 配置必须 <strong>允许这些头</strong>，否则浏览器直接拦截，请求根本不会变成真正的 POST。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CorsConfig</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addCorsMappings</span><span class="params">(CorsRegistry registry)</span> &#123;</span><br><span class="line">        registry.addMapping(<span class="string">&quot;/api/**&quot;</span>)</span><br><span class="line">                .allowedOrigins(<span class="string">&quot;https://app.example.com&quot;</span>)</span><br><span class="line">                .allowedMethods(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;POST&quot;</span>, <span class="string">&quot;PUT&quot;</span>, <span class="string">&quot;DELETE&quot;</span>, <span class="string">&quot;OPTIONS&quot;</span>)</span><br><span class="line">                .allowedHeaders(<span class="string">&quot;Authorization&quot;</span>, <span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;X-Request-Id&quot;</span>)</span><br><span class="line">                .exposedHeaders(<span class="string">&quot;X-Request-Id&quot;</span>)</span><br><span class="line">                .allowCredentials(<span class="literal">true</span>)</span><br><span class="line">                .maxAge(<span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>allowedHeaders</code></td>
+<td>浏览器 <strong>允许发送</strong> 哪些请求头</td>
+</tr>
+<tr>
+<td><code>exposedHeaders</code></td>
+<td>前端 JS <strong>允许读取</strong> 哪些响应头（自定义响应头默认读不到）</td>
+</tr>
+<tr>
+<td><code>allowCredentials(true)</code></td>
+<td>允许带 Cookie；此时 <strong>不能</strong> <code>allowedOrigins(&quot;*&quot;)</code></td>
+</tr>
+</tbody></table>
+<h3 id="7-4-网关-反向代理会改头"><a href="#7-4-网关-反向代理会改头" class="headerlink" title="7.4 网关 &#x2F; 反向代理会改头"></a>7.4 网关 &#x2F; 反向代理会改头</h3><p>生产里请求常经 Nginx &#x2F; Gateway，这些头会被改或追加：</p>
+<ul>
+<li>追加 <code>X-Forwarded-For</code>、<code>X-Real-IP</code></li>
+<li>丢掉过长或未知头（Nginx <code>underscores_in_headers</code>：带下划线的头默认可能被丢）</li>
+<li>网关鉴权后注入 <code>X-User-Id</code></li>
+</ul>
+<p>后端若要用客户端 IP，应读转发头，并只信任自己网关，防止伪造 <code>X-Forwarded-For</code>。</p>
+<h3 id="7-5-处理时的常见坑"><a href="#7-5-处理时的常见坑" class="headerlink" title="7.5 处理时的常见坑"></a>7.5 处理时的常见坑</h3><ol>
+<li><strong>头会被日志打出来</strong>：<code>Authorization</code>、Cookie、自定义 Token 不要明文打 INFO 日志。</li>
+<li><strong>头有长度限制</strong>：Tomcat 默认 Header 总大小约 8KB（<code>maxHttpHeaderSize</code>），Cookie 过多会 <code>400</code>。</li>
+<li><strong>不要用头传大 JSON</strong>：头不是 Body，CDN &#x2F; 代理可能截断。</li>
+<li><strong>编码</strong>：非 ASCII 值要用 RFC 5987；中文放头里容易乱码，能放 Body 就放 Body。</li>
+</ol>
+<hr>
+<h2 id="8-前后端如何使用自定义请求头"><a href="#8-前后端如何使用自定义请求头" class="headerlink" title="8. 前后端如何使用自定义请求头"></a>8. 前后端如何使用自定义请求头</h2><p>约定一个名字，前端带上，后端读。常见用途：链路追踪、租户、灰度、防重放。</p>
+<h3 id="8-1-命名"><a href="#8-1-命名" class="headerlink" title="8.1 命名"></a>8.1 命名</h3><p>现在不必强行 <code>X-</code> 前缀（RFC 6648 已不鼓励），但业界仍大量使用。建议：</p>
+<ul>
+<li><code>X-Request-Id</code> &#x2F; <code>X-Trace-Id</code>：链路追踪</li>
+<li><code>X-Tenant-Id</code>：多租户</li>
+<li><code>X-Idempotency-Key</code>：POST 幂等</li>
+<li>不要发明 <code>X_User_Id</code>（下划线，Nginx 可能丢）</li>
+<li>不要把密码放自定义头</li>
+</ul>
+<p>浏览器禁止前端改 <code>Host</code>、<code>Content-Length</code>、<code>Origin</code> 等标准头。自定义头没有这个限制，所以追踪 ID、租户 ID 才用自定义头。</p>
+<h3 id="8-2-前端带上"><a href="#8-2-前端带上" class="headerlink" title="8.2 前端带上"></a>8.2 前端带上</h3><p><strong>axios 单次请求：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">axios.<span class="title function_">get</span>(<span class="string">&#x27;/api/users/1&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&#x27;X-Request-Id&#x27;</span>: crypto.<span class="title function_">randomUUID</span>(),</span><br><span class="line">    <span class="string">&#x27;X-Tenant-Id&#x27;</span>: <span class="string">&#x27;acme&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">axios.<span class="title function_">post</span>(<span class="string">&#x27;/api/users&#x27;</span>, &#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span> &#125;, &#123;</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;X-Request-Id&#x27;</span>: crypto.<span class="title function_">randomUUID</span>(),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>axios 拦截器（全局，推荐）：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">axios.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">  config.<span class="property">headers</span>[<span class="string">&#x27;X-Request-Id&#x27;</span>] = crypto.<span class="title function_">randomUUID</span>();</span><br><span class="line">  <span class="keyword">const</span> token = <span class="variable language_">localStorage</span>.<span class="title function_">getItem</span>(<span class="string">&#x27;token&#x27;</span>);</span><br><span class="line">  <span class="keyword">if</span> (token) &#123;</span><br><span class="line">    config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="string">`Bearer <span class="subst">$&#123;token&#125;</span>`</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> config;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">axios.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(<span class="function">(<span class="params">resp</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> requestId = resp.<span class="property">headers</span>[<span class="string">&#x27;x-request-id&#x27;</span>];</span><br><span class="line">  <span class="keyword">return</span> resp;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>浏览器里响应头名通常是 <strong>小写</strong>。跨域时若没配置 <code>exposedHeaders</code>，这里读到的是 <code>undefined</code>。</p>
+<p><strong>fetch：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">fetch</span>(<span class="string">&#x27;/api/users&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">  <span class="attr">headers</span>: &#123;</span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;X-Request-Id&#x27;</span>: crypto.<span class="title function_">randomUUID</span>(),</span><br><span class="line">    <span class="title class_">Authorization</span>: <span class="string">`Bearer <span class="subst">$&#123;token&#125;</span>`</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span> &#125;),</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>跨域时：自定义头会触发预检；若还要带 Cookie，必须 <code>withCredentials: true</code>，且服务端 <code>allowCredentials(true)</code>。</p>
+<h3 id="8-3-后端读取并回写"><a href="#8-3-后端读取并回写" class="headerlink" title="8.3 后端读取并回写"></a>8.3 后端读取并回写</h3><p>Controller 可以直接读：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/api/users&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping</span></span><br><span class="line">    <span class="keyword">public</span> UserVO <span class="title function_">create</span><span class="params">(</span></span><br><span class="line"><span class="params">            <span class="meta">@RequestHeader(&quot;X-Request-Id&quot;)</span> String requestId,</span></span><br><span class="line"><span class="params">            <span class="meta">@RequestHeader(value = &quot;X-Idempotency-Key&quot;, required = false)</span> String idempotencyKey,</span></span><br><span class="line"><span class="params">            <span class="meta">@RequestBody</span> <span class="meta">@Valid</span> CreateUserRequest req,</span></span><br><span class="line"><span class="params">            HttpServletResponse response)</span> &#123;</span><br><span class="line"></span><br><span class="line">        response.setHeader(<span class="string">&quot;X-Request-Id&quot;</span>, requestId);</span><br><span class="line">        <span class="keyword">return</span> userService.create(req, idempotencyKey);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更稳妥的做法是 <strong>Interceptor 统一处理追踪头</strong>，Controller 只关心业务头（例如幂等键）。前端就能在响应头里拿到同一个 <code>X-Request-Id</code>，出了 500 把这个 ID 丢给后端查日志。</p>
+<p>跨域要暴露这个响应头：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.exposedHeaders(<span class="string">&quot;X-Request-Id&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Nginx 同样要放行：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">proxy_pass_header</span> X-Request-Id;</span><br><span class="line"><span class="attribute">add_header</span> Access-Control-Expose-Headers <span class="string">&quot;X-Request-Id&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-一套可落地的约定"><a href="#8-4-一套可落地的约定" class="headerlink" title="8.4 一套可落地的约定"></a>8.4 一套可落地的约定</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">前端每次请求：</span><br><span class="line">  Authorization: Bearer &lt;token&gt;     // 鉴权，标准头</span><br><span class="line">  X-Request-Id: &lt;uuid&gt;              // 追踪，自定义</span><br><span class="line">  X-Idempotency-Key: &lt;uuid&gt;         // 仅 POST 创建，自定义</span><br><span class="line">  Content-Type: application/json    // 仅有 Body 时</span><br><span class="line"></span><br><span class="line">后端：</span><br><span class="line">  Filter / Security 读 Authorization</span><br><span class="line">  Interceptor 读/补 X-Request-Id，写入 MDC 和响应头</span><br><span class="line">  Controller 读 X-Idempotency-Key 做 POST 幂等</span><br><span class="line">  CORS 允许并暴露上述自定义头</span><br></pre></td></tr></table></figure>
+
+<p>GET 和 POST 都能带自定义头。差别只在业务语义：GET 适合带租户、追踪；<strong>幂等键、提交令牌这类「这次写操作的身份」只放在 POST &#x2F; PUT 上</strong>。</p>
+<hr>
+<h2 id="9-整条链路串起来"><a href="#9-整条链路串起来" class="headerlink" title="9. 整条链路串起来"></a>9. 整条链路串起来</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">前端 axios / fetch</span><br><span class="line">  → TCP / TLS</span><br><span class="line">  → Tomcat 读报文（GET 读 URL；POST 再读 Body）</span><br><span class="line">  → Filter（编码、CORS、鉴权；Header 此时已可用）</span><br><span class="line">  → DispatcherServlet</span><br><span class="line">  → HandlerMapping（方法 + 路径）</span><br><span class="line">  → Interceptor.preHandle（自定义头、MDC）</span><br><span class="line">  → 参数绑定</span><br><span class="line">       GET  : Query / Path</span><br><span class="line">       POST : 按 Content-Type 反序列化 Body</span><br><span class="line">  → @RequestHeader 绑到 Controller 参数</span><br><span class="line">  → Controller → Service → DB</span><br><span class="line">  → JSON 序列化</span><br><span class="line">  → setHeader 回写自定义头</span><br><span class="line">  → 响应写回前端</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>GET</th>
+<th>POST</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>读 Header</td>
+<td>相同</td>
+<td>相同</td>
+</tr>
+<tr>
+<td>读 Body</td>
+<td>通常无</td>
+<td>按 <code>Content-Type</code> 读并反序列化</td>
+</tr>
+<tr>
+<td>匹配处理器</td>
+<td><code>@GetMapping</code></td>
+<td><code>@PostMapping</code></td>
+</tr>
+<tr>
+<td>业务语义</td>
+<td>读资源，宜幂等</td>
+<td>写资源，宜自备幂等键</td>
+</tr>
+<tr>
+<td>自定义头</td>
+<td>追踪、租户</td>
+<td>追踪、租户、幂等键</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="10-小结"><a href="#10-小结" class="headerlink" title="10. 小结"></a>10. 小结</h2><ul>
+<li>GET &#x2F; POST 在协议和参数绑定上不同，进 Service 之后是同一套分层。后端真正「知道」这是读还是写，靠的是 <code>@GetMapping</code> &#x2F; <code>@PostMapping</code> 以及方法里的业务代码。</li>
+<li><strong>取头</strong>用 <code>@RequestHeader</code> 或 <code>request.getHeader()</code>；Filter &#x2F; Interceptor 里只能用后者。</li>
+<li><strong>处理头</strong>分「框架自动消费」（<code>Content-Type</code>、<code>Authorization</code>、<code>Accept</code>、CORS）和「业务自己读」。</li>
+<li><strong>自定义头</strong>要前端带、后端读、CORS 放行（<code>allowedHeaders</code> + <code>exposedHeaders</code>），必要时再回写到响应。</li>
+<li>Header 比 Body 更早可用，鉴权与追踪应放在 Filter &#x2F; Interceptor，不要等进 Controller。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/09/02/http-get-post-request-header-guide/">https://qijianyeah.github.io/2026/09/02/http-get-post-request-header-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HTTP/">HTTP</a><a class="post-meta__tags" href="/tags/Spring-MVC/">Spring MVC</a><a class="post-meta__tags" href="/tags/Spring-Boot/">Spring Boot</a><a class="post-meta__tags" href="/tags/%E8%AF%B7%E6%B1%82%E5%A4%B4/">请求头</a><a class="post-meta__tags" href="/tags/GET/">GET</a><a class="post-meta__tags" href="/tags/POST/">POST</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/09/03/claude-code-resume-continue-guide/" title="Claude Code 会话恢复：claude --continue 与 --resume 用法详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Claude Code 会话恢复：claude --continue 与 --resume 用法详解</div></div><div class="info-2"><div class="info-item-1">Claude Code 会把每一次对话持续写到本机，任务跨午休、跨过夜、甚至跨目录，都可以原样接上，不必重新交代上下文。日常最常用的两个入口是 claude --continue 和 claude --resume：前者直接打开「当前目录最近一次交互会话」，后者按名称、ID 或选择器精确挑一次会话。 桌面应用、网页版 Claude Code、VS Code 扩展各自维护独立的会话历史。本文只讲 CLI。  目录 1. 会话是什么 2. continue 与 resume 怎么选 3. continue 的用法 4. resume 的用法 5. 会话选择器 6. 给会话命名 7. 恢复时带回什么 8. 权限模式怎么变 9. 超长会话从摘要恢复 10. 分支与 fork-session 11. 会话存在哪 12. 常见问题 13. 小结   1. 会话是什么会话（session）是绑定到项目目录的一份已保存对话。你一边工作，Claude Code 一边把它写成本地 transcript，退出、跑...</div></div></div></a><a class="pagination-related" href="/2026/08/31/langchain-intro-guide/" title="LangChain 介绍完全指南：从框架由来到 Agent 快速上手"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">LangChain 介绍完全指南：从框架由来到 Agent 快速上手</div></div><div class="info-2"><div class="info-item-1">LangChain 是用于开发由大语言模型（LLM）驱动的应用程序的开源框架。它不只是对模型 API 的简单封装，还提供预构建的 Agent 架构和丰富的工具集成，让你不必从零搭建复杂链路，就能快速构建 RAG、对话机器人、数据问答等应用。  目录 1. LangChain 的由来 2. 核心特点 3. 典型使用场景 4. 快速上手 4.1 Python 环境准备 4.2 创建项目与配置 4.3 案例：Agent 查询天气   5. 小结   1. LangChain 的由来LangChain 诞生于 2022 年 10 月，由 Harrison Chase 创建。名称来自 Language（语言模型）+ Chain（链式连接），核心思路是：把大模型与外部工具、数据源、记忆机制链式组合，构建更强的 AI 应用。 1.1 为什么需要 LangChain单一 LLM 能力虽强，但在真实业务里常遇到三类局限：    局限 说明    知识时效 训练数据有截止时间，难以覆盖最新信息   无法直连外部系统 不能直接查数据库、调...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">73</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%85%88%E7%9C%8B%E6%8A%A5%E6%96%87%EF%BC%9AGET-%E5%92%8C-POST-%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">2.</span> <span class="toc-text">1. 先看报文：GET 和 POST 差在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%8A%A5%E6%96%87%E8%BF%9B-JVM-%E4%B9%8B%E5%89%8D%EF%BC%9ATomcat-%E5%A6%82%E4%BD%95%E8%AF%BB%E8%AF%B7%E6%B1%82"><span class="toc-number">3.</span> <span class="toc-text">2. 报文进 JVM 之前：Tomcat 如何读请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Filter-%E5%88%B0-DispatcherServlet%EF%BC%9A%E7%BB%9F%E4%B8%80%E5%88%86%E5%8F%91"><span class="toc-number">4.</span> <span class="toc-text">3. Filter 到 DispatcherServlet：统一分发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-DispatcherServlet-%E6%80%8E%E4%B9%88%E6%89%BE%E5%88%B0%E6%96%B9%E6%B3%95"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 DispatcherServlet 怎么找到方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A%EF%BC%9AGET-%E5%92%8C-POST-%E5%9C%A8%E8%BF%99%E9%87%8C%E5%88%86%E5%AE%B6"><span class="toc-number">5.</span> <span class="toc-text">4. 参数绑定：GET 和 POST 在这里分家</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%9A%E5%8A%A1%E5%B1%82%E4%B8%8E%E5%93%8D%E5%BA%94%E5%86%99%E5%9B%9E"><span class="toc-number">6.</span> <span class="toc-text">5. 业务层与响应写回</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%93%8D%E5%BA%94%E6%80%8E%E4%B9%88%E5%9B%9E%E5%8E%BB"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 响应怎么回去</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%B7%E6%B1%82%E5%A4%B4"><span class="toc-number">7.</span> <span class="toc-text">6. 后端如何获取请求头</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RequestHeader%EF%BC%88Controller-%E6%9C%80%E5%B8%B8%E7%94%A8%EF%BC%89"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 @RequestHeader（Controller 最常用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-HttpHeaders-HttpServletRequest"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 HttpHeaders &#x2F; HttpServletRequest</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Filter-Interceptor-%E9%87%8C%E5%8F%96%E5%A4%B4"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 Filter &#x2F; Interceptor 里取头</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E8%AF%B7%E6%B1%82%E5%A4%B4"><span class="toc-number">8.</span> <span class="toc-text">7. 后端如何处理请求头</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%A1%86%E6%9E%B6%E8%87%AA%E5%8A%A8%E6%B6%88%E8%B4%B9%E7%9A%84%E5%A4%B4"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 框架自动消费的头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%89%B4%E6%9D%83%E5%A4%B4%EF%BC%9ASpring-Security-%E7%9A%84%E5%85%B8%E5%9E%8B%E8%B7%AF%E5%BE%84"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 鉴权头：Spring Security 的典型路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E8%B7%A8%E5%9F%9F%E5%A4%B4%EF%BC%9A%E6%B5%8F%E8%A7%88%E5%99%A8%E4%BC%9A%E5%85%88%E5%8F%91-OPTIONS"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 跨域头：浏览器会先发 OPTIONS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E7%BD%91%E5%85%B3-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E4%BC%9A%E6%94%B9%E5%A4%B4"><span class="toc-number">8.4.</span> <span class="toc-text">7.4 网关 &#x2F; 反向代理会改头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%A4%84%E7%90%86%E6%97%B6%E7%9A%84%E5%B8%B8%E8%A7%81%E5%9D%91"><span class="toc-number">8.5.</span> <span class="toc-text">7.5 处理时的常见坑</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%89%8D%E5%90%8E%E7%AB%AF%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AF%B7%E6%B1%82%E5%A4%B4"><span class="toc-number">9.</span> <span class="toc-text">8. 前后端如何使用自定义请求头</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%91%BD%E5%90%8D"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 命名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%89%8D%E7%AB%AF%E5%B8%A6%E4%B8%8A"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 前端带上</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%90%8E%E7%AB%AF%E8%AF%BB%E5%8F%96%E5%B9%B6%E5%9B%9E%E5%86%99"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 后端读取并回写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E4%B8%80%E5%A5%97%E5%8F%AF%E8%90%BD%E5%9C%B0%E7%9A%84%E7%BA%A6%E5%AE%9A"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 一套可落地的约定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%95%B4%E6%9D%A1%E9%93%BE%E8%B7%AF%E4%B8%B2%E8%B5%B7%E6%9D%A5"><span class="toc-number">10.</span> <span class="toc-text">9. 整条链路串起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%B0%8F%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">10. 小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/03/claude-code-resume-continue-guide/" title="Claude Code 会话恢复：claude --continue 与 --resume 用法详解">Claude Code 会话恢复：claude --continue 与 --resume 用法详解</a><time datetime="2026-09-02T16:27:05.000Z" title="发表于 2026-09-03 00:27:05">2026-09-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/02/http-get-post-request-header-guide/" title="前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头">前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头</a><time datetime="2026-09-02T14:52:41.000Z" title="发表于 2026-09-02 22:52:41">2026-09-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/31/langchain-intro-guide/" title="LangChain 介绍完全指南：从框架由来到 Agent 快速上手">LangChain 介绍完全指南：从框架由来到 Agent 快速上手</a><time datetime="2026-08-31T15:22:34.000Z" title="发表于 2026-08-31 23:22:34">2026-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/26/callback-function-java-python-guide/" title="回调函数详解：从概念到工程实践（Java / Python 案例）">回调函数详解：从概念到工程实践（Java / Python 案例）</a><time datetime="2026-08-26T04:41:47.000Z" title="发表于 2026-08-26 12:41:47">2026-08-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/21/claude-code-builtin-commands-guide/" title="Claude Code 内置命令完全指南：会话、上下文与日常工作流">Claude Code 内置命令完全指南：会话、上下文与日常工作流</a><time datetime="2026-08-20T16:13:14.000Z" title="发表于 2026-08-21 00:13:14">2026-08-21</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
