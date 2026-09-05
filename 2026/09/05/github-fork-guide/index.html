@@ -1,0 +1,626 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>GitHub Fork 完全指南：从复制仓库到同步与提 PR | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="没有写权限的开源仓库，不能直接往别人的 main 上推代码。GitHub 的做法是：先 Fork 一份到自己名下，在自己的副本上改，再发 Pull Request（PR，拉取请求） 请上游审查并合并。日常贡献开源、练习项目、给公司仓库提补丁，走的都是这条路。 本文按 GitHub 当前网页、CLI 和命令行三种入口，把 Fork 从「点一下」讲到「长期维护」。  目录 1. Fork 是什么 2.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GitHub Fork 完全指南：从复制仓库到同步与提 PR">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/09/05/github-fork-guide/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="没有写权限的开源仓库，不能直接往别人的 main 上推代码。GitHub 的做法是：先 Fork 一份到自己名下，在自己的副本上改，再发 Pull Request（PR，拉取请求） 请上游审查并合并。日常贡献开源、练习项目、给公司仓库提补丁，走的都是这条路。 本文按 GitHub 当前网页、CLI 和命令行三种入口，把 Fork 从「点一下」讲到「长期维护」。  目录 1. Fork 是什么 2.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-09-05T04:04:01.000Z">
+<meta property="article:modified_time" content="2026-09-05T04:04:07.911Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="GitHub">
+<meta property="article:tag" content="Git">
+<meta property="article:tag" content="Fork">
+<meta property="article:tag" content="开源协作">
+<meta property="article:tag" content="Pull Request">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/09/05/github-fork-guide/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'GitHub Fork 完全指南：从复制仓库到同步与提 PR',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">78</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">GitHub Fork 完全指南：从复制仓库到同步与提 PR</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">GitHub Fork 完全指南：从复制仓库到同步与提 PR</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-09-05T04:04:01.000Z" title="发表于 2026-09-05 12:04:01">2026-09-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-05T04:04:07.911Z" title="更新于 2026-09-05 12:04:07">2026-09-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E5%85%B7%E4%B8%8E%E5%AE%9E%E8%B7%B5/">工具与实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>没有写权限的开源仓库，不能直接往别人的 <code>main</code> 上推代码。GitHub 的做法是：先 <strong>Fork</strong> 一份到自己名下，在自己的副本上改，再发 <strong>Pull Request（PR，拉取请求）</strong> 请上游审查并合并。日常贡献开源、练习项目、给公司仓库提补丁，走的都是这条路。</p>
+<p>本文按 GitHub 当前网页、CLI 和命令行三种入口，把 Fork 从「点一下」讲到「长期维护」。</p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-fork-%E6%98%AF%E4%BB%80%E4%B9%88">1. Fork 是什么</a></li>
+<li><a href="#2-forkclonebranch-%E5%B7%AE%E5%9C%A8%E5%93%AA">2. Fork、Clone、Branch 差在哪</a></li>
+<li><a href="#3-%E5%93%AA%E4%BA%9B%E4%BB%93%E5%BA%93%E5%8F%AF%E4%BB%A5-fork">3. 哪些仓库可以 Fork</a></li>
+<li><a href="#4-%E7%BD%91%E9%A1%B5%E4%B8%8A%E6%80%8E%E4%B9%88-fork">4. 网页上怎么 Fork</a></li>
+<li><a href="#5-%E7%94%A8-github-cli-%E6%88%96-desktop-fork">5. 用 GitHub CLI 或 Desktop Fork</a></li>
+<li><a href="#6-%E6%8A%8A-fork-%E5%85%8B%E9%9A%86%E5%88%B0%E6%9C%AC%E5%9C%B0">6. 把 Fork 克隆到本地</a></li>
+<li><a href="#7-%E5%8A%A0%E4%B8%8A%E6%B8%B8%E8%BF%9C%E7%A8%8Borigin-%E5%92%8C-upstream">7. 加上游远程：origin 和 upstream</a></li>
+<li><a href="#8-%E5%9C%A8-fork-%E4%B8%8A%E6%94%B9%E4%BB%A3%E7%A0%81">8. 在 Fork 上改代码</a></li>
+<li><a href="#9-fork-%E6%8F%90%E4%BA%A4-vs-%E8%87%AA%E5%B7%B1%E9%A1%B9%E7%9B%AE%E6%8F%90%E4%BA%A4">9. Fork 提交 vs 自己项目提交</a></li>
+<li><a href="#10-%E4%BB%8E-fork-%E7%BB%99%E4%B8%8A%E6%B8%B8%E6%8F%90-pr">10. 从 Fork 给上游提 PR</a></li>
+<li><a href="#11-%E5%90%8C%E6%AD%A5-fork%E8%B7%9F%E4%B8%8A%E4%B8%8A%E6%B8%B8">11. 同步 Fork：跟上上游</a></li>
+<li><a href="#12-%E5%85%81%E8%AE%B8%E7%BB%B4%E6%8A%A4%E8%80%85%E6%94%B9%E4%BD%A0%E7%9A%84-pr-%E5%88%86%E6%94%AF">12. 允许维护者改你的 PR 分支</a></li>
+<li><a href="#13-%E5%88%A0%E9%99%A4%E8%84%B1%E7%A6%BB%E4%B8%8E%E5%8F%AF%E8%A7%81%E6%80%A7">13. 删除、脱离与可见性</a></li>
+<li><a href="#14-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">14. 常见问题</a></li>
+<li><a href="#15-%E5%B0%8F%E7%BB%93">15. 小结</a></li>
+</ul>
+<hr>
+<h2 id="1-Fork-是什么"><a href="#1-Fork-是什么" class="headerlink" title="1. Fork 是什么"></a>1. Fork 是什么</h2><p>Fork 是把别人的仓库<strong>复制成你账号（或你有权限的组织）下的一个独立仓库</strong>。这份副本叫 fork，原来的仓库叫 <strong>upstream（上游）</strong>。</p>
+<p>Fork 不是「再点一次 Clone」。它会在 GitHub 上真正新建一个仓库：有自己的设置、协作者、Issues、Pull Request、Actions、Projects。网页上打开 fork 时，仓库名下方会标明它从哪个上游复制而来。</p>
+<p>典型用途有三种：</p>
+<ol>
+<li><strong>给开源项目提补丁</strong>：你没有上游写权限，只能改自己的 fork，再用 PR 申请合并。</li>
+<li><strong>基于别人的项目做自己的版本</strong>：先 fork 一份当起点，再按自己的方向改。</li>
+<li><strong>练习 GitHub 协作</strong>：官方练习仓库是 <a target="_blank" rel="noopener" href="https://github.com/octocat/Spoon-Knife">octocat&#x2F;Spoon-Knife</a>，专门用来练 fork、clone、同步。</li>
+</ol>
+<p>关系可以看成三层：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">上游仓库（upstream）     别人的 github.com/owner/repo</span><br><span class="line">        ↓ Fork</span><br><span class="line">你的 GitHub 副本（origin） github.com/你的用户名/repo</span><br><span class="line">        ↓ Clone</span><br><span class="line">你电脑上的本地仓库</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">  U[上游 upstream] --&gt;|Fork 复制| F[你的 GitHub fork]</span><br><span class="line">  F --&gt;|git clone| L[本地仓库]</span><br><span class="line">  L --&gt;|git push origin| F</span><br><span class="line">  F --&gt;|Pull Request| U</span><br><span class="line">  U --&gt;|Sync fork / fetch upstream| F</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-Fork、Clone、Branch-差在哪"><a href="#2-Fork、Clone、Branch-差在哪" class="headerlink" title="2. Fork、Clone、Branch 差在哪"></a>2. Fork、Clone、Branch 差在哪</h2><p>这三件事最容易混。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>发生在哪</th>
+<th>结果</th>
+<th>典型下一步</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Fork</strong></td>
+<td>GitHub 服务器上</td>
+<td>你名下多出一个独立仓库，仍连着上游</td>
+<td>Clone 到本地，或直接在网页改</td>
+</tr>
+<tr>
+<td><strong>Clone</strong></td>
+<td>你的电脑上</td>
+<td>把某个远程仓库下载成本地目录</td>
+<td><code>git add</code> &#x2F; <code>commit</code> &#x2F; <code>push</code></td>
+</tr>
+<tr>
+<td><strong>Branch</strong></td>
+<td>同一个仓库内部</td>
+<td>多一条平行历史，不新建仓库</td>
+<td>在分支上开发，再开 PR</td>
+</tr>
+</tbody></table>
+<p>要点：</p>
+<ul>
+<li>Branch 是<strong>同一个仓库里的分岔</strong>；Fork 是<strong>另一个仓库</strong>。</li>
+<li>你可以直接 clone 上游，但没有写权限时 <code>git push</code> 会失败。Fork 之后，<code>origin</code> 指向你自己的仓库，推送就通了。</li>
+<li>只想本地看看代码、不打算回馈上游，clone 上游即可，不必 fork。</li>
+<li>打算提 PR，就应该 fork，而不是只 clone 上游。</li>
+</ul>
+<hr>
+<h2 id="3-哪些仓库可以-Fork"><a href="#3-哪些仓库可以-Fork" class="headerlink" title="3. 哪些仓库可以 Fork"></a>3. 哪些仓库可以 Fork</h2><p><strong>公开仓库</strong>可以 fork 到：</p>
+<ul>
+<li>你的个人账号</li>
+<li>你有「创建仓库」权限的组织</li>
+</ul>
+<p><strong>私有仓库</strong>要同时满足：你已经有访问权限，并且仓库主人允许 fork。然后可以 fork 到个人账号，或 GitHub Team 计划下有创建权限的组织。用 GitHub Free 的组织<strong>不能</strong>接收私有仓库的 fork。</p>
+<p>仓库、组织、企业策略都可以限制「能不能 fork、能 fork 到哪里」。企业托管用户（Enterprise Managed Users）还有额外限制。</p>
+<p>可见性跟着上游走：公开仓库的 fork 是公开的，私有仓库的 fork 是私有的。<strong>不能单独把某个 fork 改成另一种可见性。</strong> 上游、所有 fork、以及 fork 的 fork，构成同一个「仓库网络」，共享同一套可见性。</p>
+<hr>
+<h2 id="4-网页上怎么-Fork"><a href="#4-网页上怎么-Fork" class="headerlink" title="4. 网页上怎么 Fork"></a>4. 网页上怎么 Fork</h2><p>以练习仓库 <a target="_blank" rel="noopener" href="https://github.com/octocat/Spoon-Knife">octocat&#x2F;Spoon-Knife</a> 为例，正式项目步骤相同。</p>
+<ol>
+<li>打开要复制的仓库页面。</li>
+<li>右上角点 <strong>Fork</strong>。</li>
+<li><strong>Owner</strong>：选 fork 落到哪个账号或组织。</li>
+<li><strong>Repository name</strong>：默认和上游同名。你账号下已有同名仓库时，必须改名。</li>
+<li><strong>Description</strong>：可选，给这份副本写一句说明。</li>
+<li><strong>Copy the DEFAULT branch only</strong>：建议勾上。给开源项目提 PR，通常只需要默认分支（<code>main</code> 或 <code>master</code>）。不勾则会把上游所有分支都拷过来。</li>
+<li>点 <strong>Create fork</strong>。</li>
+</ol>
+<p>创建完成后，地址会变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/你的用户名/Spoon-Knife</span><br></pre></td></tr></table></figure>
+
+<p>仓库名下面能看到 <code>forked from octocat/Spoon-Knife</code>。以后若还需要上游的其他分支，可以到 <strong>Branches</strong> 页面再取。</p>
+<p>网页上已经有一份完整副本。要在本地用 Git 改，还需要 clone。</p>
+<hr>
+<h2 id="5-用-GitHub-CLI-或-Desktop-Fork"><a href="#5-用-GitHub-CLI-或-Desktop-Fork" class="headerlink" title="5. 用 GitHub CLI 或 Desktop Fork"></a>5. 用 GitHub CLI 或 Desktop Fork</h2><h3 id="5-1-GitHub-CLI"><a href="#5-1-GitHub-CLI" class="headerlink" title="5.1 GitHub CLI"></a>5.1 GitHub CLI</h3><p>先登录：<code>gh auth login</code>。然后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo fork octocat/Spoon-Knife</span><br></pre></td></tr></table></figure>
+
+<p>fork 到某个组织：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo fork octocat/Spoon-Knife --org <span class="string">&quot;你的组织&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>一次做完 fork + clone：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo fork octocat/Spoon-Knife --<span class="built_in">clone</span>=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>fork 的同时把上游加成远程（后面第 7 节会用到）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo fork octocat/Spoon-Knife --remote=<span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>自定义这个远程的名字：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo fork octocat/Spoon-Knife --remote=<span class="literal">true</span> --remote-name upstream</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-GitHub-Desktop"><a href="#5-2-GitHub-Desktop" class="headerlink" title="5.2 GitHub Desktop"></a>5.2 GitHub Desktop</h3><p>Desktop 没有单独的「Fork」按钮，流程是：clone 一个你没有写权限的仓库，再尝试推送，Desktop 会提示帮你创建 fork。</p>
+<ol>
+<li><strong>File → Clone Repository</strong>。</li>
+<li>用 URL 贴上仓库地址，选本地路径，点 <strong>Clone</strong>。</li>
+<li>新建分支并 Publish。因为你没有上游写权限，会弹出是否 fork。</li>
+<li>在 <strong>How are you planning to use this fork?</strong> 里选用途：<ul>
+<li><strong>To contribute to the parent project</strong>：给上游提 PR</li>
+<li><strong>For my own purposes</strong>：当自己的独立项目用</li>
+</ul>
+</li>
+<li>点 <strong>Continue</strong>。</li>
+</ol>
+<hr>
+<h2 id="6-把-Fork-克隆到本地"><a href="#6-把-Fork-克隆到本地" class="headerlink" title="6. 把 Fork 克隆到本地"></a>6. 把 Fork 克隆到本地</h2><p>Fork 只存在于 GitHub。本地改代码前，把<strong>你的 fork</strong>（不是上游）clone 下来。</p>
+<p>网页操作：</p>
+<ol>
+<li>打开 <code>https://github.com/你的用户名/Spoon-Knife</code>。</li>
+<li>点绿色 <strong>Code</strong>，复制 HTTPS 或 SSH 地址。</li>
+<li>终端里进入打算放项目的目录，执行：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/你的用户名/Spoon-Knife.git</span><br><span class="line"><span class="built_in">cd</span> Spoon-Knife</span><br></pre></td></tr></table></figure>
+
+<p>SSH 则是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> git@github.com:你的用户名/Spoon-Knife.git</span><br></pre></td></tr></table></figure>
+
+<p>用 CLI 的话，上一节的 <code>gh repo fork ... --clone=true</code> 已经包含这一步。</p>
+<p>clone 完成后，默认远程只有 <code>origin</code>，指向你的 fork：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote -v</span><br></pre></td></tr></table></figure>
+
+<p>输出类似：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">origin  https://github.com/你的用户名/Spoon-Knife.git (fetch)</span><br><span class="line">origin  https://github.com/你的用户名/Spoon-Knife.git (push)</span><br></pre></td></tr></table></figure>
+
+<p>此时 <code>git push</code> 会推到<strong>你的 GitHub 副本</strong>，不会直接改上游。</p>
+<hr>
+<h2 id="7-加上游远程：origin-和-upstream"><a href="#7-加上游远程：origin-和-upstream" class="headerlink" title="7. 加上游远程：origin 和 upstream"></a>7. 加上游远程：origin 和 upstream</h2><p>给上游提 PR 时，上游还在往前走。本地需要多一个远程，习惯上叫 <code>upstream</code>，专门用来拉上游的新提交。</p>
+<ol>
+<li>打开<strong>上游</strong>仓库（例如 <code>https://github.com/octocat/Spoon-Knife</code>），用 <strong>Code</strong> 复制地址。</li>
+<li>在已经 clone 的本地目录执行：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git remote add upstream https://github.com/octocat/Spoon-Knife.git</span><br><span class="line">git remote -v</span><br></pre></td></tr></table></figure>
+
+<p>正确结果是四个地址、两个名字：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">origin    https://github.com/你的用户名/Spoon-Knife.git (fetch)</span><br><span class="line">origin    https://github.com/你的用户名/Spoon-Knife.git (push)</span><br><span class="line">upstream  https://github.com/octocat/Spoon-Knife.git (fetch)</span><br><span class="line">upstream  https://github.com/octocat/Spoon-Knife.git (push)</span><br></pre></td></tr></table></figure>
+
+<p>记法：</p>
+<ul>
+<li><strong>origin</strong>：你的 fork，日常 <code>push</code> 去这里</li>
+<li><strong>upstream</strong>：原作者的仓库，只 <code>fetch</code> &#x2F; <code>merge</code>，不要往上面 <code>push</code>（你也没权限）</li>
+</ul>
+<p>如果 <code>git remote add</code> 报 <code>remote upstream already exists</code>，说明已经加过，用 <code>git remote -v</code> 核对 URL 即可。URL 不对就改：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote set-url upstream https://github.com/octocat/Spoon-Knife.git</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-在-Fork-上改代码"><a href="#8-在-Fork-上改代码" class="headerlink" title="8. 在 Fork 上改代码"></a>8. 在 Fork 上改代码</h2><p>不要直接在 <code>main</code> 上改。给上游提 PR 时，应在 fork 里开一条功能分支。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git checkout main</span><br><span class="line">git pull origin main</span><br><span class="line">git checkout -b fix/typo-in-readme</span><br></pre></td></tr></table></figure>
+
+<p>改文件后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add README.md</span><br><span class="line">git commit -m <span class="string">&quot;docs: 修正 README 里的拼写错误&quot;</span></span><br><span class="line">git push -u origin fix/typo-in-readme</span><br></pre></td></tr></table></figure>
+
+<p><code>-u origin</code> 把这条本地分支跟踪到你的 fork。以后在这条分支上再 <code>git push</code> 即可。</p>
+<p>原则：</p>
+<ul>
+<li>一个 PR 对应一条分支，主题单一，review 更轻松。</li>
+<li>不要把一堆无关改动塞进同一条分支。</li>
+<li>推送目标必须是 <code>origin</code>，不是 <code>upstream</code>。</li>
+</ul>
+<hr>
+<h2 id="9-Fork-提交-vs-自己项目提交"><a href="#9-Fork-提交-vs-自己项目提交" class="headerlink" title="9. Fork 提交 vs 自己项目提交"></a>9. Fork 提交 vs 自己项目提交</h2><p><code>git add</code> 和 <code>git commit</code> 两条命令完全一样。真正不一样的是：<strong>远程指向谁、推到哪条分支、推完算不算完事。</strong></p>
+<p>自己的项目：<code>origin</code> 就是最终仓库，推上去工作就落地了。<br>Fork 贡献：<code>origin</code> 只是你的副本，推上去只是「改动到了自己的 GitHub」，还要再开 PR 才会进上游。</p>
+<h3 id="9-1-先看远程差在哪"><a href="#9-1-先看远程差在哪" class="headerlink" title="9.1 先看远程差在哪"></a>9.1 先看远程差在哪</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>自己的项目</th>
+<th>Fork 上来贡献</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>clone 谁</td>
+<td>自己的仓库</td>
+<td><strong>你的 fork</strong>，不要 clone 上游</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td>你的仓库，也是最终仓库</td>
+<td>你的 fork，只是中间副本</td>
+</tr>
+<tr>
+<td><code>upstream</code></td>
+<td>一般没有</td>
+<td>原作者仓库，只拉不推</td>
+</tr>
+<tr>
+<td>日常开发分支</td>
+<td>可以直接在 <code>main</code>，也可以开功能分支</td>
+<td><strong>不要在 <code>main</code> 上改</strong>，开功能分支</td>
+</tr>
+<tr>
+<td><code>git push</code> 之后</td>
+<td>代码已经在自己的 GitHub 上</td>
+<td>代码只在 fork 上，上游还没变</td>
+</tr>
+<tr>
+<td>还要不要多一步</td>
+<td>通常不用</td>
+<td>必须再向<strong>上游</strong>开 Pull Request</td>
+</tr>
+</tbody></table>
+<p>核对远程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote -v</span><br></pre></td></tr></table></figure>
+
+<p>自己的项目通常只有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">origin  https://github.com/你的用户名/你的项目.git (fetch)</span><br><span class="line">origin  https://github.com/你的用户名/你的项目.git (push)</span><br></pre></td></tr></table></figure>
+
+<p>Fork 贡献应该看到 <code>origin</code> + <code>upstream</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">origin    https://github.com/你的用户名/Spoon-Knife.git (fetch)</span><br><span class="line">origin    https://github.com/你的用户名/Spoon-Knife.git (push)</span><br><span class="line">upstream  https://github.com/octocat/Spoon-Knife.git (fetch)</span><br><span class="line">upstream  https://github.com/octocat/Spoon-Knife.git (push)</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-完整命令对照"><a href="#9-2-完整命令对照" class="headerlink" title="9.2 完整命令对照"></a>9.2 完整命令对照</h3><p>下面两套命令都假设你已经在仓库目录里。左边是自己的项目，右边是 fork 贡献。</p>
+<p><strong>自己的项目：改完直接推到 GitHub</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 克隆自己的仓库（只需一次）</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/你的用户名/你的项目.git</span><br><span class="line"><span class="built_in">cd</span> 你的项目</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 拉最新（避免在过期的 main 上改）</span></span><br><span class="line">git checkout main</span><br><span class="line">git pull origin main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 可选：开一条功能分支；小改动也可以继续留在 main</span></span><br><span class="line">git checkout -b feat/add-login</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 改文件后提交（和 fork 完全相同）</span></span><br><span class="line">git add .</span><br><span class="line">git status</span><br><span class="line">git commit -m <span class="string">&quot;feat: 增加登录页&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 推到自己的 GitHub</span></span><br><span class="line">git push -u origin feat/add-login</span><br><span class="line"><span class="comment"># 若坚持在 main 上改，则是：</span></span><br><span class="line"><span class="comment"># git push origin main</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 到此结束。需要代码评审时，在「同一个仓库」里开 PR：</span></span><br><span class="line"><span class="comment">#    base = 你的 main，compare = feat/add-login</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Fork 上贡献：推到自己的 fork，再请上游合并</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 先在网页 Fork，再克隆「你的 fork」（只需一次）</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/你的用户名/Spoon-Knife.git</span><br><span class="line"><span class="built_in">cd</span> Spoon-Knife</span><br><span class="line">git remote add upstream https://github.com/octocat/Spoon-Knife.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 让本地 main 跟上「上游」，不是只 pull origin</span></span><br><span class="line">git fetch upstream</span><br><span class="line">git checkout main</span><br><span class="line">git merge upstream/main</span><br><span class="line">git push origin main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 必须开功能分支，不要在 main 上改</span></span><br><span class="line">git checkout -b fix/typo-in-readme</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 改文件后提交（和自己的项目完全相同）</span></span><br><span class="line">git add .</span><br><span class="line">git status</span><br><span class="line">git commit -m <span class="string">&quot;docs: 修正 README 里的拼写错误&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 推到 origin，也就是你的 fork，不是 upstream</span></span><br><span class="line">git push -u origin fix/typo-in-readme</span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 还没完：向「上游仓库」开 PR</span></span><br><span class="line"><span class="comment">#    base = octocat/Spoon-Knife 的 main</span></span><br><span class="line"><span class="comment">#    compare = 你的用户名/Spoon-Knife 的 fix/typo-in-readme</span></span><br><span class="line">gh <span class="built_in">pr</span> create --repo octocat/Spoon-Knife \</span><br><span class="line">  --title <span class="string">&quot;docs: 修正 README 拼写&quot;</span> \</span><br><span class="line">  --body <span class="string">&quot;修正两处拼写错误。&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>逐步拆开看，相同的和不同的就清楚了：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>自己的项目</th>
+<th>Fork 贡献</th>
+<th>是否相同</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>进入仓库</td>
+<td><code>cd 你的项目</code></td>
+<td><code>cd Spoon-Knife</code></td>
+<td>都是进本地目录</td>
+</tr>
+<tr>
+<td>更新主分支</td>
+<td><code>git pull origin main</code></td>
+<td><code>git fetch upstream</code> 再 <code>git merge upstream/main</code></td>
+<td><strong>不同</strong></td>
+</tr>
+<tr>
+<td>开分支</td>
+<td>可选</td>
+<td><strong>必须</strong></td>
+<td>建议都开，fork 更强制</td>
+</tr>
+<tr>
+<td>暂存</td>
+<td><code>git add .</code></td>
+<td><code>git add .</code></td>
+<td>相同</td>
+</tr>
+<tr>
+<td>提交</td>
+<td><code>git commit -m &quot;...&quot;</code></td>
+<td><code>git commit -m &quot;...&quot;</code></td>
+<td>相同</td>
+</tr>
+<tr>
+<td>推送</td>
+<td><code>git push -u origin 分支名</code></td>
+<td><code>git push -u origin 分支名</code></td>
+<td>命令相同，<code>origin</code> 含义不同</td>
+</tr>
+<tr>
+<td>推完</td>
+<td>自己的 GitHub 已更新</td>
+<td>只更新了 fork</td>
+<td><strong>不同</strong></td>
+</tr>
+<tr>
+<td>让别人（或上游）合入</td>
+<td>同仓库开 PR，或直接推 <code>main</code></td>
+<td><strong>必须</strong>对上游开 PR</td>
+<td><strong>不同</strong></td>
+</tr>
+</tbody></table>
+<p>最容易写错的一行是推送目标：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对：推到自己的远程（自己的项目或自己的 fork 都是 origin）</span></span><br><span class="line">git push -u origin feat/add-login</span><br><span class="line">git push -u origin fix/typo-in-readme</span><br><span class="line"></span><br><span class="line"><span class="comment"># 错：fork 场景下往上游推，你没有权限，会被拒绝</span></span><br><span class="line">git push upstream fix/typo-in-readme</span><br></pre></td></tr></table></figure>
+
+<p><code>add</code> &#x2F; <code>commit</code> 不用换命令；换的是「先同步谁、开不开分支、推完是否还要提 PR」。</p>
+<hr>
+<h2 id="10-从-Fork-给上游提-PR"><a href="#10-从-Fork-给上游提-PR" class="headerlink" title="10. 从 Fork 给上游提 PR"></a>10. 从 Fork 给上游提 PR</h2><p><strong>PR</strong> 是 <strong>Pull Request</strong> 的缩写，中文常叫「拉取请求」或「合并请求」。意思是：请对方把你分支上的提交 <strong>pull（拉）</strong> 进他们的仓库。</p>
+<p>你没有上游写权限，不能 <code>git push</code> 到别人的 <code>main</code>。正确流程是把改动推到自己的 fork，然后开一个 PR，对上游说：「请审查这批改动，同意就合并。」维护者可以在 PR 页面看 diff、留言、跑检查，通过后再点 Merge。GitLab 上同类功能叫 <strong>Merge Request（MR）</strong>，本质一样。</p>
+<p>代码已经在你的 fork 的某条分支上之后，就可以开这个 PR。</p>
+<h3 id="10-1-网页上最常见的路径"><a href="#10-1-网页上最常见的路径" class="headerlink" title="10.1 网页上最常见的路径"></a>10.1 网页上最常见的路径</h3><p>推送分支后，打开<strong>上游</strong>仓库，顶部常会出现黄色横幅 <strong>Compare &amp; pull request</strong>，点它即可。</p>
+<p>横幅没出现时：</p>
+<ol>
+<li>打开上游仓库。</li>
+<li>点 <strong>Pull requests → New pull request</strong>。</li>
+<li>点 <strong>compare across forks</strong>（跨 fork 比较）。</li>
+<li><strong>base repository &#x2F; base branch</strong>：上游，以及你希望合入的分支（一般是 <code>main</code>）。</li>
+<li><strong>head repository &#x2F; compare branch</strong>：你的 fork，以及刚才推送的功能分支。</li>
+<li>填写标题和说明。说明里写清改了什么、为什么、怎么验证。</li>
+<li>个人账号下的 fork，可勾选 <strong>Allow edits from maintainers</strong>（允许维护者改你的 PR 分支）。组织拥有的 fork 不能把推送权交给维护者。</li>
+<li>点 <strong>Create Pull Request</strong>。也可以先建 Draft PR，改完再标 ready。</li>
+</ol>
+<p>方向不要反：左边是上游要接收的分支（base），右边是你 fork 上的改动（compare）。</p>
+<h3 id="10-2-命令行"><a href="#10-2-命令行" class="headerlink" title="10.2 命令行"></a>10.2 命令行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh <span class="built_in">pr</span> create --repo octocat/Spoon-Knife --web</span><br></pre></td></tr></table></figure>
+
+<p>或直接填标题和正文：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gh <span class="built_in">pr</span> create --repo octocat/Spoon-Knife \</span><br><span class="line">  --title <span class="string">&quot;docs: 修正 README 拼写&quot;</span> \</span><br><span class="line">  --body <span class="string">&quot;修正两处拼写错误，不影响功能。&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>公开仓库开 PR 时，你需要对 compare 分支有写权限；组织仓库还要求你是该组织成员。这就是必须先 fork 再改自己副本的原因。</p>
+<hr>
+<h2 id="11-同步-Fork：跟上上游"><a href="#11-同步-Fork：跟上上游" class="headerlink" title="11. 同步 Fork：跟上上游"></a>11. 同步 Fork：跟上上游</h2><p>上游合并了别人的 PR，你的 fork 就会落后。落后太久再提 PR，冲突会很难解。同步有三种做法。</p>
+<h3 id="11-1-网页：Sync-fork"><a href="#11-1-网页：Sync-fork" class="headerlink" title="11.1 网页：Sync fork"></a>11.1 网页：Sync fork</h3><ol>
+<li>打开<strong>你的 fork</strong> 主页。</li>
+<li>文件列表上方找到 <strong>Sync fork</strong>。</li>
+<li>看清上游多了哪些提交，点 <strong>Update branch</strong>。</li>
+</ol>
+<p>若同步会造成冲突，GitHub 会让你改走「开一个 PR 来解决冲突」。</p>
+<p>网页同步直接更新 GitHub 上的 fork。本地还要再拉一次：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git checkout main</span><br><span class="line">git pull origin main</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-GitHub-CLI"><a href="#11-2-GitHub-CLI" class="headerlink" title="11.2 GitHub CLI"></a>11.2 GitHub CLI</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gh repo <span class="built_in">sync</span> 你的用户名/Spoon-Knife -b main</span><br></pre></td></tr></table></figure>
+
+<p>这会把上游的 <code>main</code> 同步到你的 fork 的 <code>main</code>。有冲突时 CLI 不会硬同步；只有你明确要用上游覆盖本地&#x2F;远程分支时，才加 <code>--force</code>。<code>--force</code> 会丢掉目标分支上独有的提交，确认后再用。</p>
+<h3 id="11-3-命令行：fetch-merge"><a href="#11-3-命令行：fetch-merge" class="headerlink" title="11.3 命令行：fetch + merge"></a>11.3 命令行：fetch + merge</h3><p>先确保已经加了 <code>upstream</code>（第 7 节）。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git fetch upstream</span><br><span class="line">git checkout main</span><br><span class="line">git merge upstream/main</span><br><span class="line">git push origin main</span><br></pre></td></tr></table></figure>
+
+<p><code>git fetch upstream</code> 只下载，不改你当前分支。上游的 <code>main</code> 会出现在本地的 <code>upstream/main</code>。</p>
+<ul>
+<li>本地 <code>main</code> 没有独有提交时，合并一般是 <strong>fast-forward</strong>，最干净。</li>
+<li>本地 <code>main</code> 已经有自己的提交时，可能产生冲突，按普通合并冲突处理后再 push。</li>
+</ul>
+<p>官方提醒：<strong>命令行同步默认只更新本地仓库。</strong> 要让 GitHub 上的 fork 也变新，必须再 <code>git push origin main</code>。</p>
+<p>功能分支若也要从上游变基（让 PR 更好合），可以：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git checkout fix/typo-in-readme</span><br><span class="line">git fetch upstream</span><br><span class="line">git rebase upstream/main</span><br><span class="line">git push --force-with-lease origin fix/typo-in-readme</span><br></pre></td></tr></table></figure>
+
+<p>已经有人在 review 的 PR 上慎用 rebase + force push；没有 review 时，rebase 通常比在功能分支上再 merge 一次 <code>main</code> 更整齐。</p>
+<hr>
+<h2 id="12-允许维护者改你的-PR-分支"><a href="#12-允许维护者改你的-PR-分支" class="headerlink" title="12. 允许维护者改你的 PR 分支"></a>12. 允许维护者改你的 PR 分支</h2><p>从个人 fork 提 PR 时，建议勾选 <strong>Allow edits from maintainers</strong>。维护者可以直接往你的 PR 分支推小修复，而不必只在评论里告诉你「再改一行」。</p>
+<p>勾选后他们能做的事：补测试、改冲突、跑 CI 需要的微调。</p>
+<p>如果 fork 里有 GitHub Actions 工作流，选项会变成 <strong>Allow edits and access to secrets by maintainers</strong>。这会让维护者有机会编辑 fork 里的 workflow，从而碰到 secrets、甚至影响到其他分支。仓库里有 workflow 和 secrets 时，先读清提示再勾。</p>
+<p>组织拥有的 fork，不能把这种推送权交给上游维护者。</p>
+<hr>
+<h2 id="13-删除、脱离与可见性"><a href="#13-删除、脱离与可见性" class="headerlink" title="13. 删除、脱离与可见性"></a>13. 删除、脱离与可见性</h2><h3 id="13-1-删除-fork"><a href="#13-1-删除-fork" class="headerlink" title="13.1 删除 fork"></a>13.1 删除 fork</h3><p>在 fork 仓库：<strong>Settings → General → 最底部 Danger Zone → Delete this repository</strong>。需要输入仓库全名确认。</p>
+<p>删除 fork 会<strong>永久删掉</strong>依附在这个 fork 上的 Pull Request 和相关配置，不能恢复。贡献记录有可能仍出现在上游的历史上，但那条 PR 本身没了。还有未合的 PR 时，不要删 fork。</p>
+<p>删除 fork <strong>不会</strong>删掉你电脑上的 clone。本地目录还在，只是远程 <code>origin</code> 已经不存在。</p>
+<h3 id="13-2-脱离-fork-网络"><a href="#13-2-脱离-fork-网络" class="headerlink" title="13.2 脱离 fork 网络"></a>13.2 脱离 fork 网络</h3><p>想把这份代码变成和上游无关的独立仓库，可以 <strong>Leave the fork network</strong>（脱离 fork 网络）。之后不会再自动跟上游同步，也不能再连回去。</p>
+<p>脱离后不会保留原来的 Issues、PR、Wiki、Star、Watch、评论、子 fork 等元数据，Git 提交历史会保留。</p>
+<h3 id="13-3-上游被删或改可见性时"><a href="#13-3-上游被删或改可见性时" class="headerlink" title="13.3 上游被删或改可见性时"></a>13.3 上游被删或改可见性时</h3><table>
+<thead>
+<tr>
+<th>发生的事</th>
+<th>fork 会怎样</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>私有上游被删除</td>
+<td>它的私有 fork 一并删除</td>
+</tr>
+<tr>
+<td>公开上游被删除</td>
+<td>仍活跃的公开 fork 会成为这个网络新的上游</td>
+</tr>
+<tr>
+<td>公开仓库改成私有</td>
+<td>原来的公开 fork 仍公开，但进入另一个网络</td>
+</tr>
+<tr>
+<td>私有仓库改成公开</td>
+<td>私有 fork 仍私有，并拆到各自的私有网络</td>
+</tr>
+</tbody></table>
+<p>私有仓库若撤销了某人的访问权，<strong>此人对该私有仓库的 fork 会被删除</strong>；本地 clone 还在。你有责任确保失去访问权的人处理掉本地的机密内容。</p>
+<p>公开 fork <strong>不继承</strong>上游的权限结构，由 fork 主人自己管谁能写。但同一网络里的 Git 对象是共享的：推到网络中任一仓库的 commit，其他仓库（包括上游）仍可能读到。删了 fork，贡献过的代码仍可能留在网络里。</p>
+<hr>
+<h2 id="14-常见问题"><a href="#14-常见问题" class="headerlink" title="14. 常见问题"></a>14. 常见问题</h2><p><strong>Q：Fork 和直接 Clone 上游有什么区别？</strong></p>
+<p>Clone 只是本地拷贝。没有写权限就推不上去。Fork 先在你名下建一个 GitHub 仓库，再 clone 这个仓库，<code>git push</code> 才推得到，也才能对上游开 PR。</p>
+<p><strong>Q：点了 Fork，电脑上为什么没有文件？</strong></p>
+<p>Fork 发生在 GitHub 上。还要 <code>git clone</code> 你的 fork，或使用 <code>gh repo fork ... --clone=true</code>。</p>
+<p><strong>Q：<code>git push</code> 提示权限不够？</strong></p>
+<p>多半 <code>origin</code> 仍指向上游，或你 clone 的是上游而不是自己的 fork。用 <code>git remote -v</code> 检查，<code>origin</code> 应是 <code>github.com/你的用户名/仓库.git</code>。</p>
+<p><strong>Q：Fork 提交和自己项目提交，命令到底差在哪？</strong></p>
+<p><code>git add</code>、<code>git commit</code> 完全相同。差别在更新主分支时 fork 要 <code>fetch upstream</code>，推完还要向上游开 PR。完整对照见第 9 节。</p>
+<p><strong>Q：Fork 比上游旧很多，PR 里全是无关提交？</strong></p>
+<p>先同步 <code>main</code>（网页 Sync fork，或 <code>git fetch upstream &amp;&amp; git merge upstream/main</code>），再把功能分支 rebase 或 merge 到最新的 <code>main</code>，然后推送。</p>
+<p><strong>Q：可以 fork 到公司组织吗？</strong></p>
+<p>可以，前提是你在该组织有创建仓库的权限。私有仓库还受套餐和 fork 策略限制，GitHub Free 组织不能接私有 fork。</p>
+<p><strong>Q：要不要把上游所有分支都拷过来？</strong></p>
+<p>给开源提 PR，勾选 <strong>Copy the DEFAULT branch only</strong> 即可，fork 更干净。确实需要其他分支，再在 Branches 页补。</p>
+<p><strong>Q：删了 fork，已经合进上游的代码还在吗？</strong></p>
+<p>合进上游的提交还在上游。未合的 PR 会随 fork 一起消失。网络里的 Git 对象仍可能被其他 fork 看到。</p>
+<p><strong>Q：练习用哪个仓库？</strong></p>
+<p>用 <a target="_blank" rel="noopener" href="https://github.com/octocat/Spoon-Knife">octocat&#x2F;Spoon-Knife</a>。改坏了也不影响真实项目。</p>
+<hr>
+<h2 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h2><p>一次完整的贡献可以记成这条链：</p>
+<ol>
+<li>网页或 <code>gh repo fork</code> 把仓库 fork 到自己名下  </li>
+<li><code>git clone</code> 你的 fork（不要只 clone 上游）  </li>
+<li><code>git remote add upstream &lt;上游地址&gt;</code>  </li>
+<li>从最新 <code>main</code> 拉出功能分支，改完 <code>git push -u origin 分支名</code>  </li>
+<li>在上游开 PR：base 是上游，compare 是你的 fork 分支  </li>
+<li>上游往前走了，就 <strong>Sync fork</strong> 或 <code>git fetch upstream &amp;&amp; git merge upstream/main &amp;&amp; git push origin main</code></li>
+</ol>
+<p>日常口诀：<strong>改自己的 origin，跟上游的 upstream，合代码靠 Pull Request。</strong> <code>git add</code> &#x2F; <code>git commit</code> 和自己项目一样；不一样的是先同步 <code>upstream</code>、推到 fork 的 <code>origin</code>，再向上游开 PR。</p>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo">Fork a repository</a>、<a target="_blank" rel="noopener" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks">About forks</a>、<a target="_blank" rel="noopener" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork">Syncing a fork</a>、<a target="_blank" rel="noopener" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork">Creating a pull request from a fork</a>。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/09/05/github-fork-guide/">https://qijianyeah.github.io/2026/09/05/github-fork-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GitHub/">GitHub</a><a class="post-meta__tags" href="/tags/Git/">Git</a><a class="post-meta__tags" href="/tags/Fork/">Fork</a><a class="post-meta__tags" href="/tags/%E5%BC%80%E6%BA%90%E5%8D%8F%E4%BD%9C/">开源协作</a><a class="post-meta__tags" href="/tags/Pull-Request/">Pull Request</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/09/03/claude-code-resume-continue-guide/" title="Claude Code 会话恢复：claude --continue 与 --resume 用法详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Claude Code 会话恢复：claude --continue 与 --resume 用法详解</div></div><div class="info-2"><div class="info-item-1">Claude Code 会把每一次对话持续写到本机，任务跨午休、跨过夜、甚至跨目录，都可以原样接上，不必重新交代上下文。日常最常用的两个入口是 claude --continue 和 claude --resume：前者直接打开「当前目录最近一次交互会话」，后者按名称、ID 或选择器精确挑一次会话。 桌面应用、网页版 Claude Code、VS Code 扩展各自维护独立的会话历史。本文只讲 CLI。  目录 1. 会话是什么 2. continue 与 resume 怎么选 3. continue 的用法 4. resume 的用法 5. 会话选择器 6. 给会话命名 7. 恢复时带回什么 8. 权限模式怎么变 9. 超长会话从摘要恢复 10. 分支与 fork-session 11. 会话存在哪 12. 常见问题 13. 小结   1. 会话是什么会话（session）是绑定到项目目录的一份已保存对话。你一边工作，Claude Code 一边把它写成本地 transcript，退出、跑...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">78</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Fork-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">1. Fork 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Fork%E3%80%81Clone%E3%80%81Branch-%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">3.</span> <span class="toc-text">2. Fork、Clone、Branch 差在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%93%AA%E4%BA%9B%E4%BB%93%E5%BA%93%E5%8F%AF%E4%BB%A5-Fork"><span class="toc-number">4.</span> <span class="toc-text">3. 哪些仓库可以 Fork</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%BD%91%E9%A1%B5%E4%B8%8A%E6%80%8E%E4%B9%88-Fork"><span class="toc-number">5.</span> <span class="toc-text">4. 网页上怎么 Fork</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%94%A8-GitHub-CLI-%E6%88%96-Desktop-Fork"><span class="toc-number">6.</span> <span class="toc-text">5. 用 GitHub CLI 或 Desktop Fork</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-GitHub-CLI"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 GitHub CLI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-GitHub-Desktop"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 GitHub Desktop</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%8A%8A-Fork-%E5%85%8B%E9%9A%86%E5%88%B0%E6%9C%AC%E5%9C%B0"><span class="toc-number">7.</span> <span class="toc-text">6. 把 Fork 克隆到本地</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%8A%A0%E4%B8%8A%E6%B8%B8%E8%BF%9C%E7%A8%8B%EF%BC%9Aorigin-%E5%92%8C-upstream"><span class="toc-number">8.</span> <span class="toc-text">7. 加上游远程：origin 和 upstream</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%9C%A8-Fork-%E4%B8%8A%E6%94%B9%E4%BB%A3%E7%A0%81"><span class="toc-number">9.</span> <span class="toc-text">8. 在 Fork 上改代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-Fork-%E6%8F%90%E4%BA%A4-vs-%E8%87%AA%E5%B7%B1%E9%A1%B9%E7%9B%AE%E6%8F%90%E4%BA%A4"><span class="toc-number">10.</span> <span class="toc-text">9. Fork 提交 vs 自己项目提交</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%85%88%E7%9C%8B%E8%BF%9C%E7%A8%8B%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 先看远程差在哪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%AE%8C%E6%95%B4%E5%91%BD%E4%BB%A4%E5%AF%B9%E7%85%A7"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 完整命令对照</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E4%BB%8E-Fork-%E7%BB%99%E4%B8%8A%E6%B8%B8%E6%8F%90-PR"><span class="toc-number">11.</span> <span class="toc-text">10. 从 Fork 给上游提 PR</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E7%BD%91%E9%A1%B5%E4%B8%8A%E6%9C%80%E5%B8%B8%E8%A7%81%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 网页上最常见的路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%91%BD%E4%BB%A4%E8%A1%8C"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 命令行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%90%8C%E6%AD%A5-Fork%EF%BC%9A%E8%B7%9F%E4%B8%8A%E4%B8%8A%E6%B8%B8"><span class="toc-number">12.</span> <span class="toc-text">11. 同步 Fork：跟上上游</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%BD%91%E9%A1%B5%EF%BC%9ASync-fork"><span class="toc-number">12.1.</span> <span class="toc-text">11.1 网页：Sync fork</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-GitHub-CLI"><span class="toc-number">12.2.</span> <span class="toc-text">11.2 GitHub CLI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%91%BD%E4%BB%A4%E8%A1%8C%EF%BC%9Afetch-merge"><span class="toc-number">12.3.</span> <span class="toc-text">11.3 命令行：fetch + merge</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E5%85%81%E8%AE%B8%E7%BB%B4%E6%8A%A4%E8%80%85%E6%94%B9%E4%BD%A0%E7%9A%84-PR-%E5%88%86%E6%94%AF"><span class="toc-number">13.</span> <span class="toc-text">12. 允许维护者改你的 PR 分支</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E5%88%A0%E9%99%A4%E3%80%81%E8%84%B1%E7%A6%BB%E4%B8%8E%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">14.</span> <span class="toc-text">13. 删除、脱离与可见性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%88%A0%E9%99%A4-fork"><span class="toc-number">14.1.</span> <span class="toc-text">13.1 删除 fork</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E8%84%B1%E7%A6%BB-fork-%E7%BD%91%E7%BB%9C"><span class="toc-number">14.2.</span> <span class="toc-text">13.2 脱离 fork 网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E4%B8%8A%E6%B8%B8%E8%A2%AB%E5%88%A0%E6%88%96%E6%94%B9%E5%8F%AF%E8%A7%81%E6%80%A7%E6%97%B6"><span class="toc-number">14.3.</span> <span class="toc-text">13.3 上游被删或改可见性时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">15.</span> <span class="toc-text">14. 常见问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/05/github-fork-guide/" title="GitHub Fork 完全指南：从复制仓库到同步与提 PR">GitHub Fork 完全指南：从复制仓库到同步与提 PR</a><time datetime="2026-09-05T04:04:01.000Z" title="发表于 2026-09-05 12:04:01">2026-09-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/03/claude-code-resume-continue-guide/" title="Claude Code 会话恢复：claude --continue 与 --resume 用法详解">Claude Code 会话恢复：claude --continue 与 --resume 用法详解</a><time datetime="2026-09-02T16:27:05.000Z" title="发表于 2026-09-03 00:27:05">2026-09-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/02/http-get-post-request-header-guide/" title="前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头">前端发起 GET/POST 时后端发生了什么：从报文解析到自定义请求头</a><time datetime="2026-09-02T14:52:41.000Z" title="发表于 2026-09-02 22:52:41">2026-09-02</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/31/langchain-intro-guide/" title="LangChain 介绍完全指南：从框架由来到 Agent 快速上手">LangChain 介绍完全指南：从框架由来到 Agent 快速上手</a><time datetime="2026-08-31T15:22:34.000Z" title="发表于 2026-08-31 23:22:34">2026-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/26/callback-function-java-python-guide/" title="回调函数详解：从概念到工程实践（Java / Python 案例）">回调函数详解：从概念到工程实践（Java / Python 案例）</a><time datetime="2026-08-26T04:41:47.000Z" title="发表于 2026-08-26 12:41:47">2026-08-26</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
