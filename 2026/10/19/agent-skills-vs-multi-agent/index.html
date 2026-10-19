@@ -1,0 +1,408 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Agent Skills 与 Multi-Agent | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Agent Skills 与 Multi-Agent 目录 1. 同一问题，两条路 2. 核心范式 3. 架构与工作流程 4. 上下文管理 5. 通信成本 6. 优势、劣势与选型 7. Agent Skills 与 Multi-Agent 对照总表 8. 扩展说明 8.1 Supervisor 是什么     1. 同一问题，两条路任务复杂到一次提示词装不下时，Agent 仍然要把事情做完。Age">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Agent Skills 与 Multi-Agent">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/10/19/agent-skills-vs-multi-agent/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="Agent Skills 与 Multi-Agent 目录 1. 同一问题，两条路 2. 核心范式 3. 架构与工作流程 4. 上下文管理 5. 通信成本 6. 优势、劣势与选型 7. Agent Skills 与 Multi-Agent 对照总表 8. 扩展说明 8.1 Supervisor 是什么     1. 同一问题，两条路任务复杂到一次提示词装不下时，Agent 仍然要把事情做完。Age">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-10-19T13:38:20.000Z">
+<meta property="article:modified_time" content="2026-10-19T13:38:20.014Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Agent Skills">
+<meta property="article:tag" content="Multi-Agent">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/10/19/agent-skills-vs-multi-agent/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Agent Skills 与 Multi-Agent',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">66</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">83</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">Agent Skills 与 Multi-Agent</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Agent Skills 与 Multi-Agent</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-19T13:38:20.000Z" title="发表于 2026-10-19 21:38:20">2026-10-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-19T13:38:20.014Z" title="更新于 2026-10-19 21:38:20">2026-10-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">AI 工程实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Agent-Skills-与-Multi-Agent"><a href="#Agent-Skills-与-Multi-Agent" class="headerlink" title="Agent Skills 与 Multi-Agent"></a>Agent Skills 与 Multi-Agent</h1><hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E5%90%8C%E4%B8%80%E9%97%AE%E9%A2%98%E4%B8%A4%E6%9D%A1%E8%B7%AF">1. 同一问题，两条路</a></li>
+<li><a href="#2-%E6%A0%B8%E5%BF%83%E8%8C%83%E5%BC%8F">2. 核心范式</a></li>
+<li><a href="#3-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B">3. 架构与工作流程</a></li>
+<li><a href="#4-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86">4. 上下文管理</a></li>
+<li><a href="#5-%E9%80%9A%E4%BF%A1%E6%88%90%E6%9C%AC">5. 通信成本</a></li>
+<li><a href="#6-%E4%BC%98%E5%8A%BF%E5%8A%A3%E5%8A%BF%E4%B8%8E%E9%80%89%E5%9E%8B">6. 优势、劣势与选型</a></li>
+<li><a href="#7-agent-skills-%E4%B8%8E-multi-agent-%E5%AF%B9%E7%85%A7%E6%80%BB%E8%A1%A8">7. Agent Skills 与 Multi-Agent 对照总表</a></li>
+<li><a href="#8-%E6%89%A9%E5%B1%95%E8%AF%B4%E6%98%8E">8. 扩展说明</a><ul>
+<li><a href="#81-supervisor-%E6%98%AF%E4%BB%80%E4%B9%88">8.1 Supervisor 是什么</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="1-同一问题，两条路"><a href="#1-同一问题，两条路" class="headerlink" title="1. 同一问题，两条路"></a>1. 同一问题，两条路</h2><p>任务复杂到一次提示词装不下时，Agent 仍然要把事情做完。Agent Skills 和 Multi-Agent 都在解决这件事，思路、实现路径和适用场景不一样。</p>
+<ul>
+<li><strong>Agent Skills</strong> 不增加决策者。同一个 Agent 配备一组可按需加载的技能，自己规划，自己调用。</li>
+<li><strong>Multi-Agent</strong> 增加决策者。任务被拆开，交给多个各自独立的 Agent，再由一个协调者把结果收回来。</li>
+</ul>
+<p>一个是给同一个人加工具箱，一个是组一支团队。</p>
+<hr>
+<h2 id="2-核心范式"><a href="#2-核心范式" class="headerlink" title="2. 核心范式"></a>2. 核心范式</h2><h3 id="2-1-Agent-Skills：单体智能体，靠能力扩展"><a href="#2-1-Agent-Skills：单体智能体，靠能力扩展" class="headerlink" title="2.1 Agent Skills：单体智能体，靠能力扩展"></a>2.1 Agent Skills：单体智能体，靠能力扩展</h3><p>Agent Skills 是单体智能体（Single-Agent System，SAS）。系统里只有一个做规划的模型。能力变多，靠的是给这个模型挂技能。</p>
+<p>技能是一份带触发条件的说明，后面可以跟脚本和参考资料。模型真正调用的函数仍然是工具：读文件、跑命令、查接口。技能告诉它什么时候用、按什么顺序用。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: release-check</span><br><span class="line"><span class="section">description: 发版前核对迁移脚本、配置项和回滚步骤。用户提到发版、上线、变更单时使用。</span></span><br><span class="line"><span class="section">---</span></span><br><span class="line"></span><br><span class="line"><span class="section"># 发版检查</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> 先核对变更清单，再看迁移是否可回滚。</span><br><span class="line"><span class="bullet">2.</span> 缺回滚步骤时直接指出，不要补写业务代码。</span><br></pre></td></tr></table></figure>
+
+<p>运行时，Agent 的上下文里先只有技能目录：<code>name</code> 和 <code>description</code>。任务和某条描述对上了，才把正文读进来。模型还是那一个，它会的步骤变多了。</p>
+<h3 id="2-2-Multi-Agent：多智能体，靠分解与协作"><a href="#2-2-Multi-Agent：多智能体，靠分解与协作" class="headerlink" title="2.2 Multi-Agent：多智能体，靠分解与协作"></a>2.2 Multi-Agent：多智能体，靠分解与协作</h3><p>Multi-Agent 是多智能体系统（Multi-Agent System，MAS）。系统里有多个做规划的模型，各自拿独立上下文。</p>
+<p>常见形态是一个 Supervisor 带若干子 Agent：</p>
+<ul>
+<li>Supervisor 接收任务，识别意图，决定派给谁；需要时同时派给多个，再汇总。</li>
+<li>子 Agent 只承担一类工作，例如查调用链、改补丁、跑测试、做安全审查。</li>
+<li>成员之间不共享完整对话，只交接一份状态（State）。</li>
+</ul>
+<hr>
+<h2 id="3-架构与工作流程"><a href="#3-架构与工作流程" class="headerlink" title="3. 架构与工作流程"></a>3. 架构与工作流程</h2><h3 id="3-1-架构比喻"><a href="#3-1-架构比喻" class="headerlink" title="3.1 架构比喻"></a>3.1 架构比喻</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>Agent Skills</th>
+<th>Multi-Agent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>人怎么组织</td>
+<td>一个专家，面前一个多功能工具箱，用哪件自己拿</td>
+<td>一个项目经理带一支专业团队，成员各司其职</td>
+</tr>
+<tr>
+<td>新增一种能力时</td>
+<td>往工具箱里加一份技能说明</td>
+<td>增加一个角色，并约定它和经理之间的交接</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-单一-Agent-怎么把技能用起来"><a href="#3-2-单一-Agent-怎么把技能用起来" class="headerlink" title="3.2 单一 Agent 怎么把技能用起来"></a>3.2 单一 Agent 怎么把技能用起来</h3><ol>
+<li>用户把任务交给唯一的 Agent。</li>
+<li>Agent 对照已加载的技能描述，决定用不用技能、用哪几个。</li>
+<li>命中后加载对应技能的详细说明，仍在同一段上下文里继续规划。</li>
+<li>按技能里的步骤调用工具，看结果，直到任务结束。</li>
+</ol>
+<p>下一步由同一个模型在当前会话里决定。选技能就是把说明读进这份上下文。</p>
+<h3 id="3-3-Supervisor-怎么把任务派出去"><a href="#3-3-Supervisor-怎么把任务派出去" class="headerlink" title="3.3 Supervisor 怎么把任务派出去"></a>3.3 Supervisor 怎么把任务派出去</h3><ol>
+<li>Supervisor 接收任务，识别意图。</li>
+<li>写成一份交接状态：目标、约束、已有产物、希望子 Agent 返回什么。</li>
+<li>把状态分给一个或多个子 Agent。每个子 Agent 单独调用一次模型。</li>
+<li>Supervisor 收回结果，决定结束、再派一轮，或交给另一个子 Agent。</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;goal&quot;</span><span class="punctuation">:</span> <span class="string">&quot;找出订单超时重试会重复扣款的路径&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;constraints&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;只读支付模块&quot;</span><span class="punctuation">,</span> <span class="string">&quot;不要改代码&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;inputs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;diff&quot;</span><span class="punctuation">,</span> <span class="string">&quot;相关调用链&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;return&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;根因&quot;</span><span class="punctuation">,</span> <span class="string">&quot;复现步骤&quot;</span><span class="punctuation">,</span> <span class="string">&quot;建议的测试点&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这就是团队之间的工单。子 Agent 看不到 Supervisor 的全部历史，也看不到其他子 Agent 的上下文，只看这份状态里写明的内容。</p>
+<hr>
+<h2 id="4-上下文管理"><a href="#4-上下文管理" class="headerlink" title="4. 上下文管理"></a>4. 上下文管理</h2><h3 id="4-1-渐进式披露，上下文共享"><a href="#4-1-渐进式披露，上下文共享" class="headerlink" title="4.1 渐进式披露，上下文共享"></a>4.1 渐进式披露，上下文共享</h3><p>Agent Skills 默认不把所有技能正文塞进提示词。上下文里先放目录，用到某一个技能时再加载它的说明、参考文档或脚本。</p>
+<p>技能共享同一个上下文。前面步骤的结论，后面的技能直接看得到，不用再写交接。</p>
+<p>目录变长之后，光是「有哪些技能」就会占掉窗口，并干扰模型对当前任务的注意力。技能数量过多时，选错技能、漏掉约束会明显变多，性能下降往往是突然的。这是单体上下文的物理上限，一般称为认知过载：说明写得再清楚，窗口长度和注意力都有限。</p>
+<p>缓解办法是收目录，把正文留到真正命中时再加载：</p>
+<ul>
+<li>描述写成「什么时候用」，不要写成技能正文的摘要。</li>
+<li>相近技能合并，或按领域分成少量入口，入口里面再指向详细说明。</li>
+<li>稳定、互不相关、又必须隔离权限的角色，再考虑拆成独立 Agent。</li>
+</ul>
+<h3 id="4-2-上下文隔离，用状态传递关键信息"><a href="#4-2-上下文隔离，用状态传递关键信息" class="headerlink" title="4.2 上下文隔离，用状态传递关键信息"></a>4.2 上下文隔离，用状态传递关键信息</h3><p>Multi-Agent 把上下文切开。每个子 Agent 有自己的系统提示、工具权限和对话记录。它们之间只传递关键信息：目标、约束、文件路径、上一步结论。</p>
+<p>隔离能做三件共享上下文做不到的事：</p>
+<ul>
+<li>不同子 Agent 使用不同模型。</li>
+<li>并行拿出互不污染的意见，例如一个写方案，一个专门挑错。</li>
+<li>按 Agent 切开隐私和权限。看过密钥的 Agent 只在状态里留下「已核验」，原文不进入负责写文档的 Agent。</li>
+</ul>
+<p>状态里没写的约束，子 Agent 不会知道。交接要有固定字段，把整段聊天记录贴过去就失去了隔离，也把 Token 成本加回来了。</p>
+<hr>
+<h2 id="5-通信成本"><a href="#5-通信成本" class="headerlink" title="5. 通信成本"></a>5. 通信成本</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>Agent Skills</th>
+<th>Multi-Agent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型调用</td>
+<td>同一个 Agent 的循环。工具返回后，仍由它看结果并决定下一步</td>
+<td>每个子 Agent 的每次执行，都是一次独立的模型调用</td>
+</tr>
+<tr>
+<td>额外开销</td>
+<td>工具自己的 I&#x2F;O：读文件、跑命令、请求接口</td>
+<td>每次调用都重传系统提示、交接状态和子任务，再加一份输出</td>
+</tr>
+<tr>
+<td>延迟与费用</td>
+<td>低，没有 Agent 之间的模型往返</td>
+<td>高，Token 按调用次数累加；串行派发时墙钟时间近似等于各跳之和</td>
+</tr>
+</tbody></table>
+<p>Agent Skills 的循环里可以有多次模型补全。这些补全共享同一份上下文，中间没有第二个模型接手。</p>
+<p>Multi-Agent 并行派发可以缩短墙钟时间，费用仍按次数相加。子 Agent 理解偏了，Supervisor 再派一轮，输入和输出都要再付一次。</p>
+<hr>
+<h2 id="6-优势、劣势与选型"><a href="#6-优势、劣势与选型" class="headerlink" title="6. 优势、劣势与选型"></a>6. 优势、劣势与选型</h2><h3 id="6-1-Agent-Skills"><a href="#6-1-Agent-Skills" class="headerlink" title="6.1 Agent Skills"></a>6.1 Agent Skills</h3><p>适合步骤有先后、中间结果要留给下一步的任务：按清单做代码审查、按规范改一个模块、把一份资料整理成文章。路径短，提示词好维护，延迟低。</p>
+<p>技能一多，目录本身变成负担，路由质量会掉。技能之间没有权限边界，也没有「换一个模型独立给意见」的位置。</p>
+<h3 id="6-2-Multi-Agent"><a href="#6-2-Multi-Agent" class="headerlink" title="6.2 Multi-Agent"></a>6.2 Multi-Agent</h3><p>适合角色已经分得开的协作：不同专业、不同模型、并行意见、隐私或工具权限必须隔离。某个子 Agent 失败时可以重试或替换，不必推翻整段上下文，容错更好。</p>
+<p>角色、交接协议和失败策略都要单独设计。运行时要处理反复派发、结论互相矛盾、状态过时。架构、通信、协调的开销，以及开发和运维成本，都高于技能模式。</p>
+<h3 id="6-3-怎么选"><a href="#6-3-怎么选" class="headerlink" title="6.3 怎么选"></a>6.3 怎么选</h3><table>
+<thead>
+<tr>
+<th>任务特征</th>
+<th>更合适的做法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前后步骤强依赖，延迟敏感，一个模型就能做完</td>
+<td>Agent Skills</td>
+</tr>
+<tr>
+<td>角色分工明确，要并行，或要隔离权限和模型</td>
+<td>Multi-Agent</td>
+</tr>
+<tr>
+<td>技能已经多到经常选错</td>
+<td>先合并、分组技能；目录仍然压不住，再把稳定角色拆成子 Agent</td>
+</tr>
+<tr>
+<td>协作很重，但每个角色内部的步骤是固定的</td>
+<td>Supervisor 负责分活，子 Agent 内部再用 Skills</td>
+</tr>
+</tbody></table>
+<p>能用一个 Agent 加几个技能做完的事，拆成多次独立模型调用后，多出来的是 Token 和协调成本。</p>
+<hr>
+<h2 id="7-Agent-Skills-与-Multi-Agent-对照总表"><a href="#7-Agent-Skills-与-Multi-Agent-对照总表" class="headerlink" title="7. Agent Skills 与 Multi-Agent 对照总表"></a>7. Agent Skills 与 Multi-Agent 对照总表</h2><p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/agent-skills/agent-skills-001-agent-skills-multi-agent.jpg" alt="Agent Skills 与 Multi-Agent 对照总表"></p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>Agent Skills（技能模式）</th>
+<th>Multi-Agent 架构</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心范式</td>
+<td>单体智能体（SAS），通过能力扩展</td>
+<td>多智能体系统（MAS），通过任务分解与协作</td>
+</tr>
+<tr>
+<td>架构比喻</td>
+<td>一个专家配备一个多功能工具箱，工具按需取用</td>
+<td>一个项目经理带领一个专业团队，成员各司其职</td>
+</tr>
+<tr>
+<td>工作流程</td>
+<td>单一 Agent 根据任务自主规划，并调用一个或多个技能</td>
+<td>Supervisor 接收任务，识别意图，分配给特定子 Agent 执行，并可协调多个子 Agent</td>
+</tr>
+<tr>
+<td>上下文管理</td>
+<td>渐进式披露：仅预加载技能描述，需要时再加载技能详情，上下文共享</td>
+<td>上下文隔离：每个子 Agent 拥有独立的上下文，通过状态（State）在 Agent 间传递关键信息</td>
+</tr>
+<tr>
+<td>通信成本</td>
+<td>低。同一个 Agent 的多次补全共享上下文，选技能不产生 Agent 之间的模型往返</td>
+<td>高。每次子 Agent 的调用都是一次独立的模型调用，产生额外的 Token 消耗和延迟</td>
+</tr>
+<tr>
+<td>优势</td>
+<td>高效、简洁、低延迟。适合逻辑线性、可序列化的任务</td>
+<td>专业化、容错性高、适合复杂协作。能处理不同模型、并行意见或隐私隔离的任务</td>
+</tr>
+<tr>
+<td>劣势</td>
+<td>存在认知过载的物理极限，技能数量过多时性能会急剧下降</td>
+<td>架构复杂，通信和协调开销大，开发和运维成本高</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-扩展说明"><a href="#8-扩展说明" class="headerlink" title="8. 扩展说明"></a>8. 扩展说明</h2><h3 id="8-1-Supervisor-是什么"><a href="#8-1-Supervisor-是什么" class="headerlink" title="8.1 Supervisor 是什么"></a>8.1 Supervisor 是什么</h3><p>Supervisor 是 Multi-Agent 里负责分活和收口的那个 Agent，相当于项目经理。具体业务由子 Agent 做。</p>
+<p>它做四件事：</p>
+<ol>
+<li><strong>接任务</strong>。用户的请求先到它这里。</li>
+<li><strong>识别意图</strong>。判断这是查代码、改补丁、跑测试，还是要好几件事一起做。</li>
+<li><strong>派发</strong>。写成一份状态交给对应的子 Agent：目标、约束、已有材料和希望返回的结果。需要时可以同时派给多个。</li>
+<li><strong>协调</strong>。收回各子 Agent 的结果，决定结束、再派一轮，或交给下一个子 Agent。</li>
+</ol>
+<p>子 Agent 看不到 Supervisor 的完整对话，只看这份状态。Supervisor 自己通常不深入每个专业步骤，它的上下文里主要是任务和各子 Agent 交回来的结论。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/10/19/agent-skills-vs-multi-agent/">https://qijianyeah.github.io/2026/10/19/agent-skills-vs-multi-agent/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/AI-Agent/">AI Agent</a><a class="post-meta__tags" href="/tags/Agent-Skills/">Agent Skills</a><a class="post-meta__tags" href="/tags/Multi-Agent/">Multi-Agent</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/13/zookeeper-zab-broadcast-and-recovery/" title="ZooKeeper 的两种工作模式：消息广播与崩溃恢复"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ZooKeeper 的两种工作模式：消息广播与崩溃恢复</div></div><div class="info-2"><div class="info-item-1">ZooKeeper 的两种工作模式：消息广播与崩溃恢复 关键词：ZAB、zxid、epoch、法定人数、Fast Leader Election、NEWLEADER、DIFF &#x2F; TRUNC &#x2F; SNAP依据：Apache ZooKeeper Internals、Zab 1.0 协议说明，以及 Zab 论文对发现 &#x2F; 同步 &#x2F; 广播三阶段的定义  ZooKeeper 集群里，所有会改数据的请求最终都要变成一条有全序的事务，再落到每一台服务器的内存数据树上。负责这件事的协议叫 ZAB（ZooKeeper Atomic Broadcast）。 ZAB 只做两件事，对应两种工作模式：    模式 集群在干什么 进入条件    消息广播 已有一个被法定人数承认的 Leader，按顺序提交写事务 Leader 激活完成之后   崩溃恢复 没有可用的 Leader，先选出一个，再把各节点的历史对齐 启动、Leader 宕机、Leader 失去法定人数、心跳超时   读请求不走 ZAB。Follower...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/24/mcp-vs-http-semantic-layer/" title="MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-24</div><div class="info-item-2">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义</div></div><div class="info-2"><div class="info-item-1">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义 1. 三个被反复问起的问题在做 AI Agent 接入内部服务时，下面三个问题几乎必然出现：  MCP 和 HTTP 到底差在哪？是不是 MCP 更”高级”？ 我有个 Java 服务，只提供 HTTP 接口，必须再写一个 MCP 服务当中间层吗？ 我用 requests 调了接口，这算不算 Agent 自动调用？必须包成 MCP 才算吗？  这三个问题的答案其实都指向同一个判据：谁是这次调用的决策者。想清楚这一点，选型就没有模糊地带。  2. HTTP 与 MCP 的定位差异2.1 HTTP：一条只负责搬运的传送带HTTP 是超文本传输协议，它解决的是”字节如何从 A 点可靠地到达 B 点”：方法、路径、请求头、状态码、报文体。它不携带任何业务语义——POST /api/orders 这串字符对人类工程师有意义，是因为有人读了文档、写了代码；对模型来说它只是一串没有解释的路径。 HTTP 的另一个特点是：它自己就是最底层的通用管道，不依赖别的应用层协议来描述自己。 2.2 MCP：一本带图解的送货手册MCP（Model...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">66</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">83</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">24</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Agent-Skills-%E4%B8%8E-Multi-Agent"><span class="toc-number">1.</span> <span class="toc-text">Agent Skills 与 Multi-Agent</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%90%8C%E4%B8%80%E9%97%AE%E9%A2%98%EF%BC%8C%E4%B8%A4%E6%9D%A1%E8%B7%AF"><span class="toc-number">1.2.</span> <span class="toc-text">1. 同一问题，两条路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E8%8C%83%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">2. 核心范式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Agent-Skills%EF%BC%9A%E5%8D%95%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93%EF%BC%8C%E9%9D%A0%E8%83%BD%E5%8A%9B%E6%89%A9%E5%B1%95"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 Agent Skills：单体智能体，靠能力扩展</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Multi-Agent%EF%BC%9A%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%EF%BC%8C%E9%9D%A0%E5%88%86%E8%A7%A3%E4%B8%8E%E5%8D%8F%E4%BD%9C"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 Multi-Agent：多智能体，靠分解与协作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">3. 架构与工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%9E%B6%E6%9E%84%E6%AF%94%E5%96%BB"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 架构比喻</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8D%95%E4%B8%80-Agent-%E6%80%8E%E4%B9%88%E6%8A%8A%E6%8A%80%E8%83%BD%E7%94%A8%E8%B5%B7%E6%9D%A5"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 单一 Agent 怎么把技能用起来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Supervisor-%E6%80%8E%E4%B9%88%E6%8A%8A%E4%BB%BB%E5%8A%A1%E6%B4%BE%E5%87%BA%E5%8E%BB"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 Supervisor 怎么把任务派出去</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text">4. 上下文管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B8%90%E8%BF%9B%E5%BC%8F%E6%8A%AB%E9%9C%B2%EF%BC%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E5%85%B1%E4%BA%AB"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 渐进式披露，上下文共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%8A%E4%B8%8B%E6%96%87%E9%9A%94%E7%A6%BB%EF%BC%8C%E7%94%A8%E7%8A%B6%E6%80%81%E4%BC%A0%E9%80%92%E5%85%B3%E9%94%AE%E4%BF%A1%E6%81%AF"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 上下文隔离，用状态传递关键信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E9%80%9A%E4%BF%A1%E6%88%90%E6%9C%AC"><span class="toc-number">1.6.</span> <span class="toc-text">5. 通信成本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E4%BC%98%E5%8A%BF%E3%80%81%E5%8A%A3%E5%8A%BF%E4%B8%8E%E9%80%89%E5%9E%8B"><span class="toc-number">1.7.</span> <span class="toc-text">6. 优势、劣势与选型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Agent-Skills"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 Agent Skills</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Multi-Agent"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 Multi-Agent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">1.7.3.</span> <span class="toc-text">6.3 怎么选</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-Agent-Skills-%E4%B8%8E-Multi-Agent-%E5%AF%B9%E7%85%A7%E6%80%BB%E8%A1%A8"><span class="toc-number">1.8.</span> <span class="toc-text">7. Agent Skills 与 Multi-Agent 对照总表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%89%A9%E5%B1%95%E8%AF%B4%E6%98%8E"><span class="toc-number">1.9.</span> <span class="toc-text">8. 扩展说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-Supervisor-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.9.1.</span> <span class="toc-text">8.1 Supervisor 是什么</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/19/agent-skills-vs-multi-agent/" title="Agent Skills 与 Multi-Agent">Agent Skills 与 Multi-Agent</a><time datetime="2026-10-19T13:38:20.000Z" title="发表于 2026-10-19 21:38:20">2026-10-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/13/zookeeper-zab-broadcast-and-recovery/" title="ZooKeeper 的两种工作模式：消息广播与崩溃恢复">ZooKeeper 的两种工作模式：消息广播与崩溃恢复</a><time datetime="2026-10-13T13:15:38.000Z" title="发表于 2026-10-13 21:15:38">2026-10-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/24/mcp-vs-http-semantic-layer/" title="MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义</a><time datetime="2026-09-23T17:10:00.000Z" title="发表于 2026-09-24 01:10:00">2026-09-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/05/github-fork-guide/" title="GitHub Fork 完全指南：从复制仓库到同步与提 PR">GitHub Fork 完全指南：从复制仓库到同步与提 PR</a><time datetime="2026-09-05T04:17:15.000Z" title="发表于 2026-09-05 12:17:15">2026-09-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/03/claude-code-resume-continue-guide/" title="Claude Code 会话恢复：claude --continue 与 --resume 用法详解">Claude Code 会话恢复：claude --continue 与 --resume 用法详解</a><time datetime="2026-09-02T16:27:05.000Z" title="发表于 2026-09-03 00:27:05">2026-09-03</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
