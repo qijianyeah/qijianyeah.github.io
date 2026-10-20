@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>Agent Skills 的渐进式披露</title>
+      <link href="//2026/10/20/agent-skills-progressive-disclosure/"/>
+      <url>//2026/10/20/agent-skills-progressive-disclosure/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Agent-Skills-的渐进式披露"><a href="#Agent-Skills-的渐进式披露" class="headerlink" title="Agent Skills 的渐进式披露"></a>Agent Skills 的渐进式披露</h1><hr><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul><li><a href="#1-%E6%98%AF%E4%BB%80%E4%B9%88">1. 是什么</a></li><li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81">2. 为什么需要</a></li><li><a href="#3-%E4%B8%89%E6%AD%A5%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C">3. 三步怎么工作</a><ul><li><a href="#31-%E5%90%AF%E5%8A%A8%E6%97%B6%E5%8F%AA%E7%9C%8B%E5%90%8D%E7%89%87">3.1 启动时：只看「名片」</a></li><li><a href="#32-%E8%BF%90%E4%BD%9C%E6%97%B6%E6%8C%89%E9%9C%80%E8%B0%83%E5%8F%96%E8%AF%A6%E7%BB%86%E6%A1%A3%E6%A1%88">3.2 运作时：按需调取详细档案</a></li><li><a href="#33-%E4%B8%8E-memory-%E7%9A%84%E5%8C%BA%E5%88%AB">3.3 与 Memory 的区别</a></li></ul></li><li><a href="#4-skill-%E4%B8%8E-memory-%E5%AF%B9%E7%85%A7">4. Skill 与 Memory 对照</a></li><li><a href="#5-%E5%86%99%E5%A5%BD%E6%8A%80%E8%83%BD%E6%8F%8F%E8%BF%B0%E7%9A%84%E8%A6%81%E7%82%B9">5. 写好技能描述的要点</a></li></ul><hr><h2 id="1-是什么"><a href="#1-是什么" class="headerlink" title="1. 是什么"></a>1. 是什么</h2><p>渐进式披露（Progressive Disclosure）是 Agent Skills 的上下文加载策略：先只暴露技能的「名片」，真正用到某项技能时，再把完整说明读进上下文。</p><p>可以把它想成公司通讯录：</p><ul><li>平时只保留姓名、岗位、一句话职责；</li><li>要找人办事时，再打开对方的完整档案（流程、脚本、注意事项）。</li></ul><p>核心原则就六个字：<strong>用谁读谁，不用不读</strong>。</p><hr><h2 id="2-为什么需要"><a href="#2-为什么需要" class="headerlink" title="2. 为什么需要"></a>2. 为什么需要</h2><p>Agent 的上下文窗口有限。如果启动时就把所有技能的 Markdown 正文一次性塞进去，会出现几类问题：</p><table><thead><tr><th>问题</th><th>表现</th></tr></thead><tbody><tr><td>上下文膨胀</td><td>技能一多，有效对话空间被说明书占满</td></tr><tr><td>噪声干扰</td><td>无关技能的细节会干扰当前任务的规划</td></tr><tr><td>成本上升</td><td>Token 消耗增加，响应变慢、费用变高</td></tr></tbody></table><p>渐进式披露把「能力目录」和「能力正文」拆开：目录始终可见、成本可控；正文按需加载、用完即可视为任务内的临时知识。</p><hr><h2 id="3-三步怎么工作"><a href="#3-三步怎么工作" class="headerlink" title="3. 三步怎么工作"></a>3. 三步怎么工作</h2><h3 id="3-1-启动时：只看「名片」"><a href="#3-1-启动时：只看「名片」" class="headerlink" title="3.1 启动时：只看「名片」"></a>3.1 启动时：只看「名片」</h3><p>Agent 启动时，只会扫描各技能目录下的 <code>SKILL.md</code>，读取其中的 <strong>YAML 前置元数据（front matter）</strong>，不会加载 Markdown 正文。</p><p>这份元数据相当于精简名片，通常包含：</p><ul><li><code>name</code>：技能名称</li><li><code>description</code>：简短描述（一般限制在 1024 个字符内）</li></ul><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: release-check</span><br><span class="line"><span class="section">description: 发版前核对迁移脚本、配置项和回滚步骤。用户提到发版、上线、变更单时使用。</span></span><br><span class="line"><span class="section">---</span></span><br><span class="line"></span><br><span class="line"><span class="section"># 发版检查</span></span><br><span class="line"></span><br><span class="line">（以下正文此时不会被加载……）</span><br></pre></td></tr></table></figure><p>此时上下文里只有「有哪些技能、各自擅长什么」，没有具体操作步骤。Agent 据此做匹配判断，而不是背完整说明书。</p><h3 id="3-2-运作时：按需调取详细档案"><a href="#3-2-运作时：按需调取详细档案" class="headerlink" title="3.2 运作时：按需调取详细档案"></a>3.2 运作时：按需调取详细档案</h3><p>任务执行过程中，Agent 会把当前需求与已加载的技能描述对照：</p><ol><li>描述与任务匹配 → 读取该技能 <code>SKILL.md</code> 的完整内容；</li><li>描述不匹配 → 继续保持未加载，不占上下文；</li><li>需要多项技能时 → 分别按需加载，而不是一次灌入全部技能正文。</li></ol><p>这种「用谁读谁」的模式，就是渐进式披露的核心。</p><p>流程可以概括为：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">启动</span><br><span class="line">  └─ 仅加载所有 SKILL.md 的 YAML 名片</span><br><span class="line">       │</span><br><span class="line">用户下达任务</span><br><span class="line">       │</span><br><span class="line">Agent 对照 description 做匹配</span><br><span class="line">       ├─ 命中 → 读取对应 SKILL.md 全文 → 按说明调用工具</span><br><span class="line">       └─ 未命中 → 不加载正文，按通用能力继续处理</span><br></pre></td></tr></table></figure><h3 id="3-3-与-Memory-的区别"><a href="#3-3-与-Memory-的区别" class="headerlink" title="3.3 与 Memory 的区别"></a>3.3 与 Memory 的区别</h3><p>渐进式披露的 Skill，和始终驻留上下文的 Memory（如 <code>AGENTS.md</code>）不是同一类机制。</p><table><thead><tr><th>维度</th><th>Skill（渐进式披露）</th><th>Memory（如 AGENTS.md）</th></tr></thead><tbody><tr><td>加载时机</td><td>启动只读名片，命中后再读全文</td><td>会话中持续可用，全时驻留</td></tr><tr><td>上下文占用</td><td>平时极小，按需增长</td><td>相对固定，始终占位</td></tr><tr><td>用途定位</td><td>可插拔能力：流程、规范、脚本指引</td><td>长期偏好、项目约定、团队规则</td></tr><tr><td>扩展方式</td><td>技能变多，主要增加名片目录</td><td>内容变多，会持续挤压有效上下文</td></tr></tbody></table><p>一句话区分：</p><ul><li><strong>Skill</strong> 是按需的、有渐进式披露的能力包；</li><li><strong>Memory</strong> 是全时生效的背景知识。</li></ul><p>把「偶尔才用的长流程」放进 Memory，会白白占上下文；把「每条对话都必须遵守的约束」只写成 Skill 而不进 Memory，又容易在未触发时被忽略。两者应分工，而不是互相替代。</p><hr><h2 id="4-Skill-与-Memory-对照"><a href="#4-Skill-与-Memory-对照" class="headerlink" title="4. Skill 与 Memory 对照"></a>4. Skill 与 Memory 对照</h2><p>再压缩成选型视角：</p><table><thead><tr><th>你想放什么</th><th>更适合</th></tr></thead><tbody><tr><td>发版检查清单、某类文档转换步骤、特定工具链操作</td><td>Skill</td></tr><tr><td>仓库命名规范、默认回复语言、禁止事项、团队协作约定</td><td>Memory</td></tr><tr><td>很长、很少触发、触发后才需要细节</td><td>Skill（靠渐进式披露）</td></tr><tr><td>短、几乎每次任务都相关</td><td>Memory</td></tr></tbody></table><hr><h2 id="5-写好技能描述的要点"><a href="#5-写好技能描述的要点" class="headerlink" title="5. 写好技能描述的要点"></a>5. 写好技能描述的要点</h2><p>渐进式披露能不能「找对人」，几乎完全取决于名片上的 <code>description</code>：</p><ol><li><strong>写清触发场景</strong>：用户会说哪些话、任务长什么样时该用这个技能。</li><li><strong>写清能力边界</strong>：做什么、不做什么，避免和相邻技能抢匹配。</li><li><strong>控制长度</strong>：描述通常有字符上限（如 1024），把细节留给正文。</li><li><strong>正文承接细节</strong>：流程、命令、检查项、反例放进 Markdown 正文；只有命中后才会被读入。</li></ol><p>名片负责被发现，正文负责被执行。渐进式披露把这两件事拆开，Agent 才能在技能数量增长时，仍然保持可控的上下文成本。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 工程实践 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent Skills </tag>
+            
+            <tag> AI Agent </tag>
+            
+            <tag> Progressive Disclosure </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Agent Skills 与 Multi-Agent</title>
       <link href="//2026/10/19/agent-skills-vs-multi-agent/"/>
       <url>//2026/10/19/agent-skills-vs-multi-agent/</url>
@@ -20,11 +49,11 @@
       
         <tags>
             
-            <tag> AI Agent </tag>
-            
             <tag> Agent Skills </tag>
             
             <tag> Multi-Agent </tag>
+            
+            <tag> AI Agent </tag>
             
         </tags>
       
@@ -80,9 +109,9 @@
             
             <tag> HTTP </tag>
             
-            <tag> MCP </tag>
-            
             <tag> AI Agent </tag>
+            
+            <tag> MCP </tag>
             
             <tag> Tool Calling </tag>
             
@@ -555,9 +584,9 @@
             
             <tag> Python </tag>
             
-            <tag> Python 基础 </tag>
-            
             <tag> 面向对象 </tag>
+            
+            <tag> Python 基础 </tag>
             
             <tag> OOP </tag>
             
@@ -733,9 +762,9 @@
             
             <tag> Python </tag>
             
-            <tag> 面向对象 </tag>
-            
             <tag> Python 核心语法 </tag>
+            
+            <tag> 面向对象 </tag>
             
         </tags>
       
