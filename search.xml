@@ -4,6 +4,39 @@
   
     
     <entry>
+      <title>浏览器跨域与 CORS 详解</title>
+      <link href="//2026/10/23/browser-cors-explained/"/>
+      <url>//2026/10/23/browser-cors-explained/</url>
+      
+        <content type="html"><![CDATA[<h1 id="浏览器跨域与-CORS-详解"><a href="#浏览器跨域与-CORS-详解" class="headerlink" title="浏览器跨域与 CORS 详解"></a>浏览器跨域与 CORS 详解</h1><hr><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul><li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F">1. 什么是跨域</a></li><li><a href="#2-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%E5%9C%A8%E4%BF%9D%E6%8A%A4%E4%BB%80%E4%B9%88">2. 同源策略在保护什么</a></li><li><a href="#3-%E4%B8%80%E4%B8%AA%E7%9C%9F%E5%AE%9E%E9%A1%B9%E7%9B%AE%E9%87%8C%E7%9A%84%E8%B7%A8%E5%9F%9F%E5%9C%BA%E6%99%AF">3. 一个真实项目里的跨域场景</a></li><li><a href="#4-cors-%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84">4. CORS 是怎么工作的</a></li><li><a href="#5-%E7%94%A8-fastapi-%E6%94%BE%E5%BC%80%E8%B7%A8%E5%9F%9F">5. 用 FastAPI 放开跨域</a></li><li><a href="#6-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99%E4%B8%8E%E6%8E%92%E6%9F%A5">6. 常见报错与排查</a></li><li><a href="#7-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BB%80%E4%B9%88">7. 生产环境要注意什么</a></li></ul><hr><h2 id="1-什么是跨域"><a href="#1-什么是跨域" class="headerlink" title="1. 什么是跨域"></a>1. 什么是跨域</h2><p>跨域，指浏览器里的页面去访问另一个「源」上的资源时，被同源策略拦截的现象。</p><p><strong>源（Origin）</strong> 由三部分组成：</p><table><thead><tr><th>组成部分</th><th>例子</th></tr></thead><tbody><tr><td>协议</td><td><code>http</code> &#x2F; <code>https</code></td></tr><tr><td>域名（或主机名）</td><td><code>127.0.0.1</code>、<code>localhost</code>、<code>api.example.com</code></td></tr><tr><td>端口</td><td><code>3000</code>、<code>2024</code>、<code>443</code></td></tr></tbody></table><p>只要这三项里有任意一项不同，浏览器就认为是两个不同的源，请求属于跨域。</p><table><thead><tr><th>页面地址</th><th>接口地址</th><th>是否跨域</th><th>原因</th></tr></thead><tbody><tr><td><code>http://a.com/page</code></td><td><code>http://a.com/api</code></td><td>否</td><td>协议、域名、端口都相同</td></tr><tr><td><code>http://a.com</code></td><td><code>https://a.com</code></td><td>是</td><td>协议不同</td></tr><tr><td><code>http://a.com</code></td><td><code>http://b.com</code></td><td>是</td><td>域名不同</td></tr><tr><td><code>http://127.0.0.1:3000</code></td><td><code>http://127.0.0.1:2024</code></td><td>是</td><td>端口不同</td></tr><tr><td><code>http://localhost:3000</code></td><td><code>http://127.0.0.1:3000</code></td><td>是</td><td>主机名不同（<code>localhost</code> ≠ <code>127.0.0.1</code>）</td></tr></tbody></table><p>最后一行很容易踩坑：在开发机上，<code>localhost</code> 和 <code>127.0.0.1</code> 往往指向同一台机器，但对浏览器来说它们仍然是两个不同的源。</p><hr><h2 id="2-同源策略在保护什么"><a href="#2-同源策略在保护什么" class="headerlink" title="2. 同源策略在保护什么"></a>2. 同源策略在保护什么</h2><p>同源策略是浏览器的安全机制，不是 HTTP 协议本身的限制。</p><p>它要防止的典型风险是：</p><ol><li>恶意网站用你的登录态，偷偷调用银行、邮箱等站点的接口。</li><li>恶意页面读取另一个站点返回的敏感数据。</li><li>在用户不知情的情况下，跨站点发起写操作。</li></ol><p>因此：</p><ul><li><strong>浏览器里的前端代码</strong>受同源策略约束。</li><li><strong><code>curl</code>、Postman、后端服务调后端</strong>不受这套规则约束。</li><li>服务器常常已经正常处理了请求；真正“拦下来”的，经常是浏览器。</li></ul><p>看到控制台里的 CORS 报错时，不要先怀疑“后端接口挂了”，而要先确认：是不是前端源没有被后端明确允许。</p><hr><h2 id="3-一个真实项目里的跨域场景"><a href="#3-一个真实项目里的跨域场景" class="headerlink" title="3. 一个真实项目里的跨域场景"></a>3. 一个真实项目里的跨域场景</h2><p>以本地前后端分离项目为例：</p><table><thead><tr><th>角色</th><th>地址</th><th>源</th></tr></thead><tbody><tr><td>前端页面</td><td><code>http://127.0.0.1:3000</code></td><td><code>http://127.0.0.1:3000</code></td></tr><tr><td>后端 API</td><td><code>http://127.0.0.1:2024</code></td><td><code>http://127.0.0.1:2024</code></td></tr></tbody></table><p>前端页面里如果直接请求：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1:2024/dashboard/api/threads</span><br></pre></td></tr></table></figure><p>浏览器会判定：页面源是 <code>:3000</code>，接口源是 <code>:2024</code>，端口不同，属于跨域。</p><p>如果后端没有通过 CORS 响应头明确说“我允许这个前端来访问”，浏览器就会在前端把响应拦掉，开发者工具里通常会看到类似信息：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Access to fetch at &#x27;http://127.0.0.1:2024/...&#x27; from origin &#x27;http://127.0.0.1:3000&#x27;</span><br><span class="line">has been blocked by CORS policy</span><br></pre></td></tr></table></figure><p>这就是前后端分离开发里最常见的跨域问题。</p><hr><h2 id="4-CORS-是怎么工作的"><a href="#4-CORS-是怎么工作的" class="headerlink" title="4. CORS 是怎么工作的"></a>4. CORS 是怎么工作的</h2><p>CORS（Cross-Origin Resource Sharing，跨域资源共享）是浏览器和服务器之间的一套约定：</p><ul><li>浏览器发起跨域请求时，会带上 <code>Origin</code> 请求头，告诉服务器“我是谁”。</li><li>服务器如果同意，就在响应里带上 <code>Access-Control-Allow-Origin</code> 等响应头。</li><li>浏览器看到允许信息后，才把响应交给前端 JavaScript。</li></ul><h3 id="4-1-简单请求"><a href="#4-1-简单请求" class="headerlink" title="4.1 简单请求"></a>4.1 简单请求</h3><p>满足一定条件的 GET &#x2F; POST 等请求，浏览器会直接发业务请求，然后根据响应头判断是否把结果交给页面。</p><p>服务器需要至少返回：</p><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Origin</span><span class="punctuation">: </span>http://127.0.0.1:3000</span><br></pre></td></tr></table></figure><p>如果前端还要带 Cookie，还需要：</p><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Credentials</span><span class="punctuation">: </span>true</span><br></pre></td></tr></table></figure><p>并且此时 <code>Access-Control-Allow-Origin</code> <strong>不能</strong>写成通配符 <code>*</code>，必须是具体源。</p><h3 id="4-2-预检请求（Preflight）"><a href="#4-2-预检请求（Preflight）" class="headerlink" title="4.2 预检请求（Preflight）"></a>4.2 预检请求（Preflight）</h3><p>当请求可能修改数据，或使用了自定义头、非简单 Content-Type 时，浏览器往往会先发一个 <code>OPTIONS</code> 预检请求，询问服务器：</p><ul><li>允不允许这个源？</li><li>允不允许这些方法？</li><li>允不允许这些请求头？</li></ul><p>服务器对 <code>OPTIONS</code> 做出肯定答复后，浏览器才会发出真正的 <code>POST</code> &#x2F; <code>PUT</code> &#x2F; <code>DELETE</code> 等业务请求。</p><p>一次带预检的跨域调用，时间线上大致是：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">浏览器                  后端</span><br><span class="line">  |                      |</span><br><span class="line">  |--- OPTIONS ---------&gt;|   预检：我能不能发这个跨域请求？</span><br><span class="line">  |&lt;-- 204 + CORS 头 ----|   可以</span><br><span class="line">  |                      |</span><br><span class="line">  |--- POST /api -------&gt;|   真正的业务请求</span><br><span class="line">  |&lt;-- 200 + CORS 头 ----|</span><br></pre></td></tr></table></figure><p>前端业务代码通常感知不到这个 <code>OPTIONS</code>；框架中间件一般会自动处理。</p><h3 id="4-3-和“代理”方案的区别"><a href="#4-3-和“代理”方案的区别" class="headerlink" title="4.3 和“代理”方案的区别"></a>4.3 和“代理”方案的区别</h3><p>解决跨端访问还有另一种常见做法：开发时让前端同源代理到后端。</p><table><thead><tr><th>方案</th><th>思路</th><th>特点</th></tr></thead><tbody><tr><td>CORS</td><td>后端明确允许前端源</td><td>前后端仍是两个源，靠响应头放行</td></tr><tr><td>开发代理</td><td>浏览器只访问前端同源地址，由前端开发服务器转发到后端</td><td>浏览器视角不再跨域</td></tr></tbody></table><p>两种方案可以并存。CORS 解决的是“不同源之间能不能直接通信”；代理解决的是“让浏览器看起来像同源”。</p><hr><h2 id="5-用-FastAPI-放开跨域"><a href="#5-用-FastAPI-放开跨域" class="headerlink" title="5. 用 FastAPI 放开跨域"></a>5. 用 FastAPI 放开跨域</h2><p>FastAPI 通过 <code>CORSMiddleware</code> 统一加 CORS 响应头，不必在每个接口里手写。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.cors <span class="keyword">import</span> CORSMiddleware</span><br><span class="line"></span><br><span class="line">app = FastAPI(title=<span class="string">&quot;Example Backend&quot;</span>, version=<span class="string">&quot;0.1.0&quot;</span>)</span><br><span class="line"></span><br><span class="line">app.add_middleware(</span><br><span class="line">    CORSMiddleware,</span><br><span class="line">    allow_origins=[</span><br><span class="line">        <span class="string">&quot;http://127.0.0.1:3000&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://localhost:3000&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://127.0.0.1:5173&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://localhost:5173&quot;</span>,</span><br><span class="line">    ],</span><br><span class="line">    allow_credentials=<span class="literal">True</span>,  <span class="comment"># 允许携带 Cookie 等凭证</span></span><br><span class="line">    allow_methods=[<span class="string">&quot;*&quot;</span>],     <span class="comment"># 允许所有 HTTP 方法</span></span><br><span class="line">    allow_headers=[<span class="string">&quot;*&quot;</span>],     <span class="comment"># 允许所有请求头</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure><p>参数含义：</p><table><thead><tr><th>参数</th><th>作用</th></tr></thead><tbody><tr><td><code>allow_origins</code></td><td>白名单：哪些前端源可以跨域访问</td></tr><tr><td><code>allow_credentials</code></td><td>是否允许请求携带 Cookie &#x2F; Authorization 一类凭证</td></tr><tr><td><code>allow_methods</code></td><td>允许的方法；<code>*</code> 表示全部</td></tr><tr><td><code>allow_headers</code></td><td>允许的请求头；<code>*</code> 表示全部</td></tr></tbody></table><p>前端如果使用了：</p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;http://127.0.0.1:2024/dashboard/api/me&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">credentials</span>: <span class="string">&quot;include&quot;</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure><p>后端就必须同时满足：</p><ol><li><code>allow_credentials=True</code></li><li><code>allow_origins</code> 里写的是具体源，而不是 <code>*</code></li></ol><p>否则浏览器仍然会拦截。</p><p>开发阶段常见端口建议一并放进白名单：</p><table><thead><tr><th>端口</th><th>常见用途</th></tr></thead><tbody><tr><td><code>3000</code></td><td>React &#x2F; Next.js &#x2F; 部分 Vite 项目</td></tr><tr><td><code>5173</code></td><td>Vite 默认开发端口</td></tr></tbody></table><p>前端如果改到了新端口，却没有同步改 <code>allow_origins</code>，就会再次出现跨域报错。</p><hr><h2 id="6-常见报错与排查"><a href="#6-常见报错与排查" class="headerlink" title="6. 常见报错与排查"></a>6. 常见报错与排查</h2><h3 id="6-1-控制台提示-blocked-by-CORS-policy"><a href="#6-1-控制台提示-blocked-by-CORS-policy" class="headerlink" title="6.1 控制台提示 blocked by CORS policy"></a>6.1 控制台提示 blocked by CORS policy</h3><p>优先检查：</p><ol><li>浏览器地址栏里的前端源，是否一字不差地出现在 <code>allow_origins</code> 中。</li><li>有没有把 <code>http://localhost:3000</code> 写成了 <code>http://127.0.0.1:3000</code>，或反过来。</li><li>协议是否一致（<code>http</code> &#x2F; <code>https</code>）。</li><li>后端服务是否真的在跑，中间件是否挂到了正确的 <code>app</code> 上。</li></ol><h3 id="6-2-预检-OPTIONS-失败"><a href="#6-2-预检-OPTIONS-失败" class="headerlink" title="6.2 预检 OPTIONS 失败"></a>6.2 预检 OPTIONS 失败</h3><p>如果 Network 面板里先有一个红色的 <code>OPTIONS</code>：</p><ol><li>确认后端没有把 <code>OPTIONS</code> 路由成 404。</li><li>确认 <code>allow_methods</code>、<code>allow_headers</code> 覆盖了实际请求用到的方法和头。</li><li>确认中间件加在路由注册之前或之后都能生效（Starlette&#x2F;FastAPI 的中间件会包裹整个应用）。</li></ol><h3 id="6-3-带-Cookie-时仍然失败"><a href="#6-3-带-Cookie-时仍然失败" class="headerlink" title="6.3 带 Cookie 时仍然失败"></a>6.3 带 Cookie 时仍然失败</h3><p>同时核对这三点：</p><ol><li>前端：<code>credentials: &quot;include&quot;</code></li><li>后端：<code>allow_credentials=True</code></li><li>后端：<code>Access-Control-Allow-Origin</code> 是具体源，不是 <code>*</code></li></ol><h3 id="6-4-用-curl-能通、浏览器不通"><a href="#6-4-用-curl-能通、浏览器不通" class="headerlink" title="6.4 用 curl 能通、浏览器不通"></a>6.4 用 curl 能通、浏览器不通</h3><p>这通常更能说明问题在 CORS，而不是业务接口本身：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -i http://127.0.0.1:2024/health</span><br></pre></td></tr></table></figure><p><code>curl</code> 成功只证明服务可达；浏览器失败，再去看响应里有没有正确的 CORS 头。</p><p>可以用下面命令模拟带 Origin 的请求：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -i \</span><br><span class="line">  -H <span class="string">&quot;Origin: http://127.0.0.1:3000&quot;</span> \</span><br><span class="line">  http://127.0.0.1:2024/health</span><br></pre></td></tr></table></figure><p>观察响应头里是否包含：</p><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Origin</span><span class="punctuation">: </span>http://127.0.0.1:3000</span><br></pre></td></tr></table></figure><hr><h2 id="7-生产环境要注意什么"><a href="#7-生产环境要注意什么" class="headerlink" title="7. 生产环境要注意什么"></a>7. 生产环境要注意什么</h2><p>开发阶段可以把本机常用源写进白名单；上线后不应继续沿用“本地端口随便放行”的配置。</p><p>建议：</p><ol><li><code>allow_origins</code> 只保留真实前端域名，例如 <code>https://app.example.com</code>。</li><li>不要为了省事长期使用 <code>allow_origins=[&quot;*&quot;]</code>，尤其是还要带 Cookie 的场景。</li><li>前后端如果最终部署到同域同端口（例如由 Nginx 反代到同一域名下），浏览器侧可能不再跨域，但内部服务之间的调用仍要按实际架构配置。</li><li>对管理后台、带登录态的接口，跨域白名单应尽量收紧，避免任意网站借用户浏览器发起带凭证请求。</li></ol><p>一句话总结：</p><blockquote><p>跨域不是接口“坏了”，而是浏览器要求：不同源之间通信，必须由目标服务器明确点头同意。CORS 就是这套“点头”协议；在 FastAPI 里，通常用 <code>CORSMiddleware</code> 一次性配好。</p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> Web 开发 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> HTTP </tag>
+            
+            <tag> CORS </tag>
+            
+            <tag> 跨域 </tag>
+            
+            <tag> FastAPI </tag>
+            
+            <tag> 浏览器 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Agent Skills 的渐进式披露</title>
       <link href="//2026/10/20/agent-skills-progressive-disclosure/"/>
       <url>//2026/10/20/agent-skills-progressive-disclosure/</url>
@@ -20,9 +53,9 @@
       
         <tags>
             
-            <tag> Agent Skills </tag>
-            
             <tag> AI Agent </tag>
+            
+            <tag> Agent Skills </tag>
             
             <tag> Progressive Disclosure </tag>
             
@@ -49,11 +82,11 @@
       
         <tags>
             
+            <tag> AI Agent </tag>
+            
             <tag> Agent Skills </tag>
             
             <tag> Multi-Agent </tag>
-            
-            <tag> AI Agent </tag>
             
         </tags>
       
@@ -109,9 +142,9 @@
             
             <tag> HTTP </tag>
             
-            <tag> AI Agent </tag>
-            
             <tag> MCP </tag>
+            
+            <tag> AI Agent </tag>
             
             <tag> Tool Calling </tag>
             
@@ -584,9 +617,9 @@
             
             <tag> Python </tag>
             
-            <tag> 面向对象 </tag>
-            
             <tag> Python 基础 </tag>
+            
+            <tag> 面向对象 </tag>
             
             <tag> OOP </tag>
             

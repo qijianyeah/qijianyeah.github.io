@@ -1,0 +1,474 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>浏览器跨域与 CORS 详解 | QiJian</title><meta name="author" content="QiJian"><meta name="copyright" content="QiJian"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="浏览器跨域与 CORS 详解 目录 1. 什么是跨域 2. 同源策略在保护什么 3. 一个真实项目里的跨域场景 4. CORS 是怎么工作的 5. 用 FastAPI 放开跨域 6. 常见报错与排查 7. 生产环境要注意什么   1. 什么是跨域跨域，指浏览器里的页面去访问另一个「源」上的资源时，被同源策略拦截的现象。 源（Origin） 由三部分组成：    组成部分 例子    协议 http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器跨域与 CORS 详解">
+<meta property="og:url" content="https://qijianyeah.github.io/2026/10/23/browser-cors-explained/">
+<meta property="og:site_name" content="QiJian">
+<meta property="og:description" content="浏览器跨域与 CORS 详解 目录 1. 什么是跨域 2. 同源策略在保护什么 3. 一个真实项目里的跨域场景 4. CORS 是怎么工作的 5. 用 FastAPI 放开跨域 6. 常见报错与排查 7. 生产环境要注意什么   1. 什么是跨域跨域，指浏览器里的页面去访问另一个「源」上的资源时，被同源策略拦截的现象。 源（Origin） 由三部分组成：    组成部分 例子    协议 http">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://qijianyeah.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-10-22T16:04:39.000Z">
+<meta property="article:modified_time" content="2026-10-22T16:04:53.438Z">
+<meta property="article:author" content="QiJian">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="CORS">
+<meta property="article:tag" content="跨域">
+<meta property="article:tag" content="FastAPI">
+<meta property="article:tag" content="浏览器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qijianyeah.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://qijianyeah.github.io/2026/10/23/browser-cors-explained/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '浏览器跨域与 CORS 详解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">88</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/blog-background.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">QiJian</span></a><a class="nav-page-title" href="/"><span class="site-name">浏览器跨域与 CORS 详解</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 文档</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fa fa-sitemap"></i><span> 站点</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-paper-plane"></i><span> 我的导航</span></a></li><li><a class="site-page child" target="_blank" rel="noopener" href="https://bimg.cc"><i class="fa-fw iconfont icon-Bing"></i><span> 必应壁纸</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-bookmark"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/share/"><i class="fa-fw fa fa-share-alt-square"></i><span> 分享</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fa fa-images"></i><span> 图库</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-train"></i><span> 开往</span></a></div><div class="menus_item"><a class="site-page" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43663493"><i class="fa-fw fa fa-circle"></i><span> 虫洞</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">浏览器跨域与 CORS 详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-22T16:04:39.000Z" title="发表于 2026-10-23 00:04:39">2026-10-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-22T16:04:53.438Z" title="更新于 2026-10-23 00:04:53">2026-10-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Web-%E5%BC%80%E5%8F%91/">Web 开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="浏览器跨域与-CORS-详解"><a href="#浏览器跨域与-CORS-详解" class="headerlink" title="浏览器跨域与 CORS 详解"></a>浏览器跨域与 CORS 详解</h1><hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F">1. 什么是跨域</a></li>
+<li><a href="#2-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%E5%9C%A8%E4%BF%9D%E6%8A%A4%E4%BB%80%E4%B9%88">2. 同源策略在保护什么</a></li>
+<li><a href="#3-%E4%B8%80%E4%B8%AA%E7%9C%9F%E5%AE%9E%E9%A1%B9%E7%9B%AE%E9%87%8C%E7%9A%84%E8%B7%A8%E5%9F%9F%E5%9C%BA%E6%99%AF">3. 一个真实项目里的跨域场景</a></li>
+<li><a href="#4-cors-%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84">4. CORS 是怎么工作的</a></li>
+<li><a href="#5-%E7%94%A8-fastapi-%E6%94%BE%E5%BC%80%E8%B7%A8%E5%9F%9F">5. 用 FastAPI 放开跨域</a></li>
+<li><a href="#6-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99%E4%B8%8E%E6%8E%92%E6%9F%A5">6. 常见报错与排查</a></li>
+<li><a href="#7-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BB%80%E4%B9%88">7. 生产环境要注意什么</a></li>
+</ul>
+<hr>
+<h2 id="1-什么是跨域"><a href="#1-什么是跨域" class="headerlink" title="1. 什么是跨域"></a>1. 什么是跨域</h2><p>跨域，指浏览器里的页面去访问另一个「源」上的资源时，被同源策略拦截的现象。</p>
+<p><strong>源（Origin）</strong> 由三部分组成：</p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>协议</td>
+<td><code>http</code> &#x2F; <code>https</code></td>
+</tr>
+<tr>
+<td>域名（或主机名）</td>
+<td><code>127.0.0.1</code>、<code>localhost</code>、<code>api.example.com</code></td>
+</tr>
+<tr>
+<td>端口</td>
+<td><code>3000</code>、<code>2024</code>、<code>443</code></td>
+</tr>
+</tbody></table>
+<p>只要这三项里有任意一项不同，浏览器就认为是两个不同的源，请求属于跨域。</p>
+<table>
+<thead>
+<tr>
+<th>页面地址</th>
+<th>接口地址</th>
+<th>是否跨域</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>http://a.com/page</code></td>
+<td><code>http://a.com/api</code></td>
+<td>否</td>
+<td>协议、域名、端口都相同</td>
+</tr>
+<tr>
+<td><code>http://a.com</code></td>
+<td><code>https://a.com</code></td>
+<td>是</td>
+<td>协议不同</td>
+</tr>
+<tr>
+<td><code>http://a.com</code></td>
+<td><code>http://b.com</code></td>
+<td>是</td>
+<td>域名不同</td>
+</tr>
+<tr>
+<td><code>http://127.0.0.1:3000</code></td>
+<td><code>http://127.0.0.1:2024</code></td>
+<td>是</td>
+<td>端口不同</td>
+</tr>
+<tr>
+<td><code>http://localhost:3000</code></td>
+<td><code>http://127.0.0.1:3000</code></td>
+<td>是</td>
+<td>主机名不同（<code>localhost</code> ≠ <code>127.0.0.1</code>）</td>
+</tr>
+</tbody></table>
+<p>最后一行很容易踩坑：在开发机上，<code>localhost</code> 和 <code>127.0.0.1</code> 往往指向同一台机器，但对浏览器来说它们仍然是两个不同的源。</p>
+<hr>
+<h2 id="2-同源策略在保护什么"><a href="#2-同源策略在保护什么" class="headerlink" title="2. 同源策略在保护什么"></a>2. 同源策略在保护什么</h2><p>同源策略是浏览器的安全机制，不是 HTTP 协议本身的限制。</p>
+<p>它要防止的典型风险是：</p>
+<ol>
+<li>恶意网站用你的登录态，偷偷调用银行、邮箱等站点的接口。</li>
+<li>恶意页面读取另一个站点返回的敏感数据。</li>
+<li>在用户不知情的情况下，跨站点发起写操作。</li>
+</ol>
+<p>因此：</p>
+<ul>
+<li><strong>浏览器里的前端代码</strong>受同源策略约束。</li>
+<li><strong><code>curl</code>、Postman、后端服务调后端</strong>不受这套规则约束。</li>
+<li>服务器常常已经正常处理了请求；真正“拦下来”的，经常是浏览器。</li>
+</ul>
+<p>看到控制台里的 CORS 报错时，不要先怀疑“后端接口挂了”，而要先确认：是不是前端源没有被后端明确允许。</p>
+<hr>
+<h2 id="3-一个真实项目里的跨域场景"><a href="#3-一个真实项目里的跨域场景" class="headerlink" title="3. 一个真实项目里的跨域场景"></a>3. 一个真实项目里的跨域场景</h2><p>以本地前后端分离项目为例：</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>地址</th>
+<th>源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前端页面</td>
+<td><code>http://127.0.0.1:3000</code></td>
+<td><code>http://127.0.0.1:3000</code></td>
+</tr>
+<tr>
+<td>后端 API</td>
+<td><code>http://127.0.0.1:2024</code></td>
+<td><code>http://127.0.0.1:2024</code></td>
+</tr>
+</tbody></table>
+<p>前端页面里如果直接请求：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1:2024/dashboard/api/threads</span><br></pre></td></tr></table></figure>
+
+<p>浏览器会判定：页面源是 <code>:3000</code>，接口源是 <code>:2024</code>，端口不同，属于跨域。</p>
+<p>如果后端没有通过 CORS 响应头明确说“我允许这个前端来访问”，浏览器就会在前端把响应拦掉，开发者工具里通常会看到类似信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Access to fetch at &#x27;http://127.0.0.1:2024/...&#x27; from origin &#x27;http://127.0.0.1:3000&#x27;</span><br><span class="line">has been blocked by CORS policy</span><br></pre></td></tr></table></figure>
+
+<p>这就是前后端分离开发里最常见的跨域问题。</p>
+<hr>
+<h2 id="4-CORS-是怎么工作的"><a href="#4-CORS-是怎么工作的" class="headerlink" title="4. CORS 是怎么工作的"></a>4. CORS 是怎么工作的</h2><p>CORS（Cross-Origin Resource Sharing，跨域资源共享）是浏览器和服务器之间的一套约定：</p>
+<ul>
+<li>浏览器发起跨域请求时，会带上 <code>Origin</code> 请求头，告诉服务器“我是谁”。</li>
+<li>服务器如果同意，就在响应里带上 <code>Access-Control-Allow-Origin</code> 等响应头。</li>
+<li>浏览器看到允许信息后，才把响应交给前端 JavaScript。</li>
+</ul>
+<h3 id="4-1-简单请求"><a href="#4-1-简单请求" class="headerlink" title="4.1 简单请求"></a>4.1 简单请求</h3><p>满足一定条件的 GET &#x2F; POST 等请求，浏览器会直接发业务请求，然后根据响应头判断是否把结果交给页面。</p>
+<p>服务器需要至少返回：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Origin</span><span class="punctuation">: </span>http://127.0.0.1:3000</span><br></pre></td></tr></table></figure>
+
+<p>如果前端还要带 Cookie，还需要：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Credentials</span><span class="punctuation">: </span>true</span><br></pre></td></tr></table></figure>
+
+<p>并且此时 <code>Access-Control-Allow-Origin</code> <strong>不能</strong>写成通配符 <code>*</code>，必须是具体源。</p>
+<h3 id="4-2-预检请求（Preflight）"><a href="#4-2-预检请求（Preflight）" class="headerlink" title="4.2 预检请求（Preflight）"></a>4.2 预检请求（Preflight）</h3><p>当请求可能修改数据，或使用了自定义头、非简单 Content-Type 时，浏览器往往会先发一个 <code>OPTIONS</code> 预检请求，询问服务器：</p>
+<ul>
+<li>允不允许这个源？</li>
+<li>允不允许这些方法？</li>
+<li>允不允许这些请求头？</li>
+</ul>
+<p>服务器对 <code>OPTIONS</code> 做出肯定答复后，浏览器才会发出真正的 <code>POST</code> &#x2F; <code>PUT</code> &#x2F; <code>DELETE</code> 等业务请求。</p>
+<p>一次带预检的跨域调用，时间线上大致是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">浏览器                  后端</span><br><span class="line">  |                      |</span><br><span class="line">  |--- OPTIONS ---------&gt;|   预检：我能不能发这个跨域请求？</span><br><span class="line">  |&lt;-- 204 + CORS 头 ----|   可以</span><br><span class="line">  |                      |</span><br><span class="line">  |--- POST /api -------&gt;|   真正的业务请求</span><br><span class="line">  |&lt;-- 200 + CORS 头 ----|</span><br></pre></td></tr></table></figure>
+
+<p>前端业务代码通常感知不到这个 <code>OPTIONS</code>；框架中间件一般会自动处理。</p>
+<h3 id="4-3-和“代理”方案的区别"><a href="#4-3-和“代理”方案的区别" class="headerlink" title="4.3 和“代理”方案的区别"></a>4.3 和“代理”方案的区别</h3><p>解决跨端访问还有另一种常见做法：开发时让前端同源代理到后端。</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>思路</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CORS</td>
+<td>后端明确允许前端源</td>
+<td>前后端仍是两个源，靠响应头放行</td>
+</tr>
+<tr>
+<td>开发代理</td>
+<td>浏览器只访问前端同源地址，由前端开发服务器转发到后端</td>
+<td>浏览器视角不再跨域</td>
+</tr>
+</tbody></table>
+<p>两种方案可以并存。CORS 解决的是“不同源之间能不能直接通信”；代理解决的是“让浏览器看起来像同源”。</p>
+<hr>
+<h2 id="5-用-FastAPI-放开跨域"><a href="#5-用-FastAPI-放开跨域" class="headerlink" title="5. 用 FastAPI 放开跨域"></a>5. 用 FastAPI 放开跨域</h2><p>FastAPI 通过 <code>CORSMiddleware</code> 统一加 CORS 响应头，不必在每个接口里手写。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> fastapi.middleware.cors <span class="keyword">import</span> CORSMiddleware</span><br><span class="line"></span><br><span class="line">app = FastAPI(title=<span class="string">&quot;Example Backend&quot;</span>, version=<span class="string">&quot;0.1.0&quot;</span>)</span><br><span class="line"></span><br><span class="line">app.add_middleware(</span><br><span class="line">    CORSMiddleware,</span><br><span class="line">    allow_origins=[</span><br><span class="line">        <span class="string">&quot;http://127.0.0.1:3000&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://localhost:3000&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://127.0.0.1:5173&quot;</span>,</span><br><span class="line">        <span class="string">&quot;http://localhost:5173&quot;</span>,</span><br><span class="line">    ],</span><br><span class="line">    allow_credentials=<span class="literal">True</span>,  <span class="comment"># 允许携带 Cookie 等凭证</span></span><br><span class="line">    allow_methods=[<span class="string">&quot;*&quot;</span>],     <span class="comment"># 允许所有 HTTP 方法</span></span><br><span class="line">    allow_headers=[<span class="string">&quot;*&quot;</span>],     <span class="comment"># 允许所有请求头</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>参数含义：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>allow_origins</code></td>
+<td>白名单：哪些前端源可以跨域访问</td>
+</tr>
+<tr>
+<td><code>allow_credentials</code></td>
+<td>是否允许请求携带 Cookie &#x2F; Authorization 一类凭证</td>
+</tr>
+<tr>
+<td><code>allow_methods</code></td>
+<td>允许的方法；<code>*</code> 表示全部</td>
+</tr>
+<tr>
+<td><code>allow_headers</code></td>
+<td>允许的请求头；<code>*</code> 表示全部</td>
+</tr>
+</tbody></table>
+<p>前端如果使用了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">fetch</span>(<span class="string">&quot;http://127.0.0.1:2024/dashboard/api/me&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">credentials</span>: <span class="string">&quot;include&quot;</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>后端就必须同时满足：</p>
+<ol>
+<li><code>allow_credentials=True</code></li>
+<li><code>allow_origins</code> 里写的是具体源，而不是 <code>*</code></li>
+</ol>
+<p>否则浏览器仍然会拦截。</p>
+<p>开发阶段常见端口建议一并放进白名单：</p>
+<table>
+<thead>
+<tr>
+<th>端口</th>
+<th>常见用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>3000</code></td>
+<td>React &#x2F; Next.js &#x2F; 部分 Vite 项目</td>
+</tr>
+<tr>
+<td><code>5173</code></td>
+<td>Vite 默认开发端口</td>
+</tr>
+</tbody></table>
+<p>前端如果改到了新端口，却没有同步改 <code>allow_origins</code>，就会再次出现跨域报错。</p>
+<hr>
+<h2 id="6-常见报错与排查"><a href="#6-常见报错与排查" class="headerlink" title="6. 常见报错与排查"></a>6. 常见报错与排查</h2><h3 id="6-1-控制台提示-blocked-by-CORS-policy"><a href="#6-1-控制台提示-blocked-by-CORS-policy" class="headerlink" title="6.1 控制台提示 blocked by CORS policy"></a>6.1 控制台提示 blocked by CORS policy</h3><p>优先检查：</p>
+<ol>
+<li>浏览器地址栏里的前端源，是否一字不差地出现在 <code>allow_origins</code> 中。</li>
+<li>有没有把 <code>http://localhost:3000</code> 写成了 <code>http://127.0.0.1:3000</code>，或反过来。</li>
+<li>协议是否一致（<code>http</code> &#x2F; <code>https</code>）。</li>
+<li>后端服务是否真的在跑，中间件是否挂到了正确的 <code>app</code> 上。</li>
+</ol>
+<h3 id="6-2-预检-OPTIONS-失败"><a href="#6-2-预检-OPTIONS-失败" class="headerlink" title="6.2 预检 OPTIONS 失败"></a>6.2 预检 OPTIONS 失败</h3><p>如果 Network 面板里先有一个红色的 <code>OPTIONS</code>：</p>
+<ol>
+<li>确认后端没有把 <code>OPTIONS</code> 路由成 404。</li>
+<li>确认 <code>allow_methods</code>、<code>allow_headers</code> 覆盖了实际请求用到的方法和头。</li>
+<li>确认中间件加在路由注册之前或之后都能生效（Starlette&#x2F;FastAPI 的中间件会包裹整个应用）。</li>
+</ol>
+<h3 id="6-3-带-Cookie-时仍然失败"><a href="#6-3-带-Cookie-时仍然失败" class="headerlink" title="6.3 带 Cookie 时仍然失败"></a>6.3 带 Cookie 时仍然失败</h3><p>同时核对这三点：</p>
+<ol>
+<li>前端：<code>credentials: &quot;include&quot;</code></li>
+<li>后端：<code>allow_credentials=True</code></li>
+<li>后端：<code>Access-Control-Allow-Origin</code> 是具体源，不是 <code>*</code></li>
+</ol>
+<h3 id="6-4-用-curl-能通、浏览器不通"><a href="#6-4-用-curl-能通、浏览器不通" class="headerlink" title="6.4 用 curl 能通、浏览器不通"></a>6.4 用 curl 能通、浏览器不通</h3><p>这通常更能说明问题在 CORS，而不是业务接口本身：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -i http://127.0.0.1:2024/health</span><br></pre></td></tr></table></figure>
+
+<p><code>curl</code> 成功只证明服务可达；浏览器失败，再去看响应里有没有正确的 CORS 头。</p>
+<p>可以用下面命令模拟带 Origin 的请求：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -i \</span><br><span class="line">  -H <span class="string">&quot;Origin: http://127.0.0.1:3000&quot;</span> \</span><br><span class="line">  http://127.0.0.1:2024/health</span><br></pre></td></tr></table></figure>
+
+<p>观察响应头里是否包含：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Access-Control-Allow-Origin</span><span class="punctuation">: </span>http://127.0.0.1:3000</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-生产环境要注意什么"><a href="#7-生产环境要注意什么" class="headerlink" title="7. 生产环境要注意什么"></a>7. 生产环境要注意什么</h2><p>开发阶段可以把本机常用源写进白名单；上线后不应继续沿用“本地端口随便放行”的配置。</p>
+<p>建议：</p>
+<ol>
+<li><code>allow_origins</code> 只保留真实前端域名，例如 <code>https://app.example.com</code>。</li>
+<li>不要为了省事长期使用 <code>allow_origins=[&quot;*&quot;]</code>，尤其是还要带 Cookie 的场景。</li>
+<li>前后端如果最终部署到同域同端口（例如由 Nginx 反代到同一域名下），浏览器侧可能不再跨域，但内部服务之间的调用仍要按实际架构配置。</li>
+<li>对管理后台、带登录态的接口，跨域白名单应尽量收紧，避免任意网站借用户浏览器发起带凭证请求。</li>
+</ol>
+<p>一句话总结：</p>
+<blockquote>
+<p>跨域不是接口“坏了”，而是浏览器要求：不同源之间通信，必须由目标服务器明确点头同意。CORS 就是这套“点头”协议；在 FastAPI 里，通常用 <code>CORSMiddleware</code> 一次性配好。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io">QiJian</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://qijianyeah.github.io/2026/10/23/browser-cors-explained/">https://qijianyeah.github.io/2026/10/23/browser-cors-explained/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://qijianyeah.github.io" target="_blank">QiJian</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HTTP/">HTTP</a><a class="post-meta__tags" href="/tags/CORS/">CORS</a><a class="post-meta__tags" href="/tags/%E8%B7%A8%E5%9F%9F/">跨域</a><a class="post-meta__tags" href="/tags/FastAPI/">FastAPI</a><a class="post-meta__tags" href="/tags/%E6%B5%8F%E8%A7%88%E5%99%A8/">浏览器</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/20/agent-skills-progressive-disclosure/" title="Agent Skills 的渐进式披露"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Agent Skills 的渐进式披露</div></div><div class="info-2"><div class="info-item-1">Agent Skills 的渐进式披露 目录 1. 是什么 2. 为什么需要 3. 三步怎么工作 3.1 启动时：只看「名片」 3.2 运作时：按需调取详细档案 3.3 与 Memory 的区别   4. Skill 与 Memory 对照 5. 写好技能描述的要点   1. 是什么渐进式披露（Progressive Disclosure）是 Agent Skills 的上下文加载策略：先只暴露技能的「名片」，真正用到某项技能时，再把完整说明读进上下文。 可以把它想成公司通讯录：  平时只保留姓名、岗位、一句话职责； 要找人办事时，再打开对方的完整档案（流程、脚本、注意事项）。  核心原则就六个字：用谁读谁，不用不读。  2. 为什么需要Agent 的上下文窗口有限。如果启动时就把所有技能的 Markdown 正文一次性塞进去，会出现几类问题：    问题 表现    上下文膨胀 技能一多，有效对话空间被说明书占满   噪声干扰 无关技能的细节会干扰当前任务的规划   成本上升 Token...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/09/02/http-get-post-request-header-guide/" title="前端发起 GET&#x2F;POST 时后端发生了什么：从报文解析到自定义请求头"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-02</div><div class="info-item-2">前端发起 GET&#x2F;POST 时后端发生了什么：从报文解析到自定义请求头</div></div><div class="info-2"><div class="info-item-1">前端无论发 GET 还是 POST，后端走的都是同一条处理管道。真正的差别在报文怎么带参数，以及 Spring 怎么把这些参数绑到方法上。请求头对两种方法一视同仁：都在报文最前面，Tomcat 解析完就能用，不走 Jackson。 本文以 Spring Boot + 嵌入式 Tomcat 为例，从请求进机讲到响应出机，并补上请求头的读取、框架消费，以及自定义头的前后端约定。  目录 1. 先看报文：GET 和 POST 差在哪 2. 报文进 JVM 之前：Tomcat 如何读请求 3. Filter 到 DispatcherServlet：统一分发 4. 参数绑定：GET 和 POST 在这里分家 5. 业务层与响应写回 6. 后端如何获取请求头 7. 后端如何处理请求头 8. 前后端如何使用自定义请求头 9. 整条链路串起来 10. 小结   1. 先看报文：GET 和 POST 差在哪浏览器或 axios 发出去的，本质都是一段 HTTP 报文。 GET 查用户： 123GET /api/users/1?status=active HTTP/1.1Host:...</div></div></div></a><a class="pagination-related" href="/2026/09/24/mcp-vs-http-semantic-layer/" title="MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-09-24</div><div class="info-item-2">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义</div></div><div class="info-2"><div class="info-item-1">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义 1. 三个被反复问起的问题在做 AI Agent 接入内部服务时，下面三个问题几乎必然出现：  MCP 和 HTTP 到底差在哪？是不是 MCP 更”高级”？ 我有个 Java 服务，只提供 HTTP 接口，必须再写一个 MCP 服务当中间层吗？ 我用 requests 调了接口，这算不算 Agent 自动调用？必须包成 MCP 才算吗？  这三个问题的答案其实都指向同一个判据：谁是这次调用的决策者。想清楚这一点，选型就没有模糊地带。  2. HTTP 与 MCP 的定位差异2.1 HTTP：一条只负责搬运的传送带HTTP 是超文本传输协议，它解决的是”字节如何从 A 点可靠地到达 B 点”：方法、路径、请求头、状态码、报文体。它不携带任何业务语义——POST /api/orders 这串字符对人类工程师有意义，是因为有人读了文档、写了代码；对模型来说它只是一串没有解释的路径。 HTTP 的另一个特点是：它自己就是最底层的通用管道，不依赖别的应用层协议来描述自己。 2.2 MCP：一本带图解的送货手册MCP（Model...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="utterances-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">QiJian</div><div class="author-info-description">拾一片落叶，夹在岁月的书页里，留作回忆的风景。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">68</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">88</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="https://blog.csdn.net/qq_43663493" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="tencent://AddContact/?qqqqqqqqqq=www.oicqzone.com" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="mailto:1111111111@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的个人博客！这里主要分享编程、技术与开源项目的相关内容，适合开发者和技术爱好者。感谢关注！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E8%B7%A8%E5%9F%9F%E4%B8%8E-CORS-%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">浏览器跨域与 CORS 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E5%9F%9F"><span class="toc-number">1.2.</span> <span class="toc-text">1. 什么是跨域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5%E5%9C%A8%E4%BF%9D%E6%8A%A4%E4%BB%80%E4%B9%88"><span class="toc-number">1.3.</span> <span class="toc-text">2. 同源策略在保护什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%80%E4%B8%AA%E7%9C%9F%E5%AE%9E%E9%A1%B9%E7%9B%AE%E9%87%8C%E7%9A%84%E8%B7%A8%E5%9F%9F%E5%9C%BA%E6%99%AF"><span class="toc-number">1.4.</span> <span class="toc-text">3. 一个真实项目里的跨域场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-CORS-%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84"><span class="toc-number">1.5.</span> <span class="toc-text">4. CORS 是怎么工作的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%AE%80%E5%8D%95%E8%AF%B7%E6%B1%82"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 简单请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%A2%84%E6%A3%80%E8%AF%B7%E6%B1%82%EF%BC%88Preflight%EF%BC%89"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 预检请求（Preflight）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%92%8C%E2%80%9C%E4%BB%A3%E7%90%86%E2%80%9D%E6%96%B9%E6%A1%88%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 和“代理”方案的区别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E7%94%A8-FastAPI-%E6%94%BE%E5%BC%80%E8%B7%A8%E5%9F%9F"><span class="toc-number">1.6.</span> <span class="toc-text">5. 用 FastAPI 放开跨域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">1.7.</span> <span class="toc-text">6. 常见报错与排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%8F%90%E7%A4%BA-blocked-by-CORS-policy"><span class="toc-number">1.7.1.</span> <span class="toc-text">6.1 控制台提示 blocked by CORS policy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E6%A3%80-OPTIONS-%E5%A4%B1%E8%B4%A5"><span class="toc-number">1.7.2.</span> <span class="toc-text">6.2 预检 OPTIONS 失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B8%A6-Cookie-%E6%97%B6%E4%BB%8D%E7%84%B6%E5%A4%B1%E8%B4%A5"><span class="toc-number">1.7.3.</span> <span class="toc-text">6.3 带 Cookie 时仍然失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E7%94%A8-curl-%E8%83%BD%E9%80%9A%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8D%E9%80%9A"><span class="toc-number">1.7.4.</span> <span class="toc-text">6.4 用 curl 能通、浏览器不通</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BB%80%E4%B9%88"><span class="toc-number">1.8.</span> <span class="toc-text">7. 生产环境要注意什么</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/browser-cors-explained/" title="浏览器跨域与 CORS 详解">浏览器跨域与 CORS 详解</a><time datetime="2026-10-22T16:04:39.000Z" title="发表于 2026-10-23 00:04:39">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/20/agent-skills-progressive-disclosure/" title="Agent Skills 的渐进式披露">Agent Skills 的渐进式披露</a><time datetime="2026-10-20T15:43:48.000Z" title="发表于 2026-10-20 23:43:48">2026-10-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/19/agent-skills-vs-multi-agent/" title="Agent Skills 与 Multi-Agent">Agent Skills 与 Multi-Agent</a><time datetime="2026-10-19T13:38:20.000Z" title="发表于 2026-10-19 21:38:20">2026-10-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/13/zookeeper-zab-broadcast-and-recovery/" title="ZooKeeper 的两种工作模式：消息广播与崩溃恢复">ZooKeeper 的两种工作模式：消息广播与崩溃恢复</a><time datetime="2026-10-13T13:15:38.000Z" title="发表于 2026-10-13 21:15:38">2026-10-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/24/mcp-vs-http-semantic-layer/" title="MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义">MCP 与 HTTP 的本质区别：谁做决策，就为谁提供语义</a><time datetime="2026-09-23T17:10:00.000Z" title="发表于 2026-09-24 01:10:00">2026-09-24</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2022 - 2026 By QiJian</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">QiJian 柒间</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = {"label":"comment","loading":"lazy"}
+  const getUtterancesTheme = theme => theme === 'dark' ? 'photon-dark' : 'github-light'
+
+  const loadUtterances = (el = document, key) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyUtterances = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const config = {
+      src: 'https://utteranc.es/client.js',
+      repo: 'qijianyeah/qijianyeah.github.io',
+      theme: getUtterancesTheme(document.documentElement.getAttribute('data-theme')),
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      'issue-term': isShuoshuo ? key : (option && option['issue-term']) || 'pathname'
+    }
+
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => ele.setAttribute(key, value))
+    el.querySelector('#utterances-wrap').appendChild(ele)
+  }
+
+  const changeUtterancesTheme = theme => {
+    const iframe = document.querySelector('#utterances-wrap iframe')
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: getUtterancesTheme(theme)
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeUtterancesTheme, 'utterances')
+
+  if (isShuoshuo) {
+    'Utterances' === 'Utterances'
+      ? window.shuoshuoComment = { loadComment: loadUtterances }
+      : window.loadOtherComment = loadUtterances
+    return
+  }
+  
+  if ('Utterances' === 'Utterances' || !false) {
+    if (false) btf.loadComment(document.getElementById('utterances-wrap'), loadUtterances)
+    else loadUtterances()
+  } else {
+    window.loadOtherComment = loadUtterances
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="true" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章..." type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
