@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>RAG 检索增强生成工作流程详解</title>
+      <link href="//2026/10/24/rag-workflow-explained/"/>
+      <url>//2026/10/24/rag-workflow-explained/</url>
+      
+        <content type="html"><![CDATA[<h1 id="RAG-检索增强生成工作流程详解"><a href="#RAG-检索增强生成工作流程详解" class="headerlink" title="RAG 检索增强生成工作流程详解"></a>RAG 检索增强生成工作流程详解</h1><hr><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul><li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-rag">1. 什么是 RAG</a></li><li><a href="#2-%E6%80%BB%E8%A7%88%E4%B8%80%E5%BC%A0%E5%9B%BE%E7%9C%8B%E6%B8%85%E4%B8%A4%E6%9D%A1%E4%B8%BB%E7%BA%BF">2. 总览：一张图看清两条主线</a></li><li><a href="#3-indexing%E7%A6%BB%E7%BA%BF%E5%BB%BA%E7%B4%A2%E5%BC%95">3. Indexing：离线建索引</a></li><li><a href="#4-retrieve--generate%E5%9C%A8%E7%BA%BF%E9%97%AE%E7%AD%94">4. Retrieve + Generate：在线问答</a></li><li><a href="#5-%E4%B8%A4%E6%9D%A1%E7%BA%BF%E5%A6%82%E4%BD%95%E5%92%AC%E5%90%88">5. 两条线如何咬合</a></li><li><a href="#6-%E4%B8%8E%E7%9B%B4%E6%8E%A5%E9%97%AE-llm-%E7%9A%84%E5%AF%B9%E6%AF%94">6. 与直接问 LLM 的对比</a></li><li><a href="#7-%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E5%B8%B8%E8%A7%81%E5%9D%91">7. 实践中的常见坑</a></li><li><a href="#8-%E5%B0%8F%E7%BB%93">8. 小结</a></li></ul><hr><h2 id="1-什么是-RAG"><a href="#1-什么是-RAG" class="headerlink" title="1. 什么是 RAG"></a>1. 什么是 RAG</h2><p>RAG（Retrieval-Augmented Generation，检索增强生成）解决的是这类问题：大模型参数里的知识有截止日期，也不包含你的私有文档、内部 Wiki、最新业务说明。</p><p>做法可以概括成一句话：</p><blockquote><p>先把文档变成可检索的向量存起来；用户提问时，先检索相关片段，再把「问题 + 相关文档」一起交给 LLM 生成回答。</p></blockquote><p>这样回答更能锚定真实资料，也能降低「凭空编造」的概率，并便于标注出处。</p><hr><h2 id="2-总览：一张图看清两条主线"><a href="#2-总览：一张图看清两条主线" class="headerlink" title="2. 总览：一张图看清两条主线"></a>2. 总览：一张图看清两条主线</h2><p>下图把 RAG 拆成上下两块：<strong>Indexing（索引入库）</strong> 与 <strong>提问后的 Retrieve &#x2F; Generate（检索与生成）</strong>。</p><p><img src="https://qijian-1301807797.cos.ap-guangzhou.myqcloud.com/markdown/rag-workflow/rag-workflow-001-diagram.png" alt="RAG 工作流程：Indexing 与 Retrieve/Generate"></p><p>读图时抓住三点：</p><ol><li><strong>上方虚线框 Indexing</strong>：文档 → 解析 → 分块 → 嵌入 → 写入 Vector store，通常离线完成。</li><li><strong>下方在线链路</strong>：User 的 query → 同样经 Embedding Model 向量化 → 检索 Vector store → 得到 Relevant docs → 与 query 组成 prompt → LLM Generate → response。</li><li><strong>Embedding Model 与 Vector store 被两边共用</strong>：建库和查询必须处在同一套语义空间里。</li></ol><hr><h2 id="3-Indexing：离线建索引"><a href="#3-Indexing：离线建索引" class="headerlink" title="3. Indexing：离线建索引"></a>3. Indexing：离线建索引</h2><p>Indexing 是后台预处理。用户提问之前，知识库就应准备好（也可定期增量更新）。</p><h3 id="3-1-Docs：原始文档"><a href="#3-1-Docs：原始文档" class="headerlink" title="3.1 Docs：原始文档"></a>3.1 Docs：原始文档</h3><p>起点是各类原始材料，例如：</p><ul><li>PDF、Word、网页、Markdown</li><li>内部 Wiki、工单、产品说明</li><li>代码仓库中的文档与注释（视场景而定）</li></ul><p>图中左侧的 <strong>Docs</strong> 即这一层输入。</p><h3 id="3-2-Parsing-Preprocessing-→-Parsed-docs"><a href="#3-2-Parsing-Preprocessing-→-Parsed-docs" class="headerlink" title="3.2 Parsing + Preprocessing → Parsed docs"></a>3.2 Parsing + Preprocessing → Parsed docs</h3><p>对原始文件做解析与清洗，常见动作包括：</p><ul><li>从 PDF &#x2F; HTML 抽出正文</li><li>去掉页眉页脚、导航、广告、乱码</li><li>统一编码，保留标题、列表、表格等结构信息</li></ul><p>输出是更干净、结构化的 <strong>Parsed docs</strong>，为后续切分和嵌入打基础。</p><h3 id="3-3-Chunking-→-Chunks"><a href="#3-3-Chunking-→-Chunks" class="headerlink" title="3.3 Chunking → Chunks"></a>3.3 Chunking → Chunks</h3><p>把长文档切成较小的 <strong>chunks（块）</strong>。原因主要有三点：</p><table><thead><tr><th>原因</th><th>说明</th></tr></thead><tbody><tr><td>模型长度限制</td><td>Embedding 与后续 Prompt 都有 token 上限</td></tr><tr><td>检索粒度</td><td>需要命中「相关段落」，而不是整本文件</td></tr><tr><td>噪声控制</td><td>整篇塞进上下文会稀释重点、浪费配额</td></tr></tbody></table><p>常见切分策略：按固定字数 &#x2F; token、按标题层级、滑动窗口并保留一定重叠。图中一摞 <strong>chunks</strong> 就是切分结果。</p><h3 id="3-4-Embedding-Model-→-Vectorize"><a href="#3-4-Embedding-Model-→-Vectorize" class="headerlink" title="3.4 Embedding Model → Vectorize"></a>3.4 Embedding Model → Vectorize</h3><p>每个 chunk 送入 <strong>Embedding Model（嵌入模型）</strong>，把文本映射成高维向量（图中彩色条）。语义相近的文本，在向量空间中距离也更近。</p><p><strong>关键约定</strong>：入库所用的嵌入模型，必须与在线查询时一致（或明确兼容）。换模型却不重建索引，检索质量会明显下降。</p><h3 id="3-5-写入-Vector-store"><a href="#3-5-写入-Vector-store" class="headerlink" title="3.5 写入 Vector store"></a>3.5 写入 Vector store</h3><p>向量通常连同原文 chunk、来源路径、页码等元数据，一并写入 <strong>Vector store（向量库）</strong>。图中粉色数据库图标即此处。</p><p>至此 Indexing 完成：文档已从「不可直接检索的文件」变成「可按语义召回的知识库」。</p><hr><h2 id="4-Retrieve-Generate：在线问答"><a href="#4-Retrieve-Generate：在线问答" class="headerlink" title="4. Retrieve + Generate：在线问答"></a>4. Retrieve + Generate：在线问答</h2><p>用户一提问，进入图下半部分的实时链路。</p><h3 id="4-1-User-→-Query"><a href="#4-1-User-→-Query" class="headerlink" title="4.1 User → Query"></a>4.1 User → Query</h3><p>用户提出自然语言问题，图中绿色圆 <strong>query</strong>。</p><h3 id="4-2-对问题做-Embedding-→-Vectorize"><a href="#4-2-对问题做-Embedding-→-Vectorize" class="headerlink" title="4.2 对问题做 Embedding → Vectorize"></a>4.2 对问题做 Embedding → Vectorize</h3><p>使用<strong>与建库相同的 Embedding Model</strong>，把 query 也变成向量。这样问题和文档块处在同一向量空间，才能做有意义的相似度比较。</p><h3 id="4-3-Retrieve：检索-Vector-store"><a href="#4-3-Retrieve：检索-Vector-store" class="headerlink" title="4.3 Retrieve：检索 Vector store"></a>4.3 Retrieve：检索 Vector store</h3><p>用问题向量在 Vector store 中做相似度搜索（常见为余弦相似度、点积，以及 ANN 近似最近邻），取出最相关的若干 chunk，得到图中的 <strong>Relevant docs</strong>。</p><p>工程上还可以叠加：</p><ul><li>元数据过滤（权限、时间、文件类型）</li><li>重排序（Rerank）提升精排质量</li><li>Top-K、相似度阈值等召回控制</li></ul><p>图中用箭头 <strong>Retrieve</strong> 概括「带着向量去库里取相关文档」这一步。</p><h3 id="4-4-组装-Prompt"><a href="#4-4-组装-Prompt" class="headerlink" title="4.4 组装 Prompt"></a>4.4 组装 Prompt</h3><p>把下列内容拼成送给 LLM 的输入（图中黄色区域旁的 <strong>prompt</strong>）：</p><ul><li>用户原始 <strong>query</strong></li><li>检索到的 <strong>Relevant docs</strong></li><li>系统约束（例如：仅依据给定资料作答、资料不足时明确说明、尽量标注来源）</li></ul><p>这就是「增强」：模型不再只依赖参数记忆，还带上了刚检索到的证据片段。</p><h3 id="4-5-LLM-→-Generate-→-Response"><a href="#4-5-LLM-→-Generate-→-Response" class="headerlink" title="4.5 LLM → Generate → Response"></a>4.5 LLM → Generate → Response</h3><p><strong>LLM</strong>（图中蓝色六边形）根据增强后的 Prompt 执行 <strong>Generate</strong>，产出最终 <strong>response</strong> 返回用户。</p><p>理想行为是：答案主要依据 Relevant docs；资料不足时承认不确定，而不是补全虚构细节。</p><hr><h2 id="5-两条线如何咬合"><a href="#5-两条线如何咬合" class="headerlink" title="5. 两条线如何咬合"></a>5. 两条线如何咬合</h2><p>用流程把图中上下两部分串起来：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">【离线 Indexing】</span><br><span class="line">Docs</span><br><span class="line">  → Parsing + Preprocessing → Parsed docs</span><br><span class="line">  → Chunking → chunks</span><br><span class="line">  → Embedding Model → Vectorize</span><br><span class="line">  → Vector store</span><br><span class="line"></span><br><span class="line">【在线问答】</span><br><span class="line">User query</span><br><span class="line">  → Embedding Model → Vectorize</span><br><span class="line">  → Retrieve（查 Vector store）→ Relevant docs</span><br><span class="line">  → query + Relevant docs → Prompt</span><br><span class="line">  → LLM → Generate → response</span><br></pre></td></tr></table></figure><p>共享部件：</p><table><thead><tr><th>部件</th><th>作用</th></tr></thead><tbody><tr><td>Embedding Model</td><td>文档块与问题共用同一套语义编码</td></tr><tr><td>Vector store</td><td>Indexing 写入、Retrieve 读取的中枢</td></tr></tbody></table><hr><h2 id="6-与直接问-LLM-的对比"><a href="#6-与直接问-LLM-的对比" class="headerlink" title="6. 与直接问 LLM 的对比"></a>6. 与直接问 LLM 的对比</h2><table><thead><tr><th>维度</th><th>直接问 LLM</th><th>RAG</th></tr></thead><tbody><tr><td>知识来源</td><td>训练数据 + 当前对话</td><td>训练知识 + <strong>你索引过的文档</strong></td></tr><tr><td>私有 &#x2F; 最新资料</td><td>难以即时纳入</td><td>更新文档并重建或增量索引即可</td></tr><tr><td>可追溯性</td><td>弱</td><td>可引用具体 chunk &#x2F; 文件来源</td></tr><tr><td>复杂度与成本</td><td>低</td><td>多了解析、切分、向量库与检索链路</td></tr></tbody></table><p>RAG 不是取代 LLM，而是给生成过程装上「先查资料再回答」的外挂记忆。</p><hr><h2 id="7-实践中的常见坑"><a href="#7-实践中的常见坑" class="headerlink" title="7. 实践中的常见坑"></a>7. 实践中的常见坑</h2><p>对照流程图，落地时尤其要注意：</p><ol><li><strong>Chunk 太大</strong>：检索不准，命中块里噪声多；<strong>太碎</strong>：上下文破碎，答案拼不起来。</li><li><strong>换了 Embedding 却不重建库</strong>：查询向量与库内向量不在同一空间，召回失效。</li><li><strong>只检索、不约束 Prompt</strong>：模型仍可能忽略资料自由发挥 → 系统提示里要明确「依据资料作答」。</li><li><strong>Indexing 质量差</strong>（解析乱、切分差、重复垃圾多）：后面 Retrieve &#x2F; Generate 再优化也救不回来。</li><li><strong>权限与数据范围</strong>：向量库若混入不该暴露的文档，检索可能把敏感片段送进 Prompt。</li></ol><hr><h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><p>RAG 工作流程可以压成两句：</p><ol><li><strong>Indexing</strong>：文档解析 → 分块 → 嵌入 → 存入向量库。  </li><li><strong>Online</strong>：问题嵌入 → 检索相关块 → 与问题组成 Prompt → LLM 生成回答。</li></ol><p>图中 Indexing 框解决的是「知识怎么进库」；下方 User → LLM 链路解决的是「提问时怎么把库用起来」。两者通过 <strong>Embedding Model</strong> 与 <strong>Vector store</strong> 对齐，才构成完整的检索增强生成。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 工程实践 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> Embedding </tag>
+            
+            <tag> 向量检索 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>从Agent到手撕OpenClaw的企业实战</title>
       <link href="//2026/10/23/agent-to-openclaw-enterprise-practice/"/>
       <url>//2026/10/23/agent-to-openclaw-enterprise-practice/</url>
@@ -171,9 +202,9 @@
             
             <tag> 大模型 </tag>
             
-            <tag> HTTP </tag>
-            
             <tag> MCP </tag>
+            
+            <tag> HTTP </tag>
             
             <tag> AI Agent </tag>
             
@@ -456,11 +487,11 @@
             
             <tag> Dify </tag>
             
+            <tag> 工作流 </tag>
+            
             <tag> 微调 </tag>
             
             <tag> JSONL </tag>
-            
-            <tag> 工作流 </tag>
             
         </tags>
       
@@ -485,13 +516,13 @@
       
         <tags>
             
-            <tag> Dify </tag>
-            
-            <tag> 工作流 </tag>
-            
             <tag> LLM </tag>
             
+            <tag> Dify </tag>
+            
             <tag> Docker </tag>
+            
+            <tag> 工作流 </tag>
             
         </tags>
       
